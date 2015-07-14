@@ -14,10 +14,6 @@ int main(int argc, char **argv)
 
   MIN_N = 10;
 
-  //cout << "ZERO: " << ZERO << endl;
-  //cout << "HUGE_VAL: " << HUGE_VAL << endl;
-  //cout << "1 - ZERO: " << 1-ZERO << endl;
-
   UniformReal uniform_distribution(0,1);
   RandomNumberGenerator generator;
   Generator num_gen(generator,uniform_distribution); 
@@ -31,7 +27,6 @@ int main(int argc, char **argv)
   if (parameters.test == SET) {
     TestFunctions();
   }
-
 
   delete(uniform_generator);
 

@@ -41,6 +41,7 @@
 #include <boost/math/special_functions/detail/erf_inv.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/distributions.hpp>
+#include <boost/math/tools/roots.hpp>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -70,6 +71,31 @@ typedef boost::numeric::ublas::zero_matrix<double> ZeroMatrix;
 
 #define SET 1 
 #define UNSET 0
+
+#define SINE 0
+#define COSINE 1
+
+#define NUM_METHODS 4 
+#define MOMENT 0 
+#define MLE 1
+#define MAP 2
+#define MML 3 
+
+#define AIC 0
+#define BIC 1
+#define ICL 2
+#define MMLC 3
+
+#define DEFAULT_RESOLUTION 1
+#define MAX_COMPONENTS 100
+#define DEFAULT_FIT_COMPONENTS 2
+#define DEFAULT_SIMULATE_COMPONENTS 2
+#define DEFAULT_SAMPLE_SIZE 2000
+#define DEFAULT_MAX_KAPPA 1000
+
+#define SPLIT 0
+#define KILL 1
+#define JOIN 2
 
 #endif
 
