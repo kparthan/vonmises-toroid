@@ -39,21 +39,43 @@ class UnimodalSineObjectiveFunction
     }
 };
 
+struct FunctionToApproximate  {
+  double operator() (double x)  {
+    return x*x - 3*x + 1;  // Replace with your function
+  }
+};
+
+struct TerminationCondition  {
+  bool operator() (double min, double max)  {
+    return abs(min - max) <= 0.000001;
+  }
+};
+
 class CustomFunctionSine
 {
   private:
     double mu1;
 
-    double kappa1,kappa2,lambda;
+    double kappa1,kappa2,lambda,rhs;
 
   public:
     CustomFunctionSine(
       double mu1, double kappa1, double kappa2, double lambda
     ) : mu1(mu1), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
-    {}
+    {
+      rhs = kappa1 / (lambda * lambda);
+    }
 
-
-    double solve();
+    double solve (double x) {
+      double tmp = lambda * sin(x - mu1);
+      double asq = kappa2 * kappa2 + tmp * tmp;
+      double a = sqrt(asq);
+      double ratio_bessel = computeRatioBessel(a);
+      
+      double fval = cos(x - mu1) * ratio_bessel / a;
+      fval -= rhs;
+      return fval;
+    }
 };
 
 class MarginalDensitySine

@@ -43,6 +43,16 @@ Vector MarginalDensitySine::minimize_unimodal_objective()
 // bimodal marginal density
 double MarginalDensitySine::solve_custom_function()
 {
+  double left = mu1 - PI/2;
+  double right = mu1 + PI/2;
+
   CustomFunctionSine function(mu1,kappa1,kappa2,lambda);
+  std::pair<double, double> result 
+      = boost::math::tools::bisect(
+          boost::bind(&CustomFunctionSine::solve,&function,_1),
+          left,right, TerminationCondition()
+        );
+  double root = (result.first + result.second) / 2;  
+  return root;
 }
 
