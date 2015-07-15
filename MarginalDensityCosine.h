@@ -58,7 +58,7 @@ class CustomFunctionCosine
 
     double solve (double x) {
       double k23sq = kappa2 * kappa2 + kappa3 * kappa3 
-                     - (2 * kappa2 * kappa3 * cos(theta-mu1));
+                     - (2 * kappa2 * kappa3 * cos(x-mu1));
       double k23 = sqrt(k23sq);
 
       double ratio_bessel = computeRatioBessel(k23);

@@ -13,8 +13,8 @@ function [] = plot_torus(data_file)
   hold on;
   axis equal;
   set(gcf, 'Color', 'w');
-  surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
-  %surfl(X,Y,Z);
+  %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
+  surfl(X,Y,Z);
 
   M = load(data_file);
   x = M(:,1);

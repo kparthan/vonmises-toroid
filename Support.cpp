@@ -1070,7 +1070,9 @@ void TestFunctions(void)
 
   //test.generate_mix_vmc();
 
-  test.generate_bvm_sine();
+  //test.generate_bvm_sine();
+
+  test.generate_bvm_cosine();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\

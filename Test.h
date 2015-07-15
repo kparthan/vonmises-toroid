@@ -17,6 +17,8 @@ class Test
     void generate_mix_vmc();
 
     void generate_bvm_sine();
+
+    void generate_bvm_cosine();
 };
 
 #endif

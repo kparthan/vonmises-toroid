@@ -147,9 +147,14 @@ std::vector<Vector> BVM_Cosine::generate(int sample_size)
       double diff = thetas[i] - mu1;
       double num = -kappa3 * sin(diff);
       double denom = kappa2 - kappa3 * cos(diff);
-      double beta = atan2
+      double m = atan2(num,denom);
+      if (m < 0) m += (2 * PI);
 
-      vMC vmc(m,k);
+      double k23sq = kappa2 * kappa2 + kappa3 * kappa3 
+                     - (2 * kappa2 * kappa3 * cos(thetas[i]-mu1));
+      double k23 = sqrt(k23sq);
+
+      vMC vmc(m,k23);
       Vector x1 = vmc.generate(1);
       pair[1] = x1[0];
 

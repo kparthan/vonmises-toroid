@@ -4,6 +4,7 @@
 #include "vMC.h"
 #include "Mixture_vMC.h"
 #include "BVM_Sine.h"
+#include "BVM_Cosine.h"
 
 extern Vector XAXIS,YAXIS,ZAXIS;
 extern int ENABLE_DATA_PARALLELISM;
@@ -87,5 +88,19 @@ void Test::generate_bvm_sine()
 
   std::vector<Vector> random_sample = bvm_sine.generate_cartesian(N);
   writeToFile("bvm_sine.dat",random_sample);
+}
+
+void Test::generate_bvm_cosine()
+{
+  double mu1,mu2,kappa1,kappa2,kappa3;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 120; kappa1 = 20; kappa2 = 20; kappa3 = 0;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
+
+  std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(N);
+  writeToFile("bvm_cosine.dat",random_sample);
 }
 
