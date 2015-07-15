@@ -1066,7 +1066,11 @@ void TestFunctions(void)
 {
   Test test;
 
-  test.generate_vmc();
+  //test.generate_vmc();
+
+  //test.generate_mix_vmc();
+
+  test.generate_bvm_sine();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1281,6 +1285,86 @@ double accept_reject_fval_unimodal_marginal_sine(
   fval += computeLogModifiedBesselFirstKind(0,a);
   fval += computeLogModifiedBesselFirstKind(0,kappa);
   fval += ((kappa1 - kappa) * cos(theta - mu1));
+
+  return fval;
+}
+
+double accept_reject_fval_bimodal_marginal_sine(
+  double &theta, 
+  double &kappa, 
+  double &mu1, 
+  double &kappa1, 
+  double &kappa2, 
+  double &lambda,
+  double &mode1,
+  double &mode2
+) {
+  double tmp = lambda * sin(theta - mu1);
+  double asq = kappa2 * kappa2 + tmp * tmp;
+  double a = sqrt(asq);
+
+  double fval = 0;
+  fval += computeLogModifiedBesselFirstKind(0,a);
+  fval += (kappa1 * cos(theta - mu1));
+
+  Vector weights(2,0.5);
+  vMC vmc1(mode1,kappa);
+  vMC vmc2(mode2,kappa);
+  std::vector<vMC> components;
+  components.push_back(vmc1); components.push_back(vmc2);
+  Mixture_vMC mix(2,weights,components);
+  
+  fval -= mix.log_density(theta);
+
+  return fval;
+}
+
+double accept_reject_fval_unimodal_marginal_cosine(
+  double &theta, 
+  double &kappa, 
+  double &mu1, 
+  double &kappa1, 
+  double &kappa2, 
+  double &kappa3
+) {
+  double k23sq = kappa2 * kappa2 + kappa3 * kappa3 
+                 - (2 * kappa2 * kappa3 * cos(theta-mu1));
+  double k23 = sqrt(k23sq);
+
+  double fval = 0;
+  fval += computeLogModifiedBesselFirstKind(0,k23);
+  fval += computeLogModifiedBesselFirstKind(0,kappa);
+  fval += ((kappa1 - kappa) * cos(theta - mu1));
+
+  return fval;
+}
+
+double accept_reject_fval_bimodal_marginal_cosine(
+  double &theta, 
+  double &kappa, 
+  double &mu1, 
+  double &kappa1, 
+  double &kappa2, 
+  double &kappa3,
+  double &mode1,
+  double &mode2
+) {
+  double k23sq = kappa2 * kappa2 + kappa3 * kappa3 
+                 - (2 * kappa2 * kappa3 * cos(theta-mu1));
+  double k23 = sqrt(k23sq);
+
+  double fval = 0;
+  fval += computeLogModifiedBesselFirstKind(0,k23);
+  fval += (kappa1 * cos(theta - mu1));
+
+  Vector weights(2,0.5);
+  vMC vmc1(mode1,kappa);
+  vMC vmc2(mode2,kappa);
+  std::vector<vMC> components;
+  components.push_back(vmc1); components.push_back(vmc2);
+  Mixture_vMC mix(2,weights,components);
+  
+  fval -= mix.log_density(theta);
 
   return fval;
 }

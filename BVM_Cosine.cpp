@@ -1,54 +1,56 @@
-#include "BVM_Sine.h"
+#include "BVM_Cosine.h"
 #include "vMC.h"
 #include "Mixture_vMC.h"
-#include "MarginalDensitySine.h"
+#include "MarginalDensityCosine.h"
 
-BVM_Sine::BVM_Sine()
+BVM_Cosine::BVM_Cosine()
 {
   mu1 = 0; mu2 = 0;
   kappa1 = 1; kappa2 = 1;
-  lambda = 0; // independent
+  kappa3 = 0; // independent
   computed = UNSET;
 }
 
-BVM_Sine::BVM_Sine(double kappa1, double kappa2, double lambda) :
-                   kappa1(kappa1), kappa2(kappa2), lambda(lambda)
+BVM_Cosine::BVM_Cosine(double kappa1, double kappa2, double kappa3) :
+                       kappa1(kappa1), kappa2(kappa2), kappa3(kappa3)
 {
   mu1 = 0; mu2 = 0;
   computed = UNSET;
 }
 
-BVM_Sine::BVM_Sine(double mu1, double mu2, double kappa1, double kappa2, double lambda) :
-          mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
+BVM_Cosine::BVM_Cosine(
+  double mu1, double mu2, double kappa1, double kappa2, double kappa3
+) : mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), kappa3(kappa3)
 {
   computed = UNSET;
 }
 
-BVM_Sine BVM_Sine::operator=(const BVM_Sine &source)
+BVM_Cosine BVM_Cosine::operator=(const BVM_Cosine &source)
 {
   if (this != &source) {
     mu1 = source.mu1;
     mu2 = source.mu2;
     kappa1 = source.kappa1;
     kappa2 = source.kappa2;
-    lambda = source.lambda;
+    kappa3 = source.kappa3;
     constants = source.constants;
     computed = source.computed;
   }
   return *this;
 }
 
-std::vector<Vector> BVM_Sine::generate(int sample_size)
+std::vector<Vector> BVM_Cosine::generate(int sample_size)
 {
   std::vector<Vector> angle_pairs(sample_size);
 
-  if (lambda != 0) {
+  if (kappa3 != 0) {
     /* first, generate from marginal density */
-    MarginalDensitySine marginal(mu1,kappa1,kappa2,lambda);
+    MarginalDensityCosine marginal(mu1,kappa1,kappa2,kappa3);
     
     /* check if marginal density is unimodal or bimodal */
-    double ratio_bessel = computeRatioBessel(kappa2);
-    double rhs = (kappa1 * kappa2) / (lambda * lambda);
+    double kappa_diff = fabs(kappa2 - kappa3);
+    double ratio_bessel = computeRatioBessel(kappa_diff);
+    double rhs = (kappa_diff * kappa1) / (kappa2 * kappa3);
 
     Vector thetas(sample_size,0);
     int unimodal;
@@ -77,8 +79,8 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
       for (int i=0; i<proposal_thetas.size(); i++) {
         if (count == sample_size) break;
         double u = uniform_random();
-        double log_fg = accept_reject_fval_unimodal_marginal_sine(
-                          proposal_thetas[i],optimal_kappa,mu1,kappa1,kappa2,lambda
+        double log_fg = accept_reject_fval_unimodal_marginal_cosine(
+                          proposal_thetas[i],optimal_kappa,mu1,kappa1,kappa2,kappa3
                         );
         if (log_fg > log(u) + log_max) {  /* accept */
           thetas[count++] = proposal_thetas[i];
@@ -126,7 +128,7 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
         if (count == sample_size) break;
         double u = uniform_random();
         double log_fg = accept_reject_fval_bimodal_marginal_sine(
-                          proposal_thetas[i],optimal_kappa,mu1,kappa1,kappa2,lambda,m1,m2
+                          proposal_thetas[i],optimal_kappa,mu1,kappa1,kappa2,kappa3,m1,m2
                         );
         if (log_fg > log(u) + log_max) {  /* accept */
           thetas[count++] = proposal_thetas[i];
@@ -142,13 +144,11 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
     Vector pair(2,0);
     for (int i=0; i<thetas.size(); i++) {
       pair[0] = thetas[i];
-      double lambda_sine = lambda * sin(thetas[i] - mu1);
-      double beta = atan2(lambda_sine,kappa2);
-      if (beta < 0) beta += (2 * PI);
-      double m = mu2 + beta;
+      double diff = thetas[i] - mu1;
+      double num = -kappa3 * sin(diff);
+      double denom = kappa2 - kappa3 * cos(diff);
+      double beta = atan2
 
-      double asq = kappa2 * kappa2 + lambda_sine * lambda_sine;
-      double k = sqrt(asq);
       vMC vmc(m,k);
       Vector x1 = vmc.generate(1);
       pair[1] = x1[0];
@@ -168,12 +168,12 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
       pair[1] = angles2[i];
       angle_pairs[i] = pair;
     } // for ()
-  } // if (lambda != 0) {
+  } // if (kappa3 != 0) {
 
   return angle_pairs;
 }
 
-std::vector<Vector> BVM_Sine::generate_cartesian(int sample_size)
+std::vector<Vector> BVM_Cosine::generate_cartesian(int sample_size)
 {
   std::vector<Vector> angle_pairs = generate(sample_size);
 
@@ -193,7 +193,7 @@ std::vector<Vector> BVM_Sine::generate_cartesian(int sample_size)
   return random_sample;
 }
 
-BVM_Sine::Constants BVM_Sine::getConstants()
+BVM_Cosine::Constants BVM_Cosine::getConstants()
 {
   if (computed != SET) {
     computeExpectation();
@@ -201,14 +201,14 @@ BVM_Sine::Constants BVM_Sine::getConstants()
   return constants;
 }
 
-void BVM_Sine::computeExpectation()
+void BVM_Cosine::computeExpectation()
 {
   computeConstants();
 
   computed = SET;
 }
 
-void BVM_Sine::computeConstants()
+void BVM_Cosine::computeConstants()
 {
   constants.log_c = computeLogNormalizationConstant();
 }
@@ -216,7 +216,7 @@ void BVM_Sine::computeConstants()
 /*!
  *  logarithm of normalization constant
  */
-double BVM_Sine::computeLogNormalizationConstant()
+double BVM_Cosine::computeLogNormalizationConstant()
 {
 }
 

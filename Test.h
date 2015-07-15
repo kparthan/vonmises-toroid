@@ -13,6 +13,10 @@ class Test
     void bessel();
 
     void generate_vmc();
+
+    void generate_mix_vmc();
+
+    void generate_bvm_sine();
 };
 
 #endif

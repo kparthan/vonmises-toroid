@@ -13,6 +13,8 @@ OBJECTS = main.o \
   Mixture_vMC.o \
   BVM_Sine.o \
   MarginalDensitySine.o \
+  BVM_Cosine.o \
+  MarginalDensityCosine.o \
   Test.o 
 
 all: main 
@@ -39,6 +41,12 @@ BVM_Sine.o: BVM_Sine.cpp BVM_Sine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 MarginalDensitySine.o: MarginalDensitySine.cpp MarginalDensitySine.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+BVM_Cosine.o: BVM_Cosine.cpp BVM_Cosine.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+MarginalDensityCosine.o: MarginalDensityCosine.cpp MarginalDensityCosine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 Test.o: Test.cpp Test.h Header.h

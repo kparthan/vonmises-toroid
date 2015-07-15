@@ -1,14 +1,14 @@
-#include "MarginalDensitySine.h"
+#include "MarginalDensityCosine.h"
 
 extern double MAX_KAPPA;
 
-MarginalDensitySine::MarginalDensitySine(
-                      double mu1, double kappa1, double kappa2, double lambda
-                     ) : mu1(mu1), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
+MarginalDensityCosine::MarginalDensityCosine(
+                        double mu1, double kappa1, double kappa2, double kappa3
+                       ) : mu1(mu1), kappa1(kappa1), kappa2(kappa2), kappa3(kappa3)
 {}
 
 // unimodal marginal density
-Vector MarginalDensitySine::minimize_unimodal_objective()
+Vector MarginalDensityCosine::minimize_unimodal_objective()
 {
   int num_params = 1;
 
@@ -30,8 +30,8 @@ Vector MarginalDensitySine::minimize_unimodal_objective()
 
   double minf;
 
-  UnimodalSineObjectiveFunction function(mu1,kappa1,kappa2,lambda);
-  opt.set_min_objective(UnimodalSineObjectiveFunction::wrap, &function);
+  UnimodalCosineObjectiveFunction function(mu1,kappa1,kappa2,kappa3);
+  opt.set_min_objective(UnimodalCosineObjectiveFunction::wrap, &function);
   nlopt::result result = opt.optimize(x, minf);
 
   //cout << "solution: (" << x[0]*180/PI << ", " << x[1] << ")\n";
@@ -45,17 +45,17 @@ Vector MarginalDensitySine::minimize_unimodal_objective()
 }
 
 // bimodal marginal density
-double MarginalDensitySine::solve_custom_function()
+double MarginalDensityCosine::solve_custom_function()
 {
   //double left = mu1 - PI/2;
   //double right = mu1 + PI/2;
   double left = 0;
   double right = PI;
 
-  CustomFunctionSine function(mu1,kappa1,kappa2,lambda);
+  CustomFunctionCosine function(mu1,kappa1,kappa2,kappa3);
   std::pair<double, double> result 
       = boost::math::tools::bisect(
-          boost::bind(&CustomFunctionSine::solve,&function,_1),
+          boost::bind(&CustomFunctionCosine::solve,&function,_1),
           left,right, TerminationCondition()
         );
   double root = (result.first + result.second) / 2;  
@@ -63,7 +63,7 @@ double MarginalDensitySine::solve_custom_function()
 }
 
 // bimodal marginal density
-Vector MarginalDensitySine::minimize_bimodal_objective(double mode1, double mode2)
+Vector MarginalDensityCosine::minimize_bimodal_objective(double mode1, double mode2)
 {
   int num_params = 1;
 
@@ -85,8 +85,8 @@ Vector MarginalDensitySine::minimize_bimodal_objective(double mode1, double mode
 
   double minf;
 
-  BimodalSineObjectiveFunction function(mu1,kappa1,kappa2,lambda,mode1,mode2);
-  opt.set_min_objective(BimodalSineObjectiveFunction::wrap, &function);
+  BimodalCosineObjectiveFunction function(mu1,kappa1,kappa2,kappa3,mode1,mode2);
+  opt.set_min_objective(BimodalCosineObjectiveFunction::wrap, &function);
   nlopt::result result = opt.optimize(x, minf);
 
   //cout << "solution: (" << x[0] << ", " << x[1] << ")\n";

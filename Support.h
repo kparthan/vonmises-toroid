@@ -2,6 +2,7 @@
 #define SUPPORT_H
 
 #include "Header.h"
+#include "Mixture_vMC.h"
 
 struct Parameters
 {
@@ -30,6 +31,12 @@ struct Parameters
                             // during inference
   int estimate_all;         // estimate using all methods
   int compute_responsibility_matrix;  // flag
+};
+
+struct TerminationCondition  {
+  bool operator() (double min, double max)  {
+    return fabs(min - max) <= TOLERANCE;
+  }
 };
 
 // general functions
@@ -101,6 +108,15 @@ int maximumIndex(Vector &);
 
 double accept_reject_fval_unimodal_marginal_sine(
   double &, double &, double &, double &, double &, double &
+);
+double accept_reject_fval_bimodal_marginal_sine(
+  double &, double &, double &, double &, double &, double &, double &, double &
+);
+double accept_reject_fval_unimodal_marginal_cosine(
+  double &, double &, double &, double &, double &, double &
+);
+double accept_reject_fval_bimodal_marginal_cosine(
+  double &, double &, double &, double &, double &, double &, double &, double &
 );
 
 #endif

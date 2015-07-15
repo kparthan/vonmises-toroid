@@ -30,25 +30,15 @@ class UnimodalSineObjectiveFunction
       const Vector &x, Vector &grad
     ) {
       double theta = x[0];
-      double kappa = x[1];
+      //double kappa = x[1];
+      //double kappa = kappa1;
+      double kappa = 1;
 
       double fval = accept_reject_fval_unimodal_marginal_sine(
                       theta,kappa,mu1,kappa1,kappa2,lambda
                     );
       return -fval;
     }
-};
-
-struct FunctionToApproximate  {
-  double operator() (double x)  {
-    return x*x - 3*x + 1;  // Replace with your function
-  }
-};
-
-struct TerminationCondition  {
-  bool operator() (double min, double max)  {
-    return abs(min - max) <= 0.000001;
-  }
 };
 
 class CustomFunctionSine
@@ -78,6 +68,41 @@ class CustomFunctionSine
     }
 };
 
+class BimodalSineObjectiveFunction
+{
+  private:
+    double mu1,mode1,mode2;
+
+    double kappa1,kappa2,lambda;
+
+  public:
+    BimodalSineObjectiveFunction(
+      double mu1, double kappa1, double kappa2, double lambda, double mode1, double mode2
+    ) : mu1(mu1), kappa1(kappa1), kappa2(kappa2), lambda(lambda), mode1(mode1), mode2(mode2)
+    {}
+
+    static double wrap(
+      const Vector &x, 
+      Vector &grad, 
+      void *data
+    ) {
+        return (*reinterpret_cast<BimodalSineObjectiveFunction*>(data))(x, grad); 
+    }
+
+    double operator() (
+      const Vector &x, Vector &grad
+    ) {
+      double theta = x[0];
+      //double kappa = x[1];
+      double kappa = 1;
+
+      double fval = accept_reject_fval_bimodal_marginal_sine(
+                      theta,kappa,mu1,kappa1,kappa2,lambda,mode1,mode2
+                    );
+      return -fval;
+    }
+};
+
 class MarginalDensitySine
 {
   private:
@@ -91,6 +116,8 @@ class MarginalDensitySine
     Vector minimize_unimodal_objective();
 
     double solve_custom_function();
+
+    Vector minimize_bimodal_objective(double, double);
 };
 
 #endif
