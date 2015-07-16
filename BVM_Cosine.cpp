@@ -127,7 +127,7 @@ std::vector<Vector> BVM_Cosine::generate(int sample_size)
       for (int i=0; i<proposal_thetas.size(); i++) {
         if (count == sample_size) break;
         double u = uniform_random();
-        double log_fg = accept_reject_fval_bimodal_marginal_sine(
+        double log_fg = accept_reject_fval_bimodal_marginal_cosine(
                           proposal_thetas[i],optimal_kappa,mu1,kappa1,kappa2,kappa3,m1,m2
                         );
         if (log_fg > log(u) + log_max) {  /* accept */
@@ -147,11 +147,12 @@ std::vector<Vector> BVM_Cosine::generate(int sample_size)
       double diff = thetas[i] - mu1;
       double num = -kappa3 * sin(diff);
       double denom = kappa2 - kappa3 * cos(diff);
-      double m = atan2(num,denom);
+      double beta = atan2(num,denom);
+      double m = mu2 + beta;
       if (m < 0) m += (2 * PI);
 
       double k23sq = kappa2 * kappa2 + kappa3 * kappa3 
-                     - (2 * kappa2 * kappa3 * cos(thetas[i]-mu1));
+                     - (2 * kappa2 * kappa3 * cos(diff));
       double k23 = sqrt(k23sq);
 
       vMC vmc(m,k23);

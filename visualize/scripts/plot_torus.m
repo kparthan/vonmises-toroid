@@ -13,7 +13,7 @@ function [] = plot_torus(data_file)
   hold on;
   axis equal;
   set(gcf, 'Color', 'w');
-  %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
+  %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle','--');
   surfl(X,Y,Z);
 
   M = load(data_file);
@@ -21,6 +21,12 @@ function [] = plot_torus(data_file)
   y = M(:,2);
   z = M(:,3);
   plot3(x,y,z,'.','Color',[1 0 0]);
+
+%  M = load('../../bvm_cosine2.dat');
+%  x = M(:,1);
+%  y = M(:,2);
+%  z = M(:,3);
+%  plot3(x,y,z,'.','Color',[0 0 1]);
 
   xlabel('X');
   ylabel('Y');

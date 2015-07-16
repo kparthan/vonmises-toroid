@@ -144,8 +144,8 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
       pair[0] = thetas[i];
       double lambda_sine = lambda * sin(thetas[i] - mu1);
       double beta = atan2(lambda_sine,kappa2);
-      if (beta < 0) beta += (2 * PI);
       double m = mu2 + beta;
+      if (m < 0) m += (2 * PI);
 
       double asq = kappa2 * kappa2 + lambda_sine * lambda_sine;
       double k = sqrt(asq);

@@ -95,12 +95,12 @@ void Test::generate_bvm_cosine()
   double mu1,mu2,kappa1,kappa2,kappa3;
   int N = 1000;
 
-  mu1 = 90; mu2 = 120; kappa1 = 20; kappa2 = 20; kappa3 = 0;
+  mu1 = 67.4; mu2 = 96.2; kappa1 = 3.6; kappa2 = 1.9; kappa3 = -0.8;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
 
   std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(N);
-  writeToFile("bvm_cosine.dat",random_sample);
+  writeToFile("bvm_cosine2.dat",random_sample);
 }
 
