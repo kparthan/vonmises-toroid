@@ -76,12 +76,13 @@ void Test::generate_mix_vmc()
   writeToFile("mix_vmc.dat",random_sample);
 }
 
+/* sine model related */
 void Test::generate_bvm_sine()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 1000;
 
-  mu1 = 30; mu2 = 60; kappa1 = 25; kappa2 = 100; lambda = 70;
+  mu1 = 90; mu2 = 90; kappa1 = 200; kappa2 = 200; lambda = -180;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
@@ -90,17 +91,31 @@ void Test::generate_bvm_sine()
   writeToFile("bvm_sine.dat",random_sample);
 }
 
+void Test::sine_normalization_constant()
+{
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 20; kappa2 = 20; lambda = 1;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+  double log_norm = bvm_sine.computeLogNormalizationConstant();
+  cout << "log_norm: " << log_norm << endl;
+}
+
+/* cosine model related */
 void Test::generate_bvm_cosine()
 {
   double mu1,mu2,kappa1,kappa2,kappa3;
   int N = 1000;
 
-  mu1 = 67.4; mu2 = 96.2; kappa1 = 3.6; kappa2 = 1.9; kappa3 = -0.8;
+  mu1 = 90; mu2 = 90; kappa1 = 200; kappa2 = 200; kappa3 = 100;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
 
   std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(N);
-  writeToFile("bvm_cosine2.dat",random_sample);
+  writeToFile("bvm_cosine.dat",random_sample);
 }
 

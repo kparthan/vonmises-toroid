@@ -64,6 +64,7 @@ double computeSum(Vector &);
 double computeLogSurfaceAreaSphere(int);
 double uniform_random();
 double computeLogModifiedBesselFirstKind(double, double);
+double computeLogRatioBessel(double, double);
 double computeRatioBessel(double);
 
 std::vector<Vector> load_data_table(string &, int dim = 2);

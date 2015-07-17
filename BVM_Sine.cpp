@@ -218,5 +218,43 @@ void BVM_Sine::computeConstants()
  */
 double BVM_Sine::computeLogNormalizationConstant()
 {
+  // const = (lambda^2) / (2 * k1 * k2)
+  double log_const = 2 * log(fabs(lambda)) - log(2) - log(kappa1) - log(kappa2);
+
+  double log_bessel1_prev = computeLogModifiedBesselFirstKind(1,kappa1);
+  double log_bessel2_prev = computeLogModifiedBesselFirstKind(1,kappa2);
+  double log_f1 = log_const + log_bessel1_prev + log_bessel2_prev;
+  double log_fj_prev = log_f1;
+  double j = 1;
+  double series_sum = 1;
+  while (1) {
+    double log_bessel1_current = computeLogModifiedBesselFirstKind(j+1,kappa1);
+    double log_bessel2_current = computeLogModifiedBesselFirstKind(j+1,kappa2);
+    double log_fj_current = log_const + log(2*j+1) - log(j+1)
+                            + log_bessel1_current + log_bessel2_current
+                            - log_bessel1_prev - log_bessel2_prev;
+                            + log_fj_prev;
+    double log_diff = log_fj_current - log_f1;
+    double current = exp(log_diff); // tj
+    series_sum += current;
+    if (current/series_sum <= 1e-10) {
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_const: " << log_const << endl;
+      cout << "log_fj_prev: " << log_fj_prev << endl;
+      cout << "log_fj_current: " << log_fj_current << endl;
+      cout << "log_bessel1_prev: " << log_bessel1_prev << endl;
+      cout << "log_bessel2_prev: " << log_bessel2_prev << endl;
+      cout << "log_bessel1_current: " << log_bessel1_current << endl;
+      cout << "log_bessel2_current: " << log_bessel2_current << endl;
+      cout << "current: " << current << endl;
+      break;
+    }
+    j++;
+    log_bessel1_prev = log_bessel1_current; 
+    log_bessel2_prev = log_bessel2_current; 
+    log_fj_prev = log_fj_current;
+  } // while(1)
+  double ans = 2*log(2*PI) + log_f1 + log(series_sum);
+  return ans;
 }
 

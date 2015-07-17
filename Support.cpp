@@ -600,13 +600,25 @@ double computeLogModifiedBesselFirstKind(double alpha, double x)
   return (log_sm_current + (alpha * log(x/2.0)));
 }
 
-// A(k) = I1 / I0
+// A_d(k) = I_{d/2}(k) / I_{d/2-1}(k)
+double computeLogRatioBessel(double d, double kappa)
+{
+  double index = d / 2.0;
+  double log_num = computeLogModifiedBesselFirstKind(index,kappa);
+  index -= 1;
+  double log_denom = computeLogModifiedBesselFirstKind(index,kappa);
+  double log_Ad = log_num - log_denom;
+  return log_Ad;
+}
+
+// A_2(k) = I1 / I0
 double computeRatioBessel(double kappa)
 {
-  double log_I0 = computeLogModifiedBesselFirstKind(0,kappa);
+  /*double log_I0 = computeLogModifiedBesselFirstKind(0,kappa);
   double log_I1 = computeLogModifiedBesselFirstKind(1,kappa);
-  double log_Ak = log_I1 - log_I0;
-  return exp(log_Ak);
+  double log_Ad = log_I1 - log_I0;*/
+  double log_Ad = computeLogRatioBessel(2,kappa);
+  return exp(log_Ad);
 }
 
 ////////////////////// GEOMETRY FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1072,7 +1084,9 @@ void TestFunctions(void)
 
   //test.generate_bvm_sine();
 
-  test.generate_bvm_cosine();
+  test.sine_normalization_constant();
+
+  //test.generate_bvm_cosine();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
