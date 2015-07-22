@@ -39,6 +39,19 @@ struct TerminationCondition  {
   }
 };
 
+struct EstimatesSine
+{
+  double mu1,mu2;
+  double kappa1,kappa2,lambda;
+  double msglen,negloglike,kldiv;
+};
+
+struct SufficientStatisticsSine {
+  int N;
+  double cost1,cost2,sint1,sint2;
+  double sint1sint2,sint1cost2,cost1sint2,cost1cost2;
+};
+
 // general functions
 struct Parameters parseCommandLineInput (int, char **); 
 void Usage (const char *, options_description &);
@@ -49,6 +62,7 @@ void writeToFile(string &file_name, std::vector<Vector> &);
 void writeToFile(string &file_name, std::vector<std::vector<int> > &);
 string extractName(string &);
 void print(ostream &, Vector &, int);
+void print(string &, struct EstimatesSine &);
 void check_and_create_directory(string &);
 
 double scale_to_aom(double &);
@@ -119,6 +133,11 @@ double accept_reject_fval_unimodal_marginal_cosine(
 double accept_reject_fval_bimodal_marginal_cosine(
   double &, double &, double &, double &, double &, double &, double &, double &
 );
+
+double banerjee_approx(double &);
+void computeSufficientStatisticsSine(
+  std::vector<Vector> &, struct SufficientStatisticsSine &
+)
 
 #endif
 

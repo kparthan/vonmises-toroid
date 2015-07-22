@@ -2,6 +2,8 @@
 #include "vMC.h"
 #include "Mixture_vMC.h"
 #include "MarginalDensitySine.h"
+#include "KappaSolver.h"
+#include "OptimizeSine.h"
 
 BVM_Sine::BVM_Sine()
 {
@@ -38,6 +40,7 @@ BVM_Sine BVM_Sine::operator=(const BVM_Sine &source)
   return *this;
 }
 
+// generates <theta1,theta2> pairs such that theta1,theta2 \in [0,2pi)
 std::vector<Vector> BVM_Sine::generate(int sample_size)
 {
   std::vector<Vector> angle_pairs(sample_size);
@@ -256,5 +259,157 @@ double BVM_Sine::computeLogNormalizationConstant()
   } // while(1)
   double ans = 2*log(2*PI) + log_f1 + log(series_sum);
   return ans;
+}
+
+// log(pdf)
+double BVM_Sine::log_density(double &theta1, double &theta2)
+{
+  if (computed != SET) {
+    computeExpectation();
+  }
+  double ans = 0;
+  ans -= constants.log_c;
+  ans += (kappa1 * cos(theta1-mu1));
+  ans += (kappa2 * cos(theta2-mu2));
+  ans += (lambda * sin(theta1-mu1) * sin(theta2-mu2));
+  return ans;
+}
+
+double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
+{
+  if (computed != SET) {
+    computeExpectation();
+  }
+
+  double cosm1 = cos(mu1);
+  double sinm1 = sin(mu1);
+  double cosm2 = cos(mu2);
+  double sinm2 = sin(mu2);
+
+  // compute log-likelihood
+  computeSufficientStatistics(data);
+  double ans = -data.size() * constants.log_c;
+  ans += (kappa1 * cosm1 * suff_stats.cost1);
+  ans += (kappa1 * sinm1 * suff_stats.sint1);
+  ans += (kappa2 * cosm2 * suff_stats.cost2);
+  ans += (kappa2 * sinm2 * suff_stats.sint2);
+
+  ans += (lambda * cosm1 * cosm2 * suff_stats.sint1sint2);
+  ans -= (lambda * cosm1 * sinm2 * suff_stats.sint1cost2);
+  ans -= (lambda * sinm1 * cosm2 * suff_stats.cost1sint2);
+  ans += (lambda * sinm1 * sinm2 * suff_stats.cost1cost2);
+
+  // return -ve log-likelihood
+  return -ans;
+}
+
+double BVM_Sine::computeNegativeLogLikelihood(
+  struct EstimatesSine &estimates, struct SufficientStatisticsSine &suff_stats
+) {
+  if (computed != SET) {
+    computeExpectation();
+  }
+
+  double cosm1 = cos(estimates.mu1);
+  double sinm1 = sin(estimates.mu1);
+  double cosm2 = cos(estimates.mu2);
+  double sinm2 = sin(estimates.mu2);
+
+  // compute log-likelihood
+  double ans = -data.size() * constants.log_c;
+  ans += (estimates.kappa1 * cosm1 * suff_stats.cost1);
+  ans += (estimates.kappa1 * sinm1 * suff_stats.sint1);
+  ans += (estimates.kappa2 * cosm2 * suff_stats.cost2);
+  ans += (estimates.kappa2 * sinm2 * suff_stats.sint2);
+
+  ans += (estimates.lambda * cosm1 * cosm2 * suff_stats.sint1sint2);
+  ans -= (estimates.lambda * cosm1 * sinm2 * suff_stats.sint1cost2);
+  ans -= (estimates.lambda * sinm1 * cosm2 * suff_stats.cost1sint2);
+  ans += (estimates.lambda * sinm1 * sinm2 * suff_stats.cost1cost2);
+
+  // return -ve log-likelihood
+  return -ans;
+}
+
+void BVM_Sine::computeAllEstimators(
+  std::vector<Vector> &data, 
+  std::vector<struct EstimatesSine> &all_estimates,
+  int verbose,
+  int compute_kldiv
+) {
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(data,suff_stats);
+
+  computeAllEstimators(
+    suff_stats,all_estimates,verbose,compute_kldiv
+  );
+}
+
+void BVM_Sine::computeAllEstimators(
+  struct SufficientStatisticsSine &suff_stats,
+  std::vector<struct EstimatesSine> &all_estimates,
+  int verbose,
+  int compute_kldiv
+) {
+  double msglen,negloglike,kldiv,min_msg;
+  int min_index;
+
+  all_estimates.clear();
+
+  struct EstimatesSine initial_est = computeInitialEstimates(suff_stats);
+
+  string type = "MLE";
+  struct EstimatesSine ml_est = initial_est;
+  OptimizeSine opt1(type);
+  opt1.initialize(
+    ml_est.mu1,ml_est.mu2,ml_est.kappa1,ml_est.kappa2,ml_est.lambda
+  );
+  opt1.minimize(suff_stats);
+  //ml_est.msglen = computeMessageLength(ml_est,suff_stats);
+  ml_est.negloglike = computeNegativeLogLikelihood(ml_est,suff_stats);
+  /*if (compute_kldiv) {
+    ml_est.kldiv = computeKLDivergence(ml_est);
+  }*/
+  if (verbose) {
+    print(type,ml_est);
+    cout << fixed << "msglen: " << ml_est.msglen << endl;
+    cout << "negloglike: " << ml_est.negloglike << endl;
+    cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
+  }
+  all_estimates.push_back(ml_est);
+  /*if (ml_est.msglen < min_msg) {
+    min_index = MLE;
+    min_msg = ml_est.msglen;
+  }*/
+
+}
+
+struct EstimatesSine BVM_Sine::computeInitialEstimates(
+  struct SufficientStatisticsSine &suff_stats
+) {
+  struct EstimatesSine estimates;
+  
+  double mu1_est = atan2(suff_stats.sint1,suff_stats.cost1); 
+  if (mu1_est < 0) mu1_est += (2*PI);
+  estimates.mu1 = mu1_est;
+  double mu2_est = atan2(suff_stats.sint2,suff_stats.cost2); 
+  if (mu2_est < 0) mu2_est += (2*PI);
+  estimates.mu2 = mu2_est;
+
+  double cos_sum = suff_stats.cost1;
+  double sin_sum = suff_stats.sint1;
+  double rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
+  KappaSolver solver1(rbar);
+  estimates.kappa1 = solver1.solve();
+
+  cos_sum = suff_stats.cost2;
+  sin_sum = suff_stats.sint2;
+  rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
+  KappaSolver solver2(rbar);
+  estimates.kappa2 = solver2.solve();
+
+  estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
+
+  return estimates;
 }
 

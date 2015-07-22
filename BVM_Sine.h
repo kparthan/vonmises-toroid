@@ -44,6 +44,28 @@ class BVM_Sine
 
     double computeLogNormalizationConstant();
 
+    double log_density(double &, double &);
+
+    double computeNegativeLogLikelihood(std::vector<Vector> &);
+    double computeNegativeLogLikelihood(
+      struct EstimatesSine &, struct SufficientStatisticsSine &
+    );
+
+    void computeAllEstimators(
+      std::vector<Vector> &, 
+      std::vector<struct EstimatesSine> &,
+      int, int
+    );
+
+    void computeAllEstimators(
+      struct SufficientStatisticsSine &,
+      std::vector<struct EstimatesSine> &,
+      int, int
+    );
+
+    struct EstimatesSine computeInitialEstimates(
+      struct SufficientStatisticsSine &
+    );
 };
 
 #endif

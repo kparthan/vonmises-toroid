@@ -367,6 +367,16 @@ void print(ostream &os, Vector &v, int precision)
   }
 }
 
+void print(string &type, struct EstimatesSine &estimates)
+{
+  cout << "TYPE: " << type << endl;
+  cout << "m1_est: " << estimates.mu1 << endl;
+  cout << "m2_est: " << estimates.mu2 << endl;
+  cout << "k1_est: " << estimates.kappa1 << endl;
+  cout << "k2_est: " << estimates.kappa2 << endl;
+  cout << "lambda_est: " << estimates.lambda << endl;
+}
+
 void check_and_create_directory(string &directory)
 {
   if (stat(directory.c_str(), &st) == -1) {
@@ -1084,7 +1094,9 @@ void TestFunctions(void)
 
   //test.generate_bvm_sine();
 
-  test.sine_normalization_constant();
+  //test.bvm_sine_normalization_constant();
+
+  test.bvm_sine_ml_estimation();
 
   //test.generate_bvm_cosine();
 }
@@ -1383,5 +1395,46 @@ double accept_reject_fval_bimodal_marginal_cosine(
   fval -= mix.log_density(theta);
 
   return fval;
+}
+
+double banerjee_approx(double &rbar)
+{
+  assert(rbar < 1);
+
+  double rbarsq = rbar * rbar;
+  double denom = 1 - rbarsq;
+  double num = rbar * (denom + 1);
+  return num/denom;
+}
+
+void computeSufficientStatisticsSine(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsSine &suff_stats
+) {
+  suff_stats.N = data.size();
+
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.sint1sint2 = 0; suff_stats.sint1cost2 = 0;
+  suff_stats.cost1sint2 = 0; suff_stats.cost1cost2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += cost1;
+    suff_stats.cost2 += cost2;
+    suff_stats.sint1 += sint1;
+    suff_stats.sint2 += sint2;
+
+    suff_stats.sint1sint2 += sint1 * sint2;
+    suff_stats.sint1cost2 += sint1 * cost2;
+    suff_stats.cost1sint2 += cost1 * sint2;
+    suff_stats.sint1sint2 += sint1 * sint2;
+  } // for()
 }
 

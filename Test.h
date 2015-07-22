@@ -19,7 +19,9 @@ class Test
     /* sine model related */
     void generate_bvm_sine();
 
-    void sine_normalization_constant();
+    void bvm_sine_normalization_constant();
+
+    void bvm_sine_ml_estimation();
 
     /* cosine model related */
     void generate_bvm_cosine();

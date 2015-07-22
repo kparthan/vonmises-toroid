@@ -15,6 +15,8 @@ OBJECTS = main.o \
   MarginalDensitySine.o \
   BVM_Cosine.o \
   MarginalDensityCosine.o \
+  KappaSolver.o \
+  OptimizeSine.o \
   Test.o 
 
 all: main 
@@ -47,6 +49,12 @@ BVM_Cosine.o: BVM_Cosine.cpp BVM_Cosine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 MarginalDensityCosine.o: MarginalDensityCosine.cpp MarginalDensityCosine.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+KappaSolver.o: KappaSolver.cpp KappaSolver.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+OptimizeSine.o: OptimizeSine.cpp OptimizeSine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 Test.o: Test.cpp Test.h Header.h

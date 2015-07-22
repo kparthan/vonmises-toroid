@@ -91,7 +91,7 @@ void Test::generate_bvm_sine()
   writeToFile("bvm_sine.dat",random_sample);
 }
 
-void Test::sine_normalization_constant()
+void Test::bvm_sine_normalization_constant()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 1000;
@@ -102,6 +102,10 @@ void Test::sine_normalization_constant()
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
   double log_norm = bvm_sine.computeLogNormalizationConstant();
   cout << "log_norm: " << log_norm << endl;
+}
+
+void Test::bvm_sine_ml_estimation()
+{
 }
 
 /* cosine model related */
@@ -118,4 +122,5 @@ void Test::generate_bvm_cosine()
   std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(N);
   writeToFile("bvm_cosine.dat",random_sample);
 }
+
 
