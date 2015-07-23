@@ -35,8 +35,8 @@ Vector MarginalDensitySine::minimize_unimodal_objective()
   nlopt::result result = opt.optimize(x, minf);
 
   //cout << "solution: (" << x[0]*180/PI << ", " << x[1] << ")\n";
-  cout << "solution: (" << x[0]*180/PI << ")\n";
-  cout << "minf: " << minf << endl;
+  //cout << "solution: (" << x[0]*180/PI << ")\n";
+  //cout << "minf: " << minf << endl;
 
   Vector y = x;
   y.push_back(minf);
@@ -90,8 +90,8 @@ Vector MarginalDensitySine::minimize_bimodal_objective(double mode1, double mode
   nlopt::result result = opt.optimize(x, minf);
 
   //cout << "solution: (" << x[0] << ", " << x[1] << ")\n";
-  cout << "solution: (" << x[0]*180/PI << ")\n";
-  cout << "minf: " << minf << endl;
+  //cout << "solution: (" << x[0]*180/PI << ")\n";
+  //cout << "minf: " << minf << endl;
 
   Vector y = x;
   y.push_back(minf);

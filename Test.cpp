@@ -80,15 +80,16 @@ void Test::generate_mix_vmc()
 void Test::generate_bvm_sine()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
-  int N = 1000;
+  int N = 5000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 200; kappa2 = 200; lambda = -180;
+  mu1 = 88.1434; mu2 = 82.768; kappa1 = 64.9647; kappa2 = 7.57064; 
+  lambda = 0.000195011;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
 
   std::vector<Vector> random_sample = bvm_sine.generate_cartesian(N);
-  writeToFile("bvm_sine.dat",random_sample);
+  writeToFile("bvm_sine2.dat",random_sample);
 }
 
 void Test::bvm_sine_normalization_constant()
@@ -106,6 +107,30 @@ void Test::bvm_sine_normalization_constant()
 
 void Test::bvm_sine_ml_estimation()
 {
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 5000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = 30;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+  cout << "log_norm: " << bvm_sine.computeLogNormalizationConstant() << endl;
+
+  std::vector<Vector> angle_pairs = bvm_sine.generate(N);
+  std::vector<struct EstimatesSine> estimates;
+  bvm_sine.computeAllEstimators(angle_pairs,estimates,1,1);
+
+  std::vector<Vector> random_sample = bvm_sine.generate_cartesian(angle_pairs);
+  writeToFile("bvm_sine.dat",random_sample);
+  double negloglike_true = bvm_sine.computeNegativeLogLikelihood(angle_pairs);
+  cout << "\nloglike true: " << -negloglike_true << endl;
+
+  struct EstimatesSine mle = estimates[0];
+  BVM_Sine bvm_mle(mle.mu1,mle.mu2,mle.kappa1,mle.kappa2,mle.lambda);
+  std::vector<Vector> random_sample2 = bvm_mle.generate_cartesian(N);
+  writeToFile("bvm_sine2.dat",random_sample2);
+  double negloglike_est = bvm_mle.computeNegativeLogLikelihood(angle_pairs);
+  cout << "loglike est: " << -negloglike_est << endl;
 }
 
 /* cosine model related */

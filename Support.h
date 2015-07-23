@@ -137,7 +137,8 @@ double accept_reject_fval_bimodal_marginal_cosine(
 double banerjee_approx(double &);
 void computeSufficientStatisticsSine(
   std::vector<Vector> &, struct SufficientStatisticsSine &
-)
+);
+double ConstraintSine(const Vector &, std::vector<double> &, void *);
 
 #endif
 

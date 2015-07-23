@@ -7,10 +7,10 @@
 class ObjectiveFunction
 {
   private:
-    double rbar;
+    double N,constant;
 
   public:
-    ObjectiveFunction(double rbar) : rbar(rbar)
+    ObjectiveFunction(double N, double constant) : N(N), constant(constant)
     {}
 
     static double wrap(
@@ -27,8 +27,8 @@ class ObjectiveFunction
     ) {
       double kappa = x[0];
 
-      double ratio_bessel = computeRatioBessel(kappa);
-      double fval = ratio_bessel - rbar;
+      double log_bessel = computeLogModifiedBesselFirstKind(0,kappa);
+      double fval = N * log_bessel - kappa * constant;
       return fval;
     }
 };
@@ -36,10 +36,12 @@ class ObjectiveFunction
 class KappaSolver
 {
   private:
-    double rbar;
+    double N,constant,rbar;
 
   public:
-    double solve();
+    KappaSolver(double, double, double);
+
+    double minimize();
 };
 
 #endif

@@ -56,7 +56,8 @@ class CustomFunctionSine
       rhs = kappa1 / (lambda * lambda);
     }
 
-    double solve (double x) {
+    double solve (double x) 
+    {
       double tmp = lambda * sin(x - mu1);
       double asq = kappa2 * kappa2 + tmp * tmp;
       double a = sqrt(asq);

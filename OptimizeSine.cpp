@@ -1,4 +1,4 @@
-#include "OptimizeSineSine.h"
+#include "OptimizeSine.h"
 
 extern int CONSTRAIN_KAPPA;
 extern double MAX_KAPPA;
@@ -29,7 +29,7 @@ void OptimizeSine::initialize(
   }*/
 }
 
-Vector OptimizeSine::minimize(struct SufficientStatisticsSine &suff_stats)
+struct EstimatesSine OptimizeSine::minimize(struct SufficientStatisticsSine &suff_stats)
 {
   int num_params = 5;
 
@@ -46,7 +46,7 @@ Vector OptimizeSine::minimize(struct SufficientStatisticsSine &suff_stats)
   ub[3] = HUGE_VAL; // kappa2
   ub[4] = HUGE_VAL; // lambda
 
-  double LIMIT = 1e-4;
+  double LIMIT = 1e-6;
   double minf;
 
   switch(ESTIMATION) {
@@ -57,6 +57,7 @@ Vector OptimizeSine::minimize(struct SufficientStatisticsSine &suff_stats)
 
       ML_Sine mle(suff_stats);
       opt.set_min_objective(ML_Sine::wrap, &mle);
+      //opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
       opt.set_xtol_rel(LIMIT);
 
       x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = lambda;
@@ -74,6 +75,12 @@ Vector OptimizeSine::minimize(struct SufficientStatisticsSine &suff_stats)
   //cout << "solution: "; print(cout,x,3); 
   //cout << "solution: (" << x[0] << ", " << x[1] << ")\n";
   //cout << "minf: " << minf << endl;
-  return x;
+  struct EstimatesSine estimates;
+  estimates.mu1 = x[0];
+  estimates.mu2 = x[1];
+  estimates.kappa1 = x[2];
+  estimates.kappa2 = x[3];
+  estimates.lambda = x[4];
+  return estimates;
 }
 

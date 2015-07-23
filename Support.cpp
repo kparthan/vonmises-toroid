@@ -369,9 +369,9 @@ void print(ostream &os, Vector &v, int precision)
 
 void print(string &type, struct EstimatesSine &estimates)
 {
-  cout << "TYPE: " << type << endl;
-  cout << "m1_est: " << estimates.mu1 << endl;
-  cout << "m2_est: " << estimates.mu2 << endl;
+  cout << "\nTYPE: " << type << endl;
+  cout << "m1_est: " << estimates.mu1 * 180/PI << endl;
+  cout << "m2_est: " << estimates.mu2 * 180/PI << endl;
   cout << "k1_est: " << estimates.kappa1 << endl;
   cout << "k2_est: " << estimates.kappa2 << endl;
   cout << "lambda_est: " << estimates.lambda << endl;
@@ -1407,6 +1407,7 @@ double banerjee_approx(double &rbar)
   return num/denom;
 }
 
+// data = angle_pairs
 void computeSufficientStatisticsSine(
   std::vector<Vector> &data,
   struct SufficientStatisticsSine &suff_stats
@@ -1434,7 +1435,28 @@ void computeSufficientStatisticsSine(
     suff_stats.sint1sint2 += sint1 * sint2;
     suff_stats.sint1cost2 += sint1 * cost2;
     suff_stats.cost1sint2 += cost1 * sint2;
-    suff_stats.sint1sint2 += sint1 * sint2;
+    suff_stats.cost1cost2 += cost1 * cost2;
   } // for()
+
+/*
+  cout << "sufficient stats sine:\n";
+  cout << "cost1: " << suff_stats.cost1 << endl;
+  cout << "sint1: " << suff_stats.sint1 << endl;
+  cout << "cost2: " << suff_stats.cost2 << endl;
+  cout << "sint2: " << suff_stats.sint2 << endl;
+  cout << "sint1 sint2: " << suff_stats.sint1sint2 << endl;
+  cout << "sint1 cost2: " << suff_stats.sint1cost2 << endl;
+  cout << "cost1 sint2: " << suff_stats.cost1sint2 << endl;
+  cout << "cost1 cost2: " << suff_stats.cost1cost2 << endl;
+*/  
+}
+
+double ConstraintSine(const Vector &x, std::vector<double> &grad, void *data)
+{
+    double k1 = x[2];
+    double k2 = x[3];
+    double lam = x[4];
+    return (lam*lam - k1*k2);
+    //return (2 * x[1] - x[0]);
 }
 

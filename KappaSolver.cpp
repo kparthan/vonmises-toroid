@@ -2,10 +2,12 @@
 
 extern double MAX_KAPPA;
 
-KappaSolver::KappaSolver(double rbar) : rbar(rbar)
+KappaSolver::KappaSolver(
+  double N, double constant, double rbar
+) : N(N), constant(constant), rbar(rbar)
 {}
 
-double KappaSolver::solve()
+double KappaSolver::minimize()
 {
   int num_params = 1;
 
@@ -21,16 +23,16 @@ double KappaSolver::solve()
 
   x[0] = banerjee_approx(rbar);
   if (x[0] < TOLERANCE) x[0] = TOLERANCE;
+  //cout << "banerjee: " << x[0] << endl;
 
   double minf;
 
-  ObjectiveFunction function(rbar);
+  ObjectiveFunction function(N,constant);
   opt.set_min_objective(ObjectiveFunction::wrap, &function);
   nlopt::result result = opt.optimize(x, minf);
 
-  //cout << "solution: (" << x[0]*180/PI << ", " << x[1] << ")\n";
-  cout << "kappa: (" << x[0] << ")\n";
-  cout << "minf: " << minf << endl;
+  //cout << "kappa: (" << x[0] << ")\n";
+  //cout << "minf: " << minf << endl;
 
   return x[0];
 }

@@ -59,7 +59,7 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
     else unimodal = UNSET;
 
     if (unimodal == SET) { /* marginal density is unimodal */
-      cout << "unimodal: \n";
+      //cout << "unimodal: \n";
       Vector solution = marginal.minimize_unimodal_objective();
       //double optimal_kappa = solution[1];
       //cout << "optimal_kappa: " << optimal_kappa << endl;
@@ -68,7 +68,7 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
       vMC proposal(mu1,optimal_kappa);
       double log_max = -solution[1];
       if (log_max < 0) log_max = 0;
-      cout << "log_max: " << log_max << endl;
+      //cout << "log_max: " << log_max << endl;
 
       int rem_sample_size = sample_size;
       int count = 0;
@@ -180,6 +180,16 @@ std::vector<Vector> BVM_Sine::generate_cartesian(int sample_size)
 {
   std::vector<Vector> angle_pairs = generate(sample_size);
 
+  std::vector<Vector> random_sample = generate_cartesian(angle_pairs);
+
+  return random_sample;
+}
+
+// convert theta,phi --> cartesian coordinates
+std::vector<Vector> BVM_Sine::generate_cartesian(
+  std::vector<Vector> &angle_pairs
+) {
+  int sample_size = angle_pairs.size();
   Vector cartesian(3,0);
   std::vector<Vector> random_sample(sample_size);
   double r1 = 2;
@@ -241,7 +251,7 @@ double BVM_Sine::computeLogNormalizationConstant()
     double current = exp(log_diff); // tj
     series_sum += current;
     if (current/series_sum <= 1e-10) {
-      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      /*cout << "j: " << j << "; series_sum: " << series_sum << endl;
       cout << "log_const: " << log_const << endl;
       cout << "log_fj_prev: " << log_fj_prev << endl;
       cout << "log_fj_current: " << log_fj_current << endl;
@@ -249,7 +259,7 @@ double BVM_Sine::computeLogNormalizationConstant()
       cout << "log_bessel2_prev: " << log_bessel2_prev << endl;
       cout << "log_bessel1_current: " << log_bessel1_current << endl;
       cout << "log_bessel2_current: " << log_bessel2_current << endl;
-      cout << "current: " << current << endl;
+      cout << "current: " << current << endl;*/
       break;
     }
     j++;
@@ -257,6 +267,7 @@ double BVM_Sine::computeLogNormalizationConstant()
     log_bessel2_prev = log_bessel2_current; 
     log_fj_prev = log_fj_current;
   } // while(1)
+  //cout << "j: " << j << endl;
   double ans = 2*log(2*PI) + log_f1 + log(series_sum);
   return ans;
 }
@@ -275,6 +286,7 @@ double BVM_Sine::log_density(double &theta1, double &theta2)
   return ans;
 }
 
+// data = angle_pairs
 double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
 {
   if (computed != SET) {
@@ -287,7 +299,8 @@ double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
   double sinm2 = sin(mu2);
 
   // compute log-likelihood
-  computeSufficientStatistics(data);
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(data,suff_stats);
   double ans = -data.size() * constants.log_c;
   ans += (kappa1 * cosm1 * suff_stats.cost1);
   ans += (kappa1 * sinm1 * suff_stats.sint1);
@@ -316,7 +329,7 @@ double BVM_Sine::computeNegativeLogLikelihood(
   double sinm2 = sin(estimates.mu2);
 
   // compute log-likelihood
-  double ans = -data.size() * constants.log_c;
+  double ans = -suff_stats.N * constants.log_c;
   ans += (estimates.kappa1 * cosm1 * suff_stats.cost1);
   ans += (estimates.kappa1 * sinm1 * suff_stats.sint1);
   ans += (estimates.kappa2 * cosm2 * suff_stats.cost2);
@@ -331,6 +344,7 @@ double BVM_Sine::computeNegativeLogLikelihood(
   return -ans;
 }
 
+// data = angle_pairs
 void BVM_Sine::computeAllEstimators(
   std::vector<Vector> &data, 
   std::vector<struct EstimatesSine> &all_estimates,
@@ -356,15 +370,17 @@ void BVM_Sine::computeAllEstimators(
 
   all_estimates.clear();
 
+  string type = "initial";
   struct EstimatesSine initial_est = computeInitialEstimates(suff_stats);
+  //print(type,initial_est);
 
-  string type = "MLE";
+  type = "MLE";
   struct EstimatesSine ml_est = initial_est;
   OptimizeSine opt1(type);
   opt1.initialize(
     ml_est.mu1,ml_est.mu2,ml_est.kappa1,ml_est.kappa2,ml_est.lambda
   );
-  opt1.minimize(suff_stats);
+  ml_est = opt1.minimize(suff_stats);
   //ml_est.msglen = computeMessageLength(ml_est,suff_stats);
   ml_est.negloglike = computeNegativeLogLikelihood(ml_est,suff_stats);
   /*if (compute_kldiv) {
@@ -372,9 +388,9 @@ void BVM_Sine::computeAllEstimators(
   }*/
   if (verbose) {
     print(type,ml_est);
-    cout << fixed << "msglen: " << ml_est.msglen << endl;
-    cout << "negloglike: " << ml_est.negloglike << endl;
-    cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
+    //cout << fixed << "msglen: " << ml_est.msglen << endl;
+    //cout << "negloglike: " << ml_est.negloglike << endl;
+    //cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
   }
   all_estimates.push_back(ml_est);
   /*if (ml_est.msglen < min_msg) {
@@ -399,16 +415,23 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   double cos_sum = suff_stats.cost1;
   double sin_sum = suff_stats.sint1;
   double rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  KappaSolver solver1(rbar);
-  estimates.kappa1 = solver1.solve();
+  //cout << "rbar: " << rbar << endl;
+  double constant = cos(estimates.mu1) * suff_stats.cost1 
+                    + sin(estimates.mu1) * suff_stats.sint1;
+  KappaSolver solver1(suff_stats.N,constant,rbar);
+  estimates.kappa1 = solver1.minimize();
 
   cos_sum = suff_stats.cost2;
   sin_sum = suff_stats.sint2;
   rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  KappaSolver solver2(rbar);
-  estimates.kappa2 = solver2.solve();
+  //cout << "rbar: " << rbar << endl;
+  constant = cos(estimates.mu2) * suff_stats.cost2 
+             + sin(estimates.mu2) * suff_stats.sint2;
+  KappaSolver solver2(suff_stats.N,constant,rbar);
+  estimates.kappa2 = solver2.minimize();
 
-  estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
+  //estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
+  estimates.lambda = 0.5 * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
 }

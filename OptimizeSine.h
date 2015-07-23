@@ -24,15 +24,15 @@ class ML_Sine
       const Vector &x, 
       Vector &grad, 
       void *data) {
-        /*for (int i=0; i<x.size(); i++) {
+        for (int i=0; i<x.size(); i++) {
           if(boost::math::isnan(x[i])) {  // return this sub-optimal state 
-            if (FAIL_STATUS == 0) {
+            /*if (FAIL_STATUS == 0) {
               MLE_FAIL++;
               FAIL_STATUS = 1;
-            }
+            }*/
             return -HUGE_VAL;
           } // if() ends ...
-        }*/ // for() ends ...
+        } // for() ends ...
         return (*reinterpret_cast<ML_Sine*>(data))(x, grad); 
     }
 
@@ -46,6 +46,8 @@ class ML_Sine
       struct EstimatesSine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
+      if (estimates.mu1 < 0) estimates.mu1 += 2*PI;
+      if (estimates.mu2 < 0) estimates.mu2 += 2*PI;
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
       estimates.lambda = x[4];
@@ -53,8 +55,8 @@ class ML_Sine
       BVM_Sine bvm(
         estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
       );
-      double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats_sine)
-                    - 2 * suff_stats_sine.N * log(AOM);
+      double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats_sine);
+                    //- 2 * suff_stats_sine.N * log(AOM);
       return fval;
     }
 };
@@ -69,7 +71,7 @@ class OptimizeSine
 
     void initialize(double, double, double, double, double);
 
-    Vector minimize(struct SufficientStatisticsSine &);
+    struct EstimatesSine minimize(struct SufficientStatisticsSine &);
 };
 
 #endif
