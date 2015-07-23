@@ -24,10 +24,10 @@ all: main
 main: $(OBJECTS)
 	g++ $(OBJECTS) -o $@ $(LDFLAGS) 
 
-main.o: main.cpp 
+main.o: main.cpp Header.h Support.h
 	g++ $(CFLAGS) $< -o $@
 
-Support.o: Support.cpp Support.h Header.h UniformRandomNumberGenerator.h
+Support.o: Support.cpp Support.h Header.h 
 	g++ $(CFLAGS) $< -o $@
 
 Normal.o: Normal.cpp Normal.h 
