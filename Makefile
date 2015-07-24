@@ -4,7 +4,8 @@
 
 CFLAGS=-std=c++0x -c -O3 -fopenmp
 #CFLAGS=-std=c++0x -g -c -fopenmp
-LDFLAGS=-lboost_program_options -lboost_system -lboost_filesystem -fopenmp -lnlopt -lm 
+LDFLAGS=-fopenmp -lnlopt -lm -lboost_program_options -lboost_system -lboost_filesystem
+#LDFLAGS=-fopenmp -lnlopt -lm 
 
 OBJECTS = main.o \
   Support.o \
@@ -57,7 +58,7 @@ KappaSolver.o: KappaSolver.cpp KappaSolver.h Header.h
 OptimizeSine.o: OptimizeSine.cpp OptimizeSine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
-Test.o: Test.cpp Test.h Header.h
+Test.o: Test.cpp Test.h Header.h Support.h
 	g++ $(CFLAGS) $< -o $@
 
 clean:

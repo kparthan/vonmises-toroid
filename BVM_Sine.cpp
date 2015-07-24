@@ -234,11 +234,11 @@ double BVM_Sine::computeLogNormalizationConstant()
   // const = (lambda^2) / (2 * k1 * k2)
   double log_const = 2 * log(fabs(lambda)) - log(2) - log(kappa1) - log(kappa2);
 
-  double log_bessel1_prev = computeLogModifiedBesselFirstKind(1,kappa1);
-  double log_bessel2_prev = computeLogModifiedBesselFirstKind(1,kappa2);
-  double log_f1 = log_const + log_bessel1_prev + log_bessel2_prev;
-  double log_fj_prev = log_f1;
-  double j = 1;
+  double log_bessel1_prev = computeLogModifiedBesselFirstKind(0,kappa1);
+  double log_bessel2_prev = computeLogModifiedBesselFirstKind(0,kappa2);
+  double log_f0 = log_bessel1_prev + log_bessel2_prev;
+  double log_fj_prev = log_f0;
+  double j = 0;
   double series_sum = 1;
   while (1) {
     double log_bessel1_current = computeLogModifiedBesselFirstKind(j+1,kappa1);
@@ -247,10 +247,10 @@ double BVM_Sine::computeLogNormalizationConstant()
                             + log_bessel1_current + log_bessel2_current
                             - log_bessel1_prev - log_bessel2_prev;
                             + log_fj_prev;
-    double log_diff = log_fj_current - log_f1;
+    double log_diff = log_fj_current - log_f0;
     double current = exp(log_diff); // tj
     series_sum += current;
-    if (current/series_sum <= 1e-10) {
+    if (current/series_sum <= 1e-6) {
       /*cout << "j: " << j << "; series_sum: " << series_sum << endl;
       cout << "log_const: " << log_const << endl;
       cout << "log_fj_prev: " << log_fj_prev << endl;
@@ -268,7 +268,9 @@ double BVM_Sine::computeLogNormalizationConstant()
     log_fj_prev = log_fj_current;
   } // while(1)
   //cout << "j: " << j << endl;
-  double ans = 2*log(2*PI) + log_f1 + log(series_sum);
+  double ans = 2*log(2*PI) + log_f0 + log(series_sum);
+  //ans += computeLogModifiedBesselFirstKind(0,kappa1);
+  //ans += computeLogModifiedBesselFirstKind(0,kappa2);
   return ans;
 }
 
@@ -415,23 +417,25 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   double cos_sum = suff_stats.cost1;
   double sin_sum = suff_stats.sint1;
   double rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  //cout << "rbar: " << rbar << endl;
+  cout << "rbar: " << rbar << endl;
   double constant = cos(estimates.mu1) * suff_stats.cost1 
                     + sin(estimates.mu1) * suff_stats.sint1;
   KappaSolver solver1(suff_stats.N,constant,rbar);
   estimates.kappa1 = solver1.minimize();
+  cout << "kappa1_init: " << estimates.kappa1 << endl;
 
   cos_sum = suff_stats.cost2;
   sin_sum = suff_stats.sint2;
   rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  //cout << "rbar: " << rbar << endl;
+  cout << "rbar: " << rbar << endl;
   constant = cos(estimates.mu2) * suff_stats.cost2 
              + sin(estimates.mu2) * suff_stats.sint2;
   KappaSolver solver2(suff_stats.N,constant,rbar);
   estimates.kappa2 = solver2.minimize();
+  cout << "kappa2_init: " << estimates.kappa2 << endl;
 
   //estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
-  estimates.lambda = 0.5 * sqrt(estimates.kappa1 * estimates.kappa2);
+  estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
 }

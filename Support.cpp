@@ -338,7 +338,7 @@ string extractName(string &file)
  *  \param os a reference to a ostream
  *  \param v a reference to a Vector
  */
-void print(ostream &os, Vector &v, int precision)
+void print(ostream &os, const Vector &v, int precision)
 {
   if (precision == 0) {
     if (v.size() == 1) {

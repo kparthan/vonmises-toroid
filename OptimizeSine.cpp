@@ -46,7 +46,7 @@ struct EstimatesSine OptimizeSine::minimize(struct SufficientStatisticsSine &suf
   ub[3] = HUGE_VAL; // kappa2
   ub[4] = HUGE_VAL; // lambda
 
-  double LIMIT = 1e-6;
+  double LIMIT = 1e-4;
   double minf;
 
   switch(ESTIMATION) {

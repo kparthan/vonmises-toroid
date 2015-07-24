@@ -57,6 +57,7 @@ class ML_Sine
       );
       double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats_sine);
                     //- 2 * suff_stats_sine.N * log(AOM);
+      //cout << "-fval: " << -fval << "\t"; print(cout,x,3); cout << endl;
       return fval;
     }
 };
