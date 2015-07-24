@@ -97,7 +97,7 @@ void Test::bvm_sine_normalization_constant()
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 20; kappa2 = 20; lambda = 1;
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; lambda = 30;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);

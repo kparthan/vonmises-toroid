@@ -250,7 +250,8 @@ double BVM_Sine::computeLogNormalizationConstant()
     double log_diff = log_fj_current - log_f0;
     double current = exp(log_diff); // tj
     series_sum += current;
-    if (current/series_sum <= 1e-6) {
+    if (current/series_sum <= 1e-10) {
+      //cout << "current/series_sum: " << current/series_sum << endl;
       /*cout << "j: " << j << "; series_sum: " << series_sum << endl;
       cout << "log_const: " << log_const << endl;
       cout << "log_fj_prev: " << log_fj_prev << endl;
@@ -269,8 +270,6 @@ double BVM_Sine::computeLogNormalizationConstant()
   } // while(1)
   //cout << "j: " << j << endl;
   double ans = 2*log(2*PI) + log_f0 + log(series_sum);
-  //ans += computeLogModifiedBesselFirstKind(0,kappa1);
-  //ans += computeLogModifiedBesselFirstKind(0,kappa2);
   return ans;
 }
 
