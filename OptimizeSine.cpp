@@ -57,7 +57,7 @@ struct EstimatesSine OptimizeSine::minimize(struct SufficientStatisticsSine &suf
 
       ML_Sine mle(suff_stats);
       opt.set_min_objective(ML_Sine::wrap, &mle);
-      //opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
+      opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
       opt.set_xtol_rel(LIMIT);
 
       x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = lambda;

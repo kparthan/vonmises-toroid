@@ -108,7 +108,7 @@ void Test::bvm_sine_normalization_constant()
 void Test::bvm_sine_ml_estimation()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
-  int N = 5000;
+  int N = 20000;
 
   mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = 30;
 

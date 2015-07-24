@@ -435,7 +435,8 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   cout << "kappa2_init: " << estimates.kappa2 << endl;
 
   //estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
-  estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
+  estimates.lambda = 0.5 * sqrt(estimates.kappa1 * estimates.kappa2);
+  //estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
 }

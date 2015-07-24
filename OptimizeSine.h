@@ -46,8 +46,8 @@ class ML_Sine
       struct EstimatesSine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
-      if (estimates.mu1 < 0) estimates.mu1 += 2*PI;
-      if (estimates.mu2 < 0) estimates.mu2 += 2*PI;
+      //if (estimates.mu1 < 0) estimates.mu1 += 2*PI;
+      //if (estimates.mu2 < 0) estimates.mu2 += 2*PI;
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
       estimates.lambda = x[4];
@@ -57,7 +57,7 @@ class ML_Sine
       );
       double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats_sine);
                     //- 2 * suff_stats_sine.N * log(AOM);
-      //cout << "-fval: " << -fval << "\t"; print(cout,x,3); cout << endl;
+      cout << "-fval: " << -fval << "\t"; print(cout,x,3); cout << endl;
       return fval;
     }
 };
