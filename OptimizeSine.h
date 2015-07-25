@@ -37,10 +37,9 @@ class ML_Sine
     }
 
     /*!
-     *  minimize function: N * log c(k,b) - k  (m0' x) - b (mj' xx' mj -  mi xx' mi)
-     *  \sum_x: sample mean
-     *  \sum_xx' : dispersion matrix (S)
-     *  k,b,m0,mj,mi are parameters
+     *  minimize function: 
+     *   N * log c(k1,k2,lambda) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
+     *                           - lambda * sin(t1-mu1) * sin(t2-mu2)
      */
     double operator() (const Vector &x, Vector &grad) {
       struct EstimatesSine estimates;
@@ -57,7 +56,7 @@ class ML_Sine
       );
       double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats_sine);
                     //- 2 * suff_stats_sine.N * log(AOM);
-      cout << "-fval: " << -fval << "\t"; print(cout,x,3); cout << endl;
+      //cout << "-fval: " << -fval << "\t"; print(cout,x,3); cout << endl;
       return fval;
     }
 };

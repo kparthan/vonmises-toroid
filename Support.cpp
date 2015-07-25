@@ -1094,9 +1094,13 @@ void TestFunctions(void)
 
   //test.generate_bvm_sine();
 
-  test.bvm_sine_normalization_constant();
+  //test.bvm_sine_normalization_constant();
 
-  //test.bvm_sine_ml_estimation();
+  //test.bvm_sine_constants();
+
+  //test.sanity_check();
+
+  test.bvm_sine_ml_estimation();
 
   //test.generate_bvm_cosine();
 }

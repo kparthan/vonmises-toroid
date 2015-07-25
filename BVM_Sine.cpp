@@ -40,6 +40,31 @@ BVM_Sine BVM_Sine::operator=(const BVM_Sine &source)
   return *this;
 }
 
+double BVM_Sine::Mean1()
+{
+  return mu1;
+}
+
+double BVM_Sine::Mean2()
+{
+  return mu2;
+}
+
+double BVM_Sine::Kappa1()
+{
+  return kappa1;
+}
+
+double BVM_Sine::Kappa2()
+{
+  return kappa2;
+}
+
+double BVM_Sine::Lambda()
+{
+  return lambda;
+}
+
 // generates <theta1,theta2> pairs such that theta1,theta2 \in [0,2pi)
 std::vector<Vector> BVM_Sine::generate(int sample_size)
 {
@@ -218,12 +243,38 @@ void BVM_Sine::computeExpectation()
 {
   computeConstants();
 
+  double log_ans;
+
+  // E[ cos(t1-mu1) ] = (1/c) (dc/dk1)      > 0
+  log_ans = -constants.log_c + constants.log_dc_dk1;
+  constants.E_cost1 = exp(log_ans);
+
+  // E[ cos(t2-mu2) ] = (1/c) (dc/dk2)      > 0
+  log_ans = -constants.log_c + constants.log_dc_dk2;
+  constants.E_cost2 = exp(log_ans);
+
+  // E[ sin(t1-mu1) sin(t2-mu2) ]   *check sign (of lambda)*
+  // = (1/c) (dc/dl)
+  log_ans = -constants.log_c + constants.log_dc_dl;
+  constants.E_sint1sint2 = sign(lambda) * exp(log_ans);
+  //cout << "E_sint1sint2: " << constants.E_sint1sint2 << endl;
+
+  // E[ cos(t1-mu1) cos(t2-mu2) ]            > 0
+  // = (1/c) (d^2 c/dk1 dk2)
+  log_ans = -constants.log_c + constants.log_d2c_dk1dk2;
+  constants.E_cost1cost2 = exp(log_ans);
+
   computed = SET;
 }
 
 void BVM_Sine::computeConstants()
 {
-  constants.log_c = computeLogNormalizationConstant();
+  constants.log_c = computeLogNormalizationConstant();  // > 0
+  constants.log_dc_dk1 = compute_series_A(1,0);         // > 0
+  constants.log_dc_dk2 = compute_series_A(0,1);         // > 0
+  constants.log_dc_dl = compute_series_B();             // > 0
+
+  constants.log_d2c_dk1dk2 = compute_series_A(1,1);     // > 0
 }
 
 /*!
@@ -231,28 +282,37 @@ void BVM_Sine::computeConstants()
  */
 double BVM_Sine::computeLogNormalizationConstant()
 {
+  double log_series_sum = compute_series_A(0,0);
+  //cout << "log_series_sum: " << log_series_sum << endl;
+  return log_series_sum;
+}
+
+double BVM_Sine::compute_series_A(double a, double b)
+{
   // const = (lambda^2) / (2 * k1 * k2)
   double log_const = 2 * log(fabs(lambda)) - log(2) - log(kappa1) - log(kappa2);
 
-  double log_bessel1_prev = computeLogModifiedBesselFirstKind(0,kappa1);
-  double log_bessel2_prev = computeLogModifiedBesselFirstKind(0,kappa2);
+  double log_bessel1_prev = computeLogModifiedBesselFirstKind(a,kappa1);
+  double log_bessel2_prev = computeLogModifiedBesselFirstKind(b,kappa2);
   double log_f0 = log_bessel1_prev + log_bessel2_prev;
   double log_fj_prev = log_f0;
   double j = 0;
   double series_sum = 1;
+
   while (1) {
-    double log_bessel1_current = computeLogModifiedBesselFirstKind(j+1,kappa1);
-    double log_bessel2_current = computeLogModifiedBesselFirstKind(j+1,kappa2);
+    double log_bessel1_current = computeLogModifiedBesselFirstKind(j+1+a,kappa1);
+    double log_bessel2_current = computeLogModifiedBesselFirstKind(j+1+b,kappa2);
     double log_fj_current = log_const + log(2*j+1) - log(j+1)
                             + log_bessel1_current + log_bessel2_current
-                            - log_bessel1_prev - log_bessel2_prev;
+                            - log_bessel1_prev - log_bessel2_prev
                             + log_fj_prev;
     double log_diff = log_fj_current - log_f0;
     double current = exp(log_diff); // tj
     series_sum += current;
-    if (current/series_sum <= 1e-10) {
-      //cout << "current/series_sum: " << current/series_sum << endl;
-      /*cout << "j: " << j << "; series_sum: " << series_sum << endl;
+    if (current/series_sum <= 1e-6) {
+      /*cout << "current/series_sum: " << current/series_sum << endl;
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_diff: " << log_diff << endl;
       cout << "log_const: " << log_const << endl;
       cout << "log_fj_prev: " << log_fj_prev << endl;
       cout << "log_fj_current: " << log_fj_current << endl;
@@ -260,7 +320,7 @@ double BVM_Sine::computeLogNormalizationConstant()
       cout << "log_bessel2_prev: " << log_bessel2_prev << endl;
       cout << "log_bessel1_current: " << log_bessel1_current << endl;
       cout << "log_bessel2_current: " << log_bessel2_current << endl;
-      cout << "current: " << current << endl;*/
+      cout << "current: " << current << endl << endl;*/
       break;
     }
     j++;
@@ -270,6 +330,40 @@ double BVM_Sine::computeLogNormalizationConstant()
   } // while(1)
   //cout << "j: " << j << endl;
   double ans = 2*log(2*PI) + log_f0 + log(series_sum);
+  return ans;
+}
+
+double BVM_Sine::compute_series_B()
+{
+  // const = (lambda^2) / (2 * k1 * k2)
+  double log_const = 2 * log(fabs(lambda)) - log(2) - log(kappa1) - log(kappa2);
+
+  double log_bessel1_prev = computeLogModifiedBesselFirstKind(1,kappa1);
+  double log_bessel2_prev = computeLogModifiedBesselFirstKind(1,kappa2);
+  double log_f1 = log_const + log_bessel1_prev + log_bessel2_prev;
+  double log_fj_prev = log_f1;
+  double j = 1;
+  double series_sum = 1;
+  while (1) {
+    double log_bessel1_current = computeLogModifiedBesselFirstKind(j+1,kappa1);
+    double log_bessel2_current = computeLogModifiedBesselFirstKind(j+1,kappa2);
+    double log_fj_current = log_const + log(2*j+1) - log(j)
+                            + log_bessel1_current + log_bessel2_current
+                            - log_bessel1_prev - log_bessel2_prev
+                            + log_fj_prev;
+    double log_diff = log_fj_current - log_f1;
+    double current = exp(log_diff); // tj
+    series_sum += current;
+    if (current/series_sum <= 1e-6) {
+      break;
+    }
+    j++;
+    log_bessel1_prev = log_bessel1_current; 
+    log_bessel2_prev = log_bessel2_current; 
+    log_fj_prev = log_fj_current;
+  } // while(1)
+  //cout << "j: " << j << endl;
+  double ans = 2*log(2*PI) + log(2) + log_f1 + log(series_sum) - log(fabs(lambda));
   return ans;
 }
 
@@ -373,7 +467,7 @@ void BVM_Sine::computeAllEstimators(
 
   string type = "initial";
   struct EstimatesSine initial_est = computeInitialEstimates(suff_stats);
-  //print(type,initial_est);
+  print(type,initial_est);
 
   type = "MLE";
   struct EstimatesSine ml_est = initial_est;
@@ -384,14 +478,14 @@ void BVM_Sine::computeAllEstimators(
   ml_est = opt1.minimize(suff_stats);
   //ml_est.msglen = computeMessageLength(ml_est,suff_stats);
   ml_est.negloglike = computeNegativeLogLikelihood(ml_est,suff_stats);
-  /*if (compute_kldiv) {
+  if (compute_kldiv) {
     ml_est.kldiv = computeKLDivergence(ml_est);
-  }*/
+  }
   if (verbose) {
     print(type,ml_est);
     //cout << fixed << "msglen: " << ml_est.msglen << endl;
-    //cout << "negloglike: " << ml_est.negloglike << endl;
-    //cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
+    cout << "negloglike: " << ml_est.negloglike << endl;
+    cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
   }
   all_estimates.push_back(ml_est);
   /*if (ml_est.msglen < min_msg) {
@@ -438,5 +532,46 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   //estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
+}
+
+double BVM_Sine::computeKLDivergence(BVM_Sine &other)
+{
+  if (computed != SET) {
+    computeExpectation();
+  }
+
+  double log_norm_b = other.computeLogNormalizationConstant();
+  double ans = log_norm_b - constants.log_c;
+
+  double mu1b = other.Mean1();
+  double mu1_diff = mu1 - mu1b;
+  double mu2b = other.Mean2();
+  double mu2_diff = mu2 - mu2b;
+
+  double kappa1b = other.Kappa1();
+  double kappa2b = other.Kappa2();
+
+  double kappa1_diff = kappa1 - kappa1b * cos(mu1_diff);
+  ans += (kappa1_diff * constants.E_cost1);
+  double kappa2_diff = kappa2 - kappa2b * cos(mu2_diff);
+  ans += (kappa2_diff * constants.E_cost2);
+
+  double lambdab = other.Lambda();
+  double lambda_diff = lambda - (lambdab * cos(mu1_diff) * cos(mu2_diff));
+  ans += (lambda_diff * constants.E_sint1sint2);
+
+  double lambda_term = lambdab * sin(mu1_diff) * sin(mu2_diff);
+  ans += (lambda_term * constants.E_cost1cost2);
+
+  assert(ans >= 0);
+  return ans/log(2);  // KL divergence (in bits)
+}
+
+double BVM_Sine::computeKLDivergence(struct EstimatesSine &estimates)
+{
+  BVM_Sine bvm_sine(
+    estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+  );
+  return computeKLDivergence(bvm_sine);
 }
 

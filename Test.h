@@ -21,6 +21,10 @@ class Test
 
     void bvm_sine_normalization_constant();
 
+    void bvm_sine_constants();
+
+    void sanity_check();
+
     void bvm_sine_ml_estimation();
 
     /* cosine model related */

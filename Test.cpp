@@ -97,7 +97,7 @@ void Test::bvm_sine_normalization_constant()
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; lambda = 30;
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; lambda = -30;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
@@ -105,16 +105,56 @@ void Test::bvm_sine_normalization_constant()
   cout << "log_norm: " << log_norm << endl;
 }
 
-void Test::bvm_sine_ml_estimation()
+void Test::bvm_sine_constants()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
-  int N = 20000;
+  int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = 30;
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; lambda = -30;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
-  cout << "log_norm: " << bvm_sine.computeLogNormalizationConstant() << endl;
+
+  BVM_Sine::Constants constants = bvm_sine.getConstants();
+  cout << "log_norm: " << constants.log_c << endl;
+  cout << "log_dc_dk1: " << constants.log_dc_dk1 << endl;
+  cout << "log_dc_dk2: " << constants.log_dc_dk2 << endl;
+  cout << "log_d2c_dk1dk2: " << constants.log_d2c_dk1dk2 << endl;
+  cout << "log_dc_dl: " << constants.log_dc_dl << endl;
+}
+
+void Test::sanity_check()
+{
+  double kappa1 = 100, kappa2 = 20, lambda = -30;
+
+  double log_const = 2 * log(fabs(lambda)) - log(4) - log(kappa1) - log(kappa2);
+
+  double log_bessel1 = computeLogModifiedBesselFirstKind(0,kappa1);
+  double log_bessel2 = computeLogModifiedBesselFirstKind(0,kappa2);
+  double log_f = log_bessel1 + log_bessel2; 
+  cout << "log_f0: " << log_f << endl;
+
+  log_bessel1 = computeLogModifiedBesselFirstKind(1,kappa1);
+  log_bessel2 = computeLogModifiedBesselFirstKind(1,kappa2);
+  log_f = log(2) + log_const + log_bessel1 + log_bessel2; 
+  cout << "log_f1: " << log_f << endl;
+
+  log_bessel1 = computeLogModifiedBesselFirstKind(2,kappa1);
+  log_bessel2 = computeLogModifiedBesselFirstKind(2,kappa2);
+  log_f = log(6) + 2 * log_const + log_bessel1 + log_bessel2; 
+  cout << "log_f2: " << log_f << endl;
+}
+
+void Test::bvm_sine_ml_estimation()
+{
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = -30;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+  //cout << "log_norm: " << bvm_sine.computeLogNormalizationConstant() << endl;
 
   std::vector<Vector> angle_pairs = bvm_sine.generate(N);
   std::vector<struct EstimatesSine> estimates;
@@ -123,14 +163,14 @@ void Test::bvm_sine_ml_estimation()
   std::vector<Vector> random_sample = bvm_sine.generate_cartesian(angle_pairs);
   writeToFile("bvm_sine.dat",random_sample);
   double negloglike_true = bvm_sine.computeNegativeLogLikelihood(angle_pairs);
-  cout << "\nloglike true: " << -negloglike_true << endl;
+  //cout << "\nloglike true: " << -negloglike_true << endl;
 
   struct EstimatesSine mle = estimates[0];
   BVM_Sine bvm_mle(mle.mu1,mle.mu2,mle.kappa1,mle.kappa2,mle.lambda);
   std::vector<Vector> random_sample2 = bvm_mle.generate_cartesian(N);
   writeToFile("bvm_sine2.dat",random_sample2);
   double negloglike_est = bvm_mle.computeNegativeLogLikelihood(angle_pairs);
-  cout << "loglike est: " << -negloglike_est << endl;
+  //cout << "loglike est: " << -negloglike_est << endl;
 }
 
 /* cosine model related */
