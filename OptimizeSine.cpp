@@ -49,29 +49,37 @@ struct EstimatesSine OptimizeSine::minimize(struct SufficientStatisticsSine &suf
   double LIMIT = 1e-4;
   double minf;
 
+  opt.set_lower_bounds(lb);
+  opt.set_upper_bounds(ub);
+  opt.set_xtol_rel(LIMIT);
+  x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = lambda;
+  for (int i=0; i<4; i++) {
+    if (x[i] < TOLERANCE) x[i] = TOLERANCE;
+  }
+  opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
+
   switch(ESTIMATION) {
     case MLE:
     {
-      opt.set_lower_bounds(lb);
-      opt.set_upper_bounds(ub);
-
       ML_Sine mle(suff_stats);
       opt.set_min_objective(ML_Sine::wrap, &mle);
-      opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
-      opt.set_xtol_rel(LIMIT);
-
-      x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = lambda;
-      for (int i=0; i<4; i++) {
-        if (x[i] < TOLERANCE) x[i] = TOLERANCE;
-      }
       nlopt::result result = opt.optimize(x,minf);
-      assert(!boost::math::isnan(minf));
+      break;
+    }
+
+    case MAP:
+    {
+      MAP_Sine map(suff_stats);
+      opt.set_min_objective(MAP_Sine::wrap, &map);
+      nlopt::result result = opt.optimize(x,minf);
       break;
     }
 
     default:
       break;
   }
+  assert(!boost::math::isnan(minf));
+
   //cout << "solution: "; print(cout,x,3); 
   //cout << "solution: (" << x[0] << ", " << x[1] << ")\n";
   //cout << "minf: " << minf << endl;

@@ -60,6 +60,13 @@ class BVM_Sine
     double compute_series_A(double, double);
     double compute_series_B();
 
+    double computeLogParametersProbability(double);
+    double computeLogParametersPriorDensity();
+    double computeLogFisherInformation_Single(double);
+    double computeLogFisherInformation(double);
+    double computeLogFisherAxes(double);
+    double computeLogFisherScale();
+
     double log_density(double &, double &);
 
     double computeNegativeLogLikelihood(std::vector<Vector> &);
