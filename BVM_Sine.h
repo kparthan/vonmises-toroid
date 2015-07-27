@@ -13,12 +13,21 @@ class BVM_Sine
     double kappa1,kappa2,lambda;  // l^2 < k1 * k2 (unimodal)
 
     struct Constants {
-      double log_c,log_dc_dk1,log_dc_dk2,log_d2c_dk1dk2;
+      double log_c,log_dc_dk1,log_dc_dk2;
       double log_dc_dl;
-      double E_cost1;       // E[ cos(t1-mu1) ]
-      double E_cost2;       // E[ cos(t2-mu2) ]
-      double E_sint1sint2;  // E[ sin(t1-mu1) sin(t2-mu2) ]
-      double E_cost1cost2;  // E[ cos(t1-mu1) cos(t2-mu2) ]
+      double log_d2c_dk1dk2,log_d2c_dk1dk1,log_d2c_dk2dk2;
+      double log_d2c_dldl,log_d2c_dk1dl,log_d2c_dk2dl;
+
+      double ck1_c;   // E[ cos(t1-mu1) ]
+      double ck2_c;   // E[ cos(t2-mu2) ]
+      double cl_c;    // E[ sin(t1-mu1) sin(t2-mu2) ]
+      double ck1k2_c; // E[ cos(t1-mu1) cos(t2-mu2) ]
+
+      double ck1k1_c; // E[ cos(t1-mu1)^2 ]
+      double ck2k2_c; // E[ cos(t2-mu2)^2 ]
+      double ck1l_c;  // E[ cos(t1-mu1) sin(t1-mu1) sin(t2-mu2) ]
+      double ck2l_c;  // E[ cos(t2-mu2) sin(t1-mu1) sin(t2-mu2) ]
+      double cll_c;   // E[ sin(t1-mu1)^2 sin(t2-mu2)^2 ]
     } constants;
 
     int computed;
@@ -58,19 +67,24 @@ class BVM_Sine
     double computeLogNormalizationConstant();
 
     double compute_series_A(double, double);
-    double compute_series_B();
+    double compute_series_B(double, double);
+    double compute_series_C();
 
     double computeLogParametersProbability(double);
     double computeLogParametersPriorDensity();
-    double computeLogFisherInformation_Single(double);
     double computeLogFisherInformation(double);
-    double computeLogFisherAxes(double);
+    double computeLogFisherInformation_Single();
+    double computeLogFisherAxes();
     double computeLogFisherScale();
 
     double log_density(double &, double &);
 
     double computeNegativeLogLikelihood(std::vector<Vector> &);
     double computeNegativeLogLikelihood(
+      struct EstimatesSine &, struct SufficientStatisticsSine &
+    );
+
+    double computeMessageLength(
       struct EstimatesSine &, struct SufficientStatisticsSine &
     );
 

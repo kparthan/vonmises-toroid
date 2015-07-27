@@ -75,6 +75,14 @@ struct EstimatesSine OptimizeSine::minimize(struct SufficientStatisticsSine &suf
       break;
     }
 
+    case MML:
+    {
+      MML_Sine mml(suff_stats);
+      opt.set_min_objective(MML_Sine::wrap, &mml);
+      nlopt::result result = opt.optimize(x,minf);
+      break;
+    }
+
     default:
       break;
   }

@@ -146,12 +146,7 @@ class MML_Sine
     }
 
     /*!
-     *  minimize function: (d/2) log(kd) - log h + 0.5 log (det(fisher)) +
-     *          N * log c(k,b) - k  (m0' x) - b (mj' xx' mj -  mi xx' mi) + (d/2)
-     *  d: 5
-     *  x: sample mean
-     *  xx' : dispersion matrix (S)
-     *  k,b,m0,mj,mi are parameters
+     *
      */
     double operator() (const std::vector<double> &x, std::vector<double> &grad) {
       struct EstimatesSine estimates;
@@ -177,6 +172,7 @@ class MML_Sine
       double part2 = bvm.computeNegativeLogLikelihood(estimates,suff_stats) + 2.5
                      - 2 * suff_stats.N * log(AOM);
       double fval = part1 + part2;
+      //cout << "fval: " << fval << "\t"; print(cout,x,3); cout << endl;
       //assert(!boost::math::isnan(fval));
       return fval;
     }

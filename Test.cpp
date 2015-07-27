@@ -120,7 +120,13 @@ void Test::bvm_sine_constants()
   cout << "log_dc_dk1: " << constants.log_dc_dk1 << endl;
   cout << "log_dc_dk2: " << constants.log_dc_dk2 << endl;
   cout << "log_d2c_dk1dk2: " << constants.log_d2c_dk1dk2 << endl;
+  cout << "log_d2c_dk1dk1: " << constants.log_d2c_dk1dk1 << endl;
+  cout << "log_d2c_dk2dk2: " << constants.log_d2c_dk2dk2 << endl << endl;
+
   cout << "log_dc_dl: " << constants.log_dc_dl << endl;
+  cout << "log_d2c_dk1dl: " << constants.log_d2c_dk1dl << endl;
+  cout << "log_d2c_dk2dl: " << constants.log_d2c_dk2dl << endl;
+  cout << "log_d2c_dldl: " << constants.log_d2c_dldl << endl;
 }
 
 void Test::sanity_check()
