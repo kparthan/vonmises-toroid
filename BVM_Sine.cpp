@@ -448,21 +448,22 @@ double BVM_Sine::computeLogParametersProbability(double Neff)
 }
 
 // prior density of parameters ...
-/*double BVM_Sine::computeLogParametersPriorDensity()
+double BVM_Sine::computeLogParametersPriorDensity()
 {
   // prior on means (uniform)
   double log_prior_means = -2 * log(2*PI);
 
   // joint prior on kappas and lambda (vMC)
-  double log_scale = 0.5 * log(kappa1) - 1.5 * (1+kappa1*kappa1);
-  log_scale += (0.5 * log(kappa2) - 1.5 * (1+kappa2*kappa2));
+  double log_scale = 0.5 * log(kappa1) - 1.5 * log(1+kappa1*kappa1);
+  log_scale += (0.5 * log(kappa2) - 1.5 * log(1+kappa2*kappa2));
   log_scale -= log(2);
 
   double log_prior = log_prior_means + log_scale;
   return log_prior;
-}*/
+}
 
 // prior density of parameters ...
+/*
 double BVM_Sine::computeLogParametersPriorDensity()
 {
   // prior on means (uniform)
@@ -477,6 +478,7 @@ double BVM_Sine::computeLogParametersPriorDensity()
   double log_prior = log_prior_means + log_scale;
   return log_prior;
 }
+*/
 
 double BVM_Sine::computeLogFisherInformation(double N)
 {
