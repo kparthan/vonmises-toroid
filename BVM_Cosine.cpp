@@ -183,16 +183,20 @@ std::vector<Vector> BVM_Cosine::generate_cartesian(int sample_size)
 {
   std::vector<Vector> angle_pairs = generate(sample_size);
 
+  std::vector<Vector> random_sample = generate_cartesian(angle_pairs);
+
+  return random_sample;
+}
+
+// convert theta,phi --> cartesian coordinates
+std::vector<Vector> BVM_Cosine::generate_cartesian(
+  std::vector<Vector> &angle_pairs
+) {
+  int sample_size = angle_pairs.size();
   Vector cartesian(3,0);
   std::vector<Vector> random_sample(sample_size);
-  double r1 = 2;
-  double r2 = 1;
   for (int i=0; i<sample_size; i++) {
-    double theta1 = angle_pairs[i][0];
-    double theta2 = angle_pairs[i][1];
-    cartesian[0] = (r1 + r2 * cos(theta2)) * cos(theta1); // x
-    cartesian[1] = (r1 + r2 * cos(theta2)) * sin(theta1); // y
-    cartesian[2] = r2 * sin(theta2);  // z
+    toroid2cartesian(angle_pairs[i],cartesian);
     random_sample[i] = cartesian;
   } // for()
 

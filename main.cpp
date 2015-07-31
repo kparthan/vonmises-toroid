@@ -29,6 +29,14 @@ int main(int argc, char **argv)
     TestFunctions();
   }
 
+  if (parameters.experiments == SET) {
+    RunExperiments(parameters.iterations);
+  }
+
+  if (parameters.read_profiles == SET && parameters.simulation == UNSET) {
+    computeEstimators(parameters);
+  } 
+
   delete(uniform_generator);
 
   return 0;

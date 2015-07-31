@@ -1,5 +1,7 @@
 #include "Support.h"
 #include "Test.h"
+#include "Structure.h"
+#include "BVM_Sine.h"
 #include "UniformRandomNumberGenerator.h"
 
 Vector XAXIS,YAXIS,ZAXIS;
@@ -208,12 +210,14 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
   }
 
   if (vm.count("estimation")) {
-    if (estimation_method.compare("moment") == 0) {
-      ESTIMATION = MOMENT;
+    if (estimation_method.compare("pmle") == 0) {
+      ESTIMATION = PMLE;
     } else if (estimation_method.compare("mle") == 0) {
       ESTIMATION = MLE;
     } else if (estimation_method.compare("map") == 0) {
       ESTIMATION = MAP;
+    } else if (estimation_method.compare("map_transform") == 0) {
+      ESTIMATION = MAP_TRANSFORM;
     } else if (estimation_method.compare("mml") == 0) {
       ESTIMATION = MML;
     } else {
@@ -370,17 +374,18 @@ void print(ostream &os, const Vector &v, int precision)
 void print(string &type, struct EstimatesSine &estimates)
 {
   cout << "\nTYPE: " << type << endl;
-  cout << "m1_est: " << estimates.mu1 * 180/PI << endl;
-  cout << "m2_est: " << estimates.mu2 * 180/PI << endl;
-  cout << "k1_est: " << estimates.kappa1 << endl;
-  cout << "k2_est: " << estimates.kappa2 << endl;
-  cout << "lambda_est: " << estimates.lambda << endl;
+  cout << "m1_est: " << estimates.mu1 * 180/PI << "; ";
+  cout << "m2_est: " << estimates.mu2 * 180/PI << "; ";
+  cout << "k1_est: " << estimates.kappa1 << "; ";
+  cout << "k2_est: " << estimates.kappa2 << "; ";
+  cout << "lambda_est: " << estimates.lambda << "; ";
+  cout << "rho_est: " << estimates.rho << endl;
 }
 
 void check_and_create_directory(string &directory)
 {
   if (stat(directory.c_str(), &st) == -1) {
-      mkdir(directory.c_str(), 0700);
+    mkdir(directory.c_str(), 0700);
   }
 }
 
@@ -504,6 +509,20 @@ void spherical2cartesian(Vector &spherical, Vector &cartesian)
   cartesian[0] = spherical[0] * cos(spherical[1]);
   cartesian[1] = spherical[0] * sin(spherical[1]) * cos(spherical[2]);
   cartesian[2] = spherical[0] * sin(spherical[1]) * sin(spherical[2]);
+}
+
+// angle_pair[0] = theta1, angle_pair[1] = theta2 \in [0,2 \pi)
+void toroid2cartesian(Vector &angle_pair, Vector &cartesian)
+{
+  double r1 = 2;
+  double r2 = 1;
+
+  double theta1 = angle_pair[0];
+  double theta2 = angle_pair[1];
+
+  cartesian[0] = (r1 + r2 * cos(theta2)) * cos(theta1); // x
+  cartesian[1] = (r1 + r2 * cos(theta2)) * sin(theta1); // y
+  cartesian[2] = r2 * sin(theta2);  // z
 }
 
 /*!
@@ -1082,6 +1101,196 @@ double compute_bic(int k, int n, double neg_log_likelihood)
   return ans / (log(2));
 }
 
+////////////////////// MIXTURE FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+/*!
+ *  \brief This function computes the approximation of the constant term for
+ *  the constant term in the message length expression (pg. 257 Wallace)
+ *  \param d an integer
+ *  \return the constant term
+ */
+double computeConstantTerm(int d)
+{
+  double ad = 0;
+  ad -= 0.5 * d * log(2 * PI);
+  ad += 0.5 * log(d * PI);
+  return ad;
+}
+
+double logLatticeConstant(int d)
+{
+  double cd = computeConstantTerm(d);
+  double ans = -1;
+  ans += (2.0 * cd / d);
+  return ans;
+}
+
+/*!
+ *  \brief This function bins the sample data 
+ *  \param res a double
+ *  \param unit_coordinates a reference to a vector<vector<double> > 
+ */
+std::vector<std::vector<int> > updateBins(
+  std::vector<Vector> &angle_pairs, double res
+) {
+  std::vector<std::vector<int> > bins;
+  int num_rows = 360 / res;
+  int num_cols = 360 / res;
+  std::vector<int> tmp(num_cols,0);
+  for (int i=0; i<num_rows; i++) {
+    bins.push_back(tmp);
+  }
+
+  cout << "angle_pairs.size(): " << angle_pairs.size() << endl;
+  int row,col;
+  for (int i=0; i<angle_pairs.size(); i++) {
+    //cout << "i: " << i << endl; 
+    double theta = angle_pairs[i][0] * 180 / PI;  // convert to degrees
+    if (fabs(theta) <= ZERO) {
+      row = 0;
+    } else {
+      row = (int)(ceil(theta/res) - 1);
+    }
+    double phi = angle_pairs[i][1] * 180 / PI;    // convert to degrees
+    if (fabs(phi) <= ZERO) {
+      col = 0;
+    } else {
+      col = (int)(ceil(phi/res) - 1);
+    }
+    if (row >= bins.size() || col >= bins[0].size()) {
+      cout << "outside bounds: " << row << " " << col << "\n";
+      cout << "theta: " << theta << " phi: " << phi << endl;
+      cout << "angle_pairs[i][0]: " << angle_pairs[i][0] 
+           << " angle_pairs[i][1]: " << angle_pairs[i][1] << endl;
+      fflush(stdout);
+    }
+    bins[row][col]++;
+  } // for (i)
+  return bins;
+}
+
+/*!
+ *  \brief This function outputs the bin data.
+ *  \param bins a reference to a std::vector<std::vector<int> >
+ */
+void outputBins(std::vector<std::vector<int> > &bins, double res)
+{
+  double theta=0,phi;
+  string fbins2D_file,fbins3D_file;
+  fbins2D_file = "./visualize/sampled_data/bins2D.dat";
+  fbins3D_file = "./visualize/sampled_data/bins3D.dat";
+  ofstream fbins2D(fbins2D_file.c_str());
+  ofstream fbins3D(fbins3D_file.c_str());
+  Vector cartesian(3,0);
+  Vector angle_pair(2,0);
+  for (int i=0; i<bins.size(); i++) {
+    phi = 0;
+    angle_pair[0] = theta * PI / 180;
+    for (int j=0; j<bins[i].size(); j++) {
+      fbins2D << fixed << setw(10) << bins[i][j];
+      phi += res;
+      angle_pair[1] = phi * PI / 180;
+      toroid2cartesian(angle_pair,cartesian);
+      for (int k=0; k<3; k++) {
+        fbins3D << fixed << setw(10) << setprecision(4) << cartesian[k];
+      }
+      fbins3D << fixed << setw(10) << bins[i][j] << endl;
+    }
+    theta += res;
+    fbins2D << endl;
+  }
+  fbins2D.close();
+  fbins3D.close();
+}
+
+/*!
+ *  \brief This function is used to read the angular profiles and use this data
+ *  to estimate parameters of a Von Mises distribution.
+ *  \param parameters a reference to a struct Parameters
+ */
+void computeEstimators(struct Parameters &parameters)
+{
+  std::vector<Vector> angle_pairs;
+  bool success = gatherData(parameters,angle_pairs);
+  if (parameters.heat_map == SET) {
+    std::vector<std::vector<int> > bins = updateBins(angle_pairs,parameters.res);
+    outputBins(bins,parameters.res);
+  }
+  if (success && parameters.mixture_model == UNSET) {  // no mixture modelling
+    modelOneComponent(parameters,angle_pairs);
+  } else if (success && parameters.mixture_model == SET) { // mixture modelling
+    //modelMixture(parameters,unit_coordinates);
+  }
+}
+
+bool gatherData(struct Parameters &parameters, std::vector<Vector> &angle_pairs)
+{
+  if (parameters.profile_file.compare("") == 0) {
+    path p(parameters.profiles_dir);
+    cout << "path: " << p.string() << endl;
+    if (exists(p)) { 
+      if (is_directory(p)) { 
+        std::vector<path> files; // store paths,
+        copy(directory_iterator(p), directory_iterator(), back_inserter(files));
+        cout << "# of profiles: " << files.size() << endl;
+        int tid;
+        std::vector<std::vector<Vector> > _angle_pairs(NUM_THREADS);
+        #pragma omp parallel num_threads(NUM_THREADS) private(tid)
+        {
+          tid = omp_get_thread_num();
+          if (tid == 0) {
+            cout << "# of threads: " << omp_get_num_threads() << endl;
+          }
+          #pragma omp for 
+          for (int i=0; i<files.size(); i++) {
+            Structure structure;
+            structure.load(files[i]);
+            std::vector<Vector> coords = structure.getAnglePairs();
+            for (int j=0; j<coords.size(); j++) {
+              _angle_pairs[tid].push_back(coords[j]);
+            }
+          }
+        }
+        for (int i=0; i<NUM_THREADS; i++) {
+          for (int j=0; j<_angle_pairs[i].size(); j++) {
+            angle_pairs.push_back(_angle_pairs[i][j]);
+          }
+        }
+        cout << "# of profiles read: " << files.size() << endl;
+        return 1;
+      } else {
+        cout << p << " exists, but is neither a regular file nor a directory\n";
+      }
+    } else {
+      cout << p << " does not exist\n";
+    }
+    return 0;
+  } else if (parameters.profiles_dir.compare("") == 0) {
+    if (checkFile(parameters.profile_file)) {
+      // read a single profile
+      Structure structure;
+      structure.load(parameters.profile_file);
+      angle_pairs = structure.getAnglePairs();
+      return 1;
+    } else {
+      cout << "Profile " << parameters.profile_file << " does not exist ...\n";
+      return 0;
+    }
+  }
+}
+
+void modelOneComponent(struct Parameters &parameters, std::vector<Vector> &angle_pairs)
+{
+  cout << "Sample size: " << angle_pairs.size() << endl;
+  Vector weights(angle_pairs.size(),1);
+  if (DISTRIBUTION == SINE) {
+    BVM_Sine bvm_sine;
+    std::vector<struct EstimatesSine> all_estimates;
+    bvm_sine.computeAllEstimators(angle_pairs,all_estimates,1,0);
+  } else if (DISTRIBUTION == COSINE) {
+  }
+}
+
 ////////////////////// TESTING FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 void TestFunctions(void)
@@ -1100,7 +1309,9 @@ void TestFunctions(void)
 
   //test.sanity_check();
 
-  test.bvm_sine_ml_estimation();
+  //test.bvm_sine_ml_estimation();
+
+  test.bvm_sine_all_estimation();
 
   //test.generate_bvm_cosine();
 }
@@ -1462,5 +1673,20 @@ double ConstraintSine(const Vector &x, std::vector<double> &grad, void *data)
     double lam = x[4];
     return (lam*lam - k1*k2);
     //return (2 * x[1] - x[0]);
+}
+
+// g(theta2|theta1)
+vMC getConditionalDensitySine(
+  double &theta1, double &mu1, double &mu2, double &kappa2, double &lambda
+) {
+  double lambda_sine = lambda * sin(theta1 - mu1);
+  double beta = atan2(lambda_sine,kappa2);
+  double m = mu2 + beta;
+  if (m < 0) m += (2 * PI);
+
+  double asq = kappa2 * kappa2 + lambda_sine * lambda_sine;
+  double k = sqrt(asq);
+  vMC vmc(m,k);
+  return vmc;
 }
 

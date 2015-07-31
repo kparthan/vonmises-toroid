@@ -35,6 +35,7 @@ class BVM_Cosine
 
     //! Generate a random sample of 3D coordinates on the 2D-torus 
     std::vector<Vector> generate_cartesian(int);
+    std::vector<Vector> generate_cartesian(std::vector<Vector> &);
 
     struct Constants getConstants();
 

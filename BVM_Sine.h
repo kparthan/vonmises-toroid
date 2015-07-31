@@ -30,7 +30,7 @@ class BVM_Sine
       double cll_c;   // E[ sin(t1-mu1)^2 sin(t2-mu2)^2 ]
     } constants;
 
-    int computed;
+    int computed,computed_lognorm;
 
   public:
 		//! Constructor
@@ -45,14 +45,14 @@ class BVM_Sine
     //! Assignment of an existing BVM_Sine distribution
     BVM_Sine operator=(const BVM_Sine &);
 
-    //! Generate a random sample of (theta,phi) pairs
-    std::vector<Vector> generate(int);
-
     double Mean1();
     double Mean2();
     double Kappa1();
     double Kappa2();
     double Lambda();
+
+    //! Generate a random sample of (theta,phi) pairs
+    std::vector<Vector> generate(int);
 
     //! Generate a random sample of 3D coordinates on the 2D-torus 
     std::vector<Vector> generate_cartesian(int);
@@ -64,6 +64,7 @@ class BVM_Sine
 
     void computeConstants();
 
+    double getLogNormalizationConstant();
     double computeLogNormalizationConstant();
 
     double compute_series_A(double, double);
@@ -72,6 +73,8 @@ class BVM_Sine
 
     double computeLogParametersProbability(double);
     double computeLogParametersPriorDensity();
+    double computeLogParametersPriorDensityTransform();
+
     double computeLogFisherInformation(double);
     double computeLogFisherInformation_Single();
     double computeLogFisherAxes();
@@ -80,10 +83,13 @@ class BVM_Sine
     double log_density(double &, double &);
 
     double computeNegativeLogLikelihood(std::vector<Vector> &);
+    double computeNegativeLogLikelihood(struct SufficientStatisticsSine &);
     double computeNegativeLogLikelihood(
       struct EstimatesSine &, struct SufficientStatisticsSine &
     );
 
+    double computeMessageLength(std::vector<Vector> &);
+    double computeMessageLength(struct SufficientStatisticsSine &);
     double computeMessageLength(
       struct EstimatesSine &, struct SufficientStatisticsSine &
     );
@@ -95,6 +101,7 @@ class BVM_Sine
     );
 
     void computeAllEstimators(
+      std::vector<Vector> &, 
       struct SufficientStatisticsSine &,
       std::vector<struct EstimatesSine> &,
       int, int

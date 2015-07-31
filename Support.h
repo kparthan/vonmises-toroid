@@ -42,7 +42,7 @@ struct TerminationCondition  {
 struct EstimatesSine
 {
   double mu1,mu2;
-  double kappa1,kappa2,lambda;
+  double kappa1,kappa2,lambda,rho;
   double msglen,negloglike,kldiv;
 };
 
@@ -72,6 +72,7 @@ double normalize(Vector &, Vector &);
 double norm(Vector &);
 void cartesian2spherical(Vector &, Vector &);
 void spherical2cartesian(Vector &, Vector &);
+void toroid2cartesian(Vector &, Vector &);
 double computeDotProduct(Vector &, Vector &);
 Vector crossProduct(Vector &, Vector &); 
 double computeSum(Vector &);
@@ -105,9 +106,6 @@ void jacobiRotateMatrix(Matrix &, Matrix &, int, int);
 double compute_aic(int, int, double);
 double compute_bic(int, int, double);
 
-void TestFunctions(void);
-void RunExperiments(int);
-
 Vector sort(Vector &);
 Vector sort(Vector &, std::vector<int> &);
 void quicksort(Vector &, std::vector<int> &, int, int);
@@ -120,6 +118,17 @@ Vector computeMeans(std::vector<Vector> &);
 double computeVariance(Vector &);
 int minimumIndex(Vector &);
 int maximumIndex(Vector &);
+
+double computeConstantTerm(int);
+double logLatticeConstant(int);
+std::vector<std::vector<int> > updateBins(std::vector<Vector> &, double);
+void outputBins(std::vector<std::vector<int> > &, double);
+void computeEstimators(struct Parameters &);
+bool gatherData(struct Parameters &, std::vector<Vector> &);
+void modelOneComponent(struct Parameters &, std::vector<Vector> &);
+
+void TestFunctions(void);
+void RunExperiments(int);
 
 double accept_reject_fval_unimodal_marginal_sine(
   double &, double &, double &, double &, double &, double &
@@ -139,6 +148,9 @@ void computeSufficientStatisticsSine(
   std::vector<Vector> &, struct SufficientStatisticsSine &
 );
 double ConstraintSine(const Vector &, std::vector<double> &, void *);
+vMC getConditionalDensitySine(
+  double &, double &, double &, double &, double &
+);
 
 #endif
 

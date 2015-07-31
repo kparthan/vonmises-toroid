@@ -18,12 +18,14 @@ BVM_Sine::BVM_Sine(double kappa1, double kappa2, double lambda) :
 {
   mu1 = 0; mu2 = 0;
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Sine::BVM_Sine(double mu1, double mu2, double kappa1, double kappa2, double lambda) :
           mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
 {
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Sine BVM_Sine::operator=(const BVM_Sine &source)
@@ -36,6 +38,7 @@ BVM_Sine BVM_Sine::operator=(const BVM_Sine &source)
     lambda = source.lambda;
     constants = source.constants;
     computed = source.computed;
+    computed_lognorm = source.computed_lognorm;
   }
   return *this;
 }
@@ -170,14 +173,15 @@ std::vector<Vector> BVM_Sine::generate(int sample_size)
     Vector pair(2,0);
     for (int i=0; i<thetas.size(); i++) {
       pair[0] = thetas[i];
-      double lambda_sine = lambda * sin(thetas[i] - mu1);
+      /*double lambda_sine = lambda * sin(thetas[i] - mu1);
       double beta = atan2(lambda_sine,kappa2);
       double m = mu2 + beta;
       if (m < 0) m += (2 * PI);
 
       double asq = kappa2 * kappa2 + lambda_sine * lambda_sine;
       double k = sqrt(asq);
-      vMC vmc(m,k);
+      vMC vmc(m,k);*/
+      vMC vmc = getConditionalDensitySine(thetas[i],mu1,mu2,kappa2,lambda);
       Vector x1 = vmc.generate(1);
       pair[1] = x1[0];
 
@@ -217,14 +221,8 @@ std::vector<Vector> BVM_Sine::generate_cartesian(
   int sample_size = angle_pairs.size();
   Vector cartesian(3,0);
   std::vector<Vector> random_sample(sample_size);
-  double r1 = 2;
-  double r2 = 1;
   for (int i=0; i<sample_size; i++) {
-    double theta1 = angle_pairs[i][0];
-    double theta2 = angle_pairs[i][1];
-    cartesian[0] = (r1 + r2 * cos(theta2)) * cos(theta1); // x
-    cartesian[1] = (r1 + r2 * cos(theta2)) * sin(theta1); // y
-    cartesian[2] = r2 * sin(theta2);  // z
+    toroid2cartesian(angle_pairs[i],cartesian);
     random_sample[i] = cartesian;
   } // for()
 
@@ -310,6 +308,15 @@ void BVM_Sine::computeConstants()
   constants.log_d2c_dk1dl = compute_series_B(1,0);      // > 0
   constants.log_d2c_dk2dl = compute_series_B(0,1);      // > 0
   constants.log_d2c_dldl = compute_series_C();          // > 0
+}
+
+double BVM_Sine::getLogNormalizationConstant()
+{
+  if (computed_lognorm == UNSET) {
+    constants.log_c = computeLogNormalizationConstant();  
+    computed_lognorm = SET;
+  }
+  return constants.log_c;
 }
 
 /*!
@@ -447,7 +454,7 @@ double BVM_Sine::computeLogParametersProbability(double Neff)
   return logp;
 }
 
-// prior density of parameters ...
+// prior density of parameters ... h(kappa1,kappa2,lambda)
 double BVM_Sine::computeLogParametersPriorDensity()
 {
   // prior on means (uniform)
@@ -462,23 +469,20 @@ double BVM_Sine::computeLogParametersPriorDensity()
   return log_prior;
 }
 
-// prior density of parameters ...
-/*
-double BVM_Sine::computeLogParametersPriorDensity()
+// prior density of parameters ... h(kappa1,kappa2,rho)
+double BVM_Sine::computeLogParametersPriorDensityTransform()
 {
   // prior on means (uniform)
   double log_prior_means = -2 * log(2*PI);
 
-  // joint prior on kappas and lambda (vMC)
-  double log_scale = log(kappa1) - 1.5 * (1+kappa1*kappa1);
-  log_scale += (log(kappa2) - 1.5 * (1+kappa2*kappa2));
-  log_scale += (log(fabs(lambda)) - 1.5 * (1+lambda*lambda));
+  // joint prior on kappas and rho (correlation) 
+  double log_scale = log(kappa1) - 1.5 * log(1+kappa1*kappa1);
+  log_scale += (log(kappa2) - 1.5 * log(1+kappa2*kappa2));
   log_scale -= log(2);
 
   double log_prior = log_prior_means + log_scale;
   return log_prior;
 }
-*/
 
 double BVM_Sine::computeLogFisherInformation(double N)
 {
@@ -539,7 +543,7 @@ double BVM_Sine::computeLogFisherScale()
   fisher_scale(1,2) = constants.ck2l_c - (constants.ck2_c * constants.cl_c);
 
   // E [d^2 L / dl^2]
-  fisher_scale(1,1) = constants.cll_c - (constants.cl_c * constants.cl_c);
+  fisher_scale(2,2) = constants.cll_c - (constants.cl_c * constants.cl_c);
 
   fisher_scale(1,0) = fisher_scale(0,1);
   fisher_scale(2,0) = fisher_scale(0,2);
@@ -567,19 +571,21 @@ double BVM_Sine::log_density(double &theta1, double &theta2)
 // data = angle_pairs
 double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
 {
-  if (computed != SET) {
-    computeExpectation();
-  }
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(data,suff_stats);
+  return computeNegativeLogLikelihood(suff_stats);
+}
 
+double BVM_Sine::computeNegativeLogLikelihood(
+  struct SufficientStatisticsSine &suff_stats
+) {
   double cosm1 = cos(mu1);
   double sinm1 = sin(mu1);
   double cosm2 = cos(mu2);
   double sinm2 = sin(mu2);
 
   // compute log-likelihood
-  struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine(data,suff_stats);
-  double ans = -data.size() * constants.log_c;
+  double ans = -suff_stats.N * getLogNormalizationConstant();
   ans += (kappa1 * cosm1 * suff_stats.cost1);
   ans += (kappa1 * sinm1 * suff_stats.sint1);
   ans += (kappa2 * cosm2 * suff_stats.cost2);
@@ -597,42 +603,40 @@ double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
 double BVM_Sine::computeNegativeLogLikelihood(
   struct EstimatesSine &estimates, struct SufficientStatisticsSine &suff_stats
 ) {
-  if (computed != SET) {
-    computeExpectation();
-  }
+  BVM_Sine bvm_sine(
+    estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+  );
+  return bvm_sine.computeNegativeLogLikelihood(suff_stats);
+}
 
-  double cosm1 = cos(estimates.mu1);
-  double sinm1 = sin(estimates.mu1);
-  double cosm2 = cos(estimates.mu2);
-  double sinm2 = sin(estimates.mu2);
+// data = angle_pairs
+double BVM_Sine::computeMessageLength(std::vector<Vector> &data)
+{
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(data,suff_stats);
+  return computeMessageLength(suff_stats);
+}
 
-  // compute log-likelihood
-  double ans = -suff_stats.N * constants.log_c;
-  ans += (estimates.kappa1 * cosm1 * suff_stats.cost1);
-  ans += (estimates.kappa1 * sinm1 * suff_stats.sint1);
-  ans += (estimates.kappa2 * cosm2 * suff_stats.cost2);
-  ans += (estimates.kappa2 * sinm2 * suff_stats.sint2);
-
-  ans += (estimates.lambda * cosm1 * cosm2 * suff_stats.sint1sint2);
-  ans -= (estimates.lambda * cosm1 * sinm2 * suff_stats.sint1cost2);
-  ans -= (estimates.lambda * sinm1 * cosm2 * suff_stats.cost1sint2);
-  ans += (estimates.lambda * sinm1 * sinm2 * suff_stats.cost1cost2);
-
-  // return -ve log-likelihood
-  return -ans;
+double BVM_Sine::computeMessageLength(
+  struct SufficientStatisticsSine &suff_stats
+) {
+  double log_prior = computeLogParametersPriorDensity();
+  double log_fisher = computeLogFisherInformation(suff_stats.N);
+  double part1 = -6.455 - log_prior + 0.5 * log_fisher;
+  double part2 = computeNegativeLogLikelihood(suff_stats) + 2.5
+                 - 2 * suff_stats.N * log(AOM);
+  double msglen = part1 + part2;
+  return msglen/log(2);
 }
 
 double BVM_Sine::computeMessageLength(
   struct EstimatesSine &estimates,
   struct SufficientStatisticsSine &suff_stats
 ) {
-  double log_prior = computeLogParametersPriorDensity();
-  double log_fisher = computeLogFisherInformation(suff_stats.N);
-  double part1 = -6.455 - log_prior + 0.5 * log_fisher;
-  double part2 = computeNegativeLogLikelihood(estimates,suff_stats) + 2.5
-                 - 2 * suff_stats.N * log(AOM);
-  double msglen = part1 + part2;
-  return msglen/log(2);
+  BVM_Sine bvm_sine(
+    estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+  );
+  return bvm_sine.computeMessageLength(suff_stats);
 }
 
 // data = angle_pairs
@@ -646,11 +650,12 @@ void BVM_Sine::computeAllEstimators(
   computeSufficientStatisticsSine(data,suff_stats);
 
   computeAllEstimators(
-    suff_stats,all_estimates,verbose,compute_kldiv
+    data,suff_stats,all_estimates,verbose,compute_kldiv
   );
 }
 
 void BVM_Sine::computeAllEstimators(
+  std::vector<Vector> &data, 
   struct SufficientStatisticsSine &suff_stats,
   std::vector<struct EstimatesSine> &all_estimates,
   int verbose,
@@ -660,10 +665,36 @@ void BVM_Sine::computeAllEstimators(
   int min_index;
 
   all_estimates.clear();
+  all_estimates = std::vector<struct EstimatesSine>(NUM_METHODS);
 
   string type = "initial";
   struct EstimatesSine initial_est = computeInitialEstimates(suff_stats);
   print(type,initial_est);
+
+  /*type = "PMLE";
+  struct EstimatesSine pml_est = initial_est;
+  OptimizeSine opt_pmle(type);
+  opt_pmle.initialize(
+    pml_est.mu1,pml_est.mu2,pml_est.kappa1,pml_est.kappa2,pml_est.lambda
+  );
+  pml_est = opt_pmle.minimize(data);
+  pml_est.msglen = computeMessageLength(pml_est,suff_stats);
+  pml_est.negloglike = computeNegativeLogLikelihood(pml_est,suff_stats);
+  if (compute_kldiv) {
+    pml_est.kldiv = computeKLDivergence(pml_est);
+  }
+  if (verbose) {
+    print(type,pml_est);
+    cout << fixed << "msglen: " << pml_est.msglen << endl;
+    cout << "negloglike: " << pml_est.negloglike << endl;
+    cout << "KL-divergence: " << pml_est.kldiv << endl << endl;
+  }
+  all_estimates[PMLE] = pml_est;
+  //if (pml_est.msglen < min_msg) {
+    min_index = PMLE;
+    min_msg = pml_est.msglen;
+  //}
+  */
 
   type = "MLE";
   struct EstimatesSine ml_est = initial_est;
@@ -683,14 +714,14 @@ void BVM_Sine::computeAllEstimators(
     cout << "negloglike: " << ml_est.negloglike << endl;
     cout << "KL-divergence: " << ml_est.kldiv << endl << endl;
   }
-  all_estimates.push_back(ml_est);
-  /*if (ml_est.msglen < min_msg) {
+  all_estimates[MLE] = ml_est;
+  //if (ml_est.msglen < min_msg) {
     min_index = MLE;
     min_msg = ml_est.msglen;
-  }*/
+  //}
 
   type = "MAP";
-  struct EstimatesSine map_est = ml_est;
+  struct EstimatesSine map_est = initial_est;
   OptimizeSine opt_map(type);
   opt_map.initialize(
     map_est.mu1,map_est.mu2,map_est.kappa1,map_est.kappa2,map_est.lambda
@@ -707,14 +738,15 @@ void BVM_Sine::computeAllEstimators(
     cout << "negloglike: " << map_est.negloglike << endl;
     cout << "KL-divergence: " << map_est.kldiv << endl << endl;
   }
-  all_estimates.push_back(map_est);
-  /*if (map_est.msglen < min_msg) {
-    min_index = MLE;
+  all_estimates[MAP] = map_est;
+  if (map_est.msglen < min_msg) {
+    min_index = MAP;
     min_msg = map_est.msglen;
-  }*/
+  }
 
   type = "MML";
-  struct EstimatesSine mml_est = ml_est;
+  //struct EstimatesSine mml_est = initial_est;
+  struct EstimatesSine mml_est = all_estimates[min_index];
   OptimizeSine opt_mml(type);
   opt_mml.initialize(
     mml_est.mu1,mml_est.mu2,mml_est.kappa1,mml_est.kappa2,mml_est.lambda
@@ -731,11 +763,37 @@ void BVM_Sine::computeAllEstimators(
     cout << "negloglike: " << mml_est.negloglike << endl;
     cout << "KL-divergence: " << mml_est.kldiv << endl << endl;
   }
-  all_estimates.push_back(mml_est);
-  /*if (mml_est.msglen < min_msg) {
-    min_index = MLE;
+  all_estimates[MML] = mml_est;
+  if (mml_est.msglen < min_msg) {
+    min_index = MML;
     min_msg = mml_est.msglen;
-  }*/
+  }
+
+  /***************************** MAP Variant *********************************/
+
+  type = "MAP_TRANSFORM";
+  struct EstimatesSine map2_est = initial_est;
+  OptimizeSine opt_map2(type);
+  opt_map2.initialize(
+    map2_est.mu1,map2_est.mu2,map2_est.kappa1,map2_est.kappa2,map2_est.lambda
+  );
+  map2_est = opt_map2.minimize(suff_stats);
+  map2_est.msglen = computeMessageLength(map2_est,suff_stats);
+  map2_est.negloglike = computeNegativeLogLikelihood(map2_est,suff_stats);
+  if (compute_kldiv) {
+    map2_est.kldiv = computeKLDivergence(map2_est);
+  }
+  if (verbose) {
+    print(type,map2_est);
+    cout << fixed << "msglen: " << map2_est.msglen << endl;
+    cout << "negloglike: " << map2_est.negloglike << endl;
+    cout << "KL-divergence: " << map2_est.kldiv << endl << endl;
+  }
+  all_estimates[MAP_TRANSFORM] = map2_est;
+  if (map2_est.msglen < min_msg) {
+    min_index = MAP;
+    min_msg = map2_est.msglen;
+  }
 }
 
 struct EstimatesSine BVM_Sine::computeInitialEstimates(
@@ -783,7 +841,7 @@ double BVM_Sine::computeKLDivergence(BVM_Sine &other)
     computeExpectation();
   }
 
-  double log_norm_b = other.computeLogNormalizationConstant();
+  double log_norm_b = other.getLogNormalizationConstant();
   double ans = log_norm_b - constants.log_c;
 
   double mu1b = other.Mean1();
