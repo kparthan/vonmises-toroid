@@ -19,7 +19,8 @@ OBJECTS = main.o \
   MarginalDensityCosine.o \
   KappaSolver.o \
   OptimizeSine.o \
-  Test.o 
+  Test.o \
+  Experiments.o
 
 all: main 
 
@@ -63,6 +64,9 @@ OptimizeSine.o: OptimizeSine.cpp OptimizeSine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 Test.o: Test.cpp Test.h Header.h Support.h
+	g++ $(CFLAGS) $< -o $@
+
+Experiments.o: Experiments.cpp Experiments.h Header.h Support.h
 	g++ $(CFLAGS) $< -o $@
 
 clean:

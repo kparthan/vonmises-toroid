@@ -498,8 +498,8 @@ double BVM_Sine::computeLogFisherInformation_Single()
     computeExpectation();
   }
   double log_det_axes = computeLogFisherAxes();
-  double log_det_kb = computeLogFisherScale();
-  return log_det_axes + log_det_kb; 
+  double log_det_scale = computeLogFisherScale();
+  return log_det_axes + log_det_scale; 
 }
 
 double BVM_Sine::computeLogFisherAxes()
@@ -572,7 +572,7 @@ double BVM_Sine::log_density(double &theta1, double &theta2)
 double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
 {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine(data,suff_stats);
+  computeSufficientStatisticsSine_parallel(data,suff_stats);
   return computeNegativeLogLikelihood(suff_stats);
 }
 
@@ -613,7 +613,7 @@ double BVM_Sine::computeNegativeLogLikelihood(
 double BVM_Sine::computeMessageLength(std::vector<Vector> &data)
 {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine(data,suff_stats);
+  computeSufficientStatisticsSine_parallel(data,suff_stats);
   return computeMessageLength(suff_stats);
 }
 
@@ -647,7 +647,7 @@ void BVM_Sine::computeAllEstimators(
   int compute_kldiv
 ) {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine(data,suff_stats);
+  computeSufficientStatisticsSine_parallel(data,suff_stats);
 
   computeAllEstimators(
     data,suff_stats,all_estimates,verbose,compute_kldiv
@@ -744,6 +744,34 @@ void BVM_Sine::computeAllEstimators(
     min_msg = map_est.msglen;
   }
 
+  /***************************** MAP Variant *********************************/
+
+  type = "MAP_TRANSFORM";
+  struct EstimatesSine map2_est = initial_est;
+  OptimizeSine opt_map2(type);
+  opt_map2.initialize(
+    map2_est.mu1,map2_est.mu2,map2_est.kappa1,map2_est.kappa2,map2_est.lambda
+  );
+  map2_est = opt_map2.minimize(suff_stats);
+  map2_est.msglen = computeMessageLength(map2_est,suff_stats);
+  map2_est.negloglike = computeNegativeLogLikelihood(map2_est,suff_stats);
+  if (compute_kldiv) {
+    map2_est.kldiv = computeKLDivergence(map2_est);
+  }
+  if (verbose) {
+    print(type,map2_est);
+    cout << fixed << "msglen: " << map2_est.msglen << endl;
+    cout << "negloglike: " << map2_est.negloglike << endl;
+    cout << "KL-divergence: " << map2_est.kldiv << endl << endl;
+  }
+  all_estimates[MAP_TRANSFORM] = map2_est;
+  if (map2_est.msglen < min_msg) {
+    min_index = MAP_TRANSFORM;
+    min_msg = map2_est.msglen;
+  }
+
+  /***************************** MAP Variant *********************************/
+
   type = "MML";
   //struct EstimatesSine mml_est = initial_est;
   struct EstimatesSine mml_est = all_estimates[min_index];
@@ -767,32 +795,6 @@ void BVM_Sine::computeAllEstimators(
   if (mml_est.msglen < min_msg) {
     min_index = MML;
     min_msg = mml_est.msglen;
-  }
-
-  /***************************** MAP Variant *********************************/
-
-  type = "MAP_TRANSFORM";
-  struct EstimatesSine map2_est = initial_est;
-  OptimizeSine opt_map2(type);
-  opt_map2.initialize(
-    map2_est.mu1,map2_est.mu2,map2_est.kappa1,map2_est.kappa2,map2_est.lambda
-  );
-  map2_est = opt_map2.minimize(suff_stats);
-  map2_est.msglen = computeMessageLength(map2_est,suff_stats);
-  map2_est.negloglike = computeNegativeLogLikelihood(map2_est,suff_stats);
-  if (compute_kldiv) {
-    map2_est.kldiv = computeKLDivergence(map2_est);
-  }
-  if (verbose) {
-    print(type,map2_est);
-    cout << fixed << "msglen: " << map2_est.msglen << endl;
-    cout << "negloglike: " << map2_est.negloglike << endl;
-    cout << "KL-divergence: " << map2_est.kldiv << endl << endl;
-  }
-  all_estimates[MAP_TRANSFORM] = map2_est;
-  if (map2_est.msglen < min_msg) {
-    min_index = MAP;
-    min_msg = map2_est.msglen;
   }
 }
 

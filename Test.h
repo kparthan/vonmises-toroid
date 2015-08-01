@@ -23,6 +23,8 @@ class Test
 
     void sanity_check();
 
+    void check_sufficient_stats_sine();
+
     void bvm_sine_ml_estimation();
     void bvm_sine_all_estimation();
 

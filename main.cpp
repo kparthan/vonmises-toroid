@@ -3,15 +3,10 @@
 #include "UniformRandomNumberGenerator.h"
 
 extern UniformRandomNumberGenerator *uniform_generator;
-extern Vector XAXIS,YAXIS,ZAXIS;
 extern double MIN_N;
 
 int main(int argc, char **argv)
 {
-  //Setup();
-  XAXIS = Vector(3,0); XAXIS[0] = 1;
-  YAXIS = Vector(3,0); YAXIS[1] = 1;
-  ZAXIS = Vector(3,0); ZAXIS[2] = 1;
 
   MIN_N = 10;
 
@@ -30,7 +25,7 @@ int main(int argc, char **argv)
   }
 
   if (parameters.experiments == SET) {
-    RunExperiments(parameters.iterations);
+    RunExperiments(parameters);
   }
 
   if (parameters.read_profiles == SET && parameters.simulation == UNSET) {

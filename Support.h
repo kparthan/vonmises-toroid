@@ -63,6 +63,7 @@ void writeToFile(string &file_name, std::vector<std::vector<int> > &);
 string extractName(string &);
 void print(ostream &, const Vector &, int);
 void print(string &, struct EstimatesSine &);
+void print(struct SufficientStatisticsSine &);
 void check_and_create_directory(string &);
 
 double scale_to_aom(double &);
@@ -118,6 +119,9 @@ Vector computeMeans(std::vector<Vector> &);
 double computeVariance(Vector &);
 int minimumIndex(Vector &);
 int maximumIndex(Vector &);
+void chisquare_hypothesis_testing(
+  std::vector<struct EstimatesSine> &, Vector &, Vector &
+);
 
 double computeConstantTerm(int);
 double logLatticeConstant(int);
@@ -128,7 +132,7 @@ bool gatherData(struct Parameters &, std::vector<Vector> &);
 void modelOneComponent(struct Parameters &, std::vector<Vector> &);
 
 void TestFunctions(void);
-void RunExperiments(int);
+void RunExperiments(struct Parameters &);
 
 double accept_reject_fval_unimodal_marginal_sine(
   double &, double &, double &, double &, double &, double &
@@ -145,6 +149,9 @@ double accept_reject_fval_bimodal_marginal_cosine(
 
 double banerjee_approx(double &);
 void computeSufficientStatisticsSine(
+  std::vector<Vector> &, struct SufficientStatisticsSine &
+);
+void computeSufficientStatisticsSine_parallel(
   std::vector<Vector> &, struct SufficientStatisticsSine &
 );
 double ConstraintSine(const Vector &, std::vector<double> &, void *);

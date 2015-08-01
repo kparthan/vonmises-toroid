@@ -3,8 +3,8 @@
 #include "Structure.h"
 #include "BVM_Sine.h"
 #include "UniformRandomNumberGenerator.h"
+#include "Experiments.h"
 
-Vector XAXIS,YAXIS,ZAXIS;
 int MIXTURE_ID = 1;
 int MIXTURE_SIMULATION;
 int INFER_COMPONENTS;
@@ -380,6 +380,20 @@ void print(string &type, struct EstimatesSine &estimates)
   cout << "k2_est: " << estimates.kappa2 << "; ";
   cout << "lambda_est: " << estimates.lambda << "; ";
   cout << "rho_est: " << estimates.rho << endl;
+}
+
+void print(struct SufficientStatisticsSine &suff_stats)
+{
+  cout << "sufficient stats sine:\n";
+  cout << "N: " << suff_stats.N << endl;
+  cout << "cost1: " << suff_stats.cost1 << endl;
+  cout << "sint1: " << suff_stats.sint1 << endl;
+  cout << "cost2: " << suff_stats.cost2 << endl;
+  cout << "sint2: " << suff_stats.sint2 << endl;
+  cout << "sint1 sint2: " << suff_stats.sint1sint2 << endl;
+  cout << "sint1 cost2: " << suff_stats.sint1cost2 << endl;
+  cout << "cost1 sint2: " << suff_stats.cost1sint2 << endl;
+  cout << "cost1 cost2: " << suff_stats.cost1cost2 << endl;
 }
 
 void check_and_create_directory(string &directory)
@@ -1309,6 +1323,8 @@ void TestFunctions(void)
 
   //test.sanity_check();
 
+  //test.check_sufficient_stats_sine();
+
   //test.bvm_sine_ml_estimation();
 
   test.bvm_sine_all_estimation();
@@ -1318,8 +1334,13 @@ void TestFunctions(void)
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-void RunExperiments(int iterations)
+void RunExperiments(struct Parameters &parameters)
 {
+  Experiments experiments;
+
+  //experiments.fisher_uncertainty();
+
+  experiments.simulate_sine(parameters.iterations);
 }
 
 /*!
@@ -1510,6 +1531,57 @@ int maximumIndex(Vector &values)
   return max_index;
 }
 
+void chisquare_hypothesis_testing(
+  std::vector<struct EstimatesSine> &all_bvm_sine_estimates,
+  Vector &statistics,
+  Vector &pvalues
+) {
+  int num_methods = all_bvm_sine_estimates.size();
+  statistics = Vector(num_methods,0);
+  pvalues = Vector(num_methods,0);
+
+  chi_squared chisq(5);
+
+  BVM_Sine bvm_sine_ml(
+    all_bvm_sine_estimates[MLE].mu1,
+    all_bvm_sine_estimates[MLE].mu2,
+    all_bvm_sine_estimates[MLE].kappa1,
+    all_bvm_sine_estimates[MLE].kappa2,
+    all_bvm_sine_estimates[MLE].lambda
+  );
+  double bvm_sine_ml_negloglike = all_bvm_sine_estimates[MLE].negloglike;
+  cout << "BVM_Sine (MLE) negloglike: " << bvm_sine_ml_negloglike << endl;
+
+  double bvm_sine_negloglike,log_ratio_statistic,pvalue;
+  for (int i=0; i<num_methods; i++) {
+    if (i != PMLE || i != MLE) {
+      // null: Kent(i)
+      BVM_Sine bvm_sine_ml(
+        all_bvm_sine_estimates[i].mu1,
+        all_bvm_sine_estimates[i].mu2,
+        all_bvm_sine_estimates[i].kappa1,
+        all_bvm_sine_estimates[i].kappa2,
+        all_bvm_sine_estimates[i].lambda
+      );
+      bvm_sine_negloglike = all_bvm_sine_estimates[i].negloglike;
+      log_ratio_statistic = 2 * (bvm_sine_negloglike - bvm_sine_ml_negloglike);
+      if (log_ratio_statistic < 0) {
+        //assert(fabs(log_ratio_statistic) < 1e-4);
+        log_ratio_statistic = fabs(log_ratio_statistic);
+      }
+      pvalue = 1 - cdf(chisq,log_ratio_statistic);
+    } else { 
+      log_ratio_statistic = 0;
+      pvalue = 1;
+    } // if()
+    cout << "(null: BVM_Sine[" << i <<"]) negloglike: " << bvm_sine_negloglike
+         << "; log_ratio_statistic: " << log_ratio_statistic
+         << "; pvalue: " << pvalue << endl;
+    statistics[i] = log_ratio_statistic;
+    pvalues[i] = pvalue;
+  } // for()
+}
+
 ////////////////////// BVM SPECIFIC FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 double accept_reject_fval_unimodal_marginal_sine(
@@ -1653,17 +1725,69 @@ void computeSufficientStatisticsSine(
     suff_stats.cost1cost2 += cost1 * cost2;
   } // for()
 
-/*
-  cout << "sufficient stats sine:\n";
-  cout << "cost1: " << suff_stats.cost1 << endl;
-  cout << "sint1: " << suff_stats.sint1 << endl;
-  cout << "cost2: " << suff_stats.cost2 << endl;
-  cout << "sint2: " << suff_stats.sint2 << endl;
-  cout << "sint1 sint2: " << suff_stats.sint1sint2 << endl;
-  cout << "sint1 cost2: " << suff_stats.sint1cost2 << endl;
-  cout << "cost1 sint2: " << suff_stats.cost1sint2 << endl;
-  cout << "cost1 cost2: " << suff_stats.cost1cost2 << endl;
-*/  
+  //print(suff_stats);
+}
+
+void computeSufficientStatisticsSine_parallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsSine &suff_stats
+) {
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.sint1sint2 = 0; suff_stats.sint1cost2 = 0;
+  suff_stats.cost1sint2 = 0; suff_stats.cost1cost2 = 0;
+
+  std::vector<struct SufficientStatisticsSine> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += 1;
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += cost1;
+      suff_stats_vector[tid].cost2 += cost2;
+      suff_stats_vector[tid].sint1 += sint1;
+      suff_stats_vector[tid].sint2 += sint2;
+
+      suff_stats_vector[tid].sint1sint2 += sint1 * sint2;
+      suff_stats_vector[tid].sint1cost2 += sint1 * cost2;
+      suff_stats_vector[tid].cost1sint2 += cost1 * sint2;
+      suff_stats_vector[tid].cost1cost2 += cost1 * cost2;
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    suff_stats.sint1sint2 += suff_stats_vector[i].sint1sint2;
+    suff_stats.sint1cost2 += suff_stats_vector[i].sint1cost2;
+    suff_stats.cost1sint2 += suff_stats_vector[i].cost1sint2;
+    suff_stats.cost1cost2 += suff_stats_vector[i].cost1cost2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
 }
 
 double ConstraintSine(const Vector &x, std::vector<double> &grad, void *data)

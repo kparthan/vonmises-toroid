@@ -6,7 +6,6 @@
 #include "BVM_Sine.h"
 #include "BVM_Cosine.h"
 
-extern Vector XAXIS,YAXIS,ZAXIS;
 extern int ENABLE_DATA_PARALLELISM;
 extern int NUM_THREADS;
 extern int ESTIMATION,CRITERION;
@@ -151,6 +150,28 @@ void Test::sanity_check()
   cout << "log_f2: " << log_f << endl;
 }
 
+void Test::check_sufficient_stats_sine()
+{
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = -3;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+
+  std::vector<Vector> angle_pairs = bvm_sine.generate(N);
+  writeToFile("angle_pairs.dat",angle_pairs);
+
+  cout << "Normal:\n";
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(angle_pairs,suff_stats);
+
+  cout << "\nParallel:\n";
+  struct SufficientStatisticsSine suff_stats_parallel;
+  computeSufficientStatisticsSine_parallel(angle_pairs,suff_stats_parallel);
+}
+
 void Test::bvm_sine_ml_estimation()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
@@ -182,7 +203,7 @@ void Test::bvm_sine_ml_estimation()
 void Test::bvm_sine_all_estimation()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
-  int N = 10;
+  int N = 1000;
 
   mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = -3;
 
@@ -192,8 +213,11 @@ void Test::bvm_sine_all_estimation()
 
   std::vector<Vector> angle_pairs = bvm_sine.generate(N);
   writeToFile("angle_pairs.dat",angle_pairs);
-  std::vector<struct EstimatesSine> estimates;
-  bvm_sine.computeAllEstimators(angle_pairs,estimates,1,1);
+  std::vector<struct EstimatesSine> all_estimates;
+  bvm_sine.computeAllEstimators(angle_pairs,all_estimates,1,1);
+
+  Vector statistics,pvalues;
+  chisquare_hypothesis_testing(all_estimates,statistics,pvalues);
 
   std::vector<Vector> random_sample = bvm_sine.generate_cartesian(angle_pairs);
   writeToFile("bvm_sine.dat",random_sample);
