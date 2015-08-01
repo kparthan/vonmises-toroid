@@ -38,8 +38,8 @@ void Experiments::simulate_sine(int iterations)
 
   double mu1 = 90; mu1 *= PI/180;
   double mu2 = 90; mu2 *= PI/180;
-  double kappa1 = 1; 
-  double kappa2 = 1;
+  double kappa1 = 100; 
+  double kappa2 = 100;
 
   ostringstream ssk1;
   ssk1 << fixed << setprecision(0);
