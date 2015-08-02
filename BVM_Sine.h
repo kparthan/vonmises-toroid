@@ -80,6 +80,7 @@ class BVM_Sine
     double computeLogFisherAxes();
     double computeLogFisherScale();
 
+    double log_density(Vector &);
     double log_density(double &, double &);
 
     double computeNegativeLogLikelihood(std::vector<Vector> &);
@@ -110,6 +111,11 @@ class BVM_Sine
     struct EstimatesSine computeInitialEstimates(
       struct SufficientStatisticsSine &
     );
+
+    void estimateParameters(std::vector<Vector> &, Vector &);
+    void updateParameters(struct EstimatesSine &);
+
+    void printParameters(ostream &);
 
     double computeKLDivergence(BVM_Sine &);
     double computeKLDivergence(struct EstimatesSine &);

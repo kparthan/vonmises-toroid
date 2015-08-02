@@ -1,5 +1,6 @@
-function [] = plot_torus(data_file)
+function [] = heat_map_3D(file_name)
 
+  % draw a torus 
   r1 = 2;
   r2 = 1;
 
@@ -13,17 +14,21 @@ function [] = plot_torus(data_file)
   hold on;
   axis equal;
   set(gcf, 'Color', 'w');
-  %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle','--');
-  surfl(X,Y,Z);
+  surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle','--');
+  %surfl(X,Y,Z);
 
-  M = load(data_file);
+  % plot data
+  M = load(file_name);
   theta1 = M(:,1);
   theta2 = M(:,2);
 
   x = (r1 + r2*cos(theta2)).*cos(theta1);
   y = (r1 + r2*cos(theta2)).*sin(theta1);
   z = r2*sin(theta2);
-  plot3(x,y,z,'.','Color',[1 0 0]);
+
+  density = M(:,3);
+
+  h=scatter3(x,y,z,2,'cdata',density);
 
   xlabel('X');
   ylabel('Y');

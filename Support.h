@@ -2,7 +2,8 @@
 #define SUPPORT_H
 
 #include "Header.h"
-#include "Mixture_vMC.h"
+#include "Mixture_Sine.h"
+#include "vMC.h"
 
 struct Parameters
 {
@@ -47,7 +48,7 @@ struct EstimatesSine
 };
 
 struct SufficientStatisticsSine {
-  int N;
+  double N;
   double cost1,cost2,sint1,sint2;
   double sint1sint2,sint1cost2,cost1sint2,cost1cost2;
 };
@@ -127,9 +128,17 @@ double computeConstantTerm(int);
 double logLatticeConstant(int);
 std::vector<std::vector<int> > updateBins(std::vector<Vector> &, double);
 void outputBins(std::vector<std::vector<int> > &, double);
+
 void computeEstimators(struct Parameters &);
 bool gatherData(struct Parameters &, std::vector<Vector> &);
 void modelOneComponent(struct Parameters &, std::vector<Vector> &);
+void modelMixture(struct Parameters &, std::vector<Vector> &);
+void simulateMixtureModel(struct Parameters &);
+Vector generateFromSimplex(int);
+std::vector<BVM_Sine> generateRandomComponents(int);
+Mixture_Sine inferComponents(std::vector<Vector> &, string &);
+Mixture_Sine inferComponents(Mixture_Sine &, int, ostream &);
+void updateInference(Mixture_Sine &, Mixture_Sine &, int, ostream &, int);
 
 void TestFunctions(void);
 void RunExperiments(struct Parameters &);
@@ -148,11 +157,17 @@ double accept_reject_fval_bimodal_marginal_cosine(
 );
 
 double banerjee_approx(double &);
+void computeSufficientStatisticsSineNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsSine &
+);
 void computeSufficientStatisticsSine(
   std::vector<Vector> &, struct SufficientStatisticsSine &
 );
-void computeSufficientStatisticsSine_parallel(
-  std::vector<Vector> &, struct SufficientStatisticsSine &
+void computeSufficientStatisticsSineNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsSine &, Vector &
+);
+void computeSufficientStatisticsSine(
+  std::vector<Vector> &, struct SufficientStatisticsSine &, Vector &
 );
 double ConstraintSine(const Vector &, std::vector<double> &, void *);
 vMC getConditionalDensitySine(

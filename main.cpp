@@ -32,6 +32,10 @@ int main(int argc, char **argv)
     computeEstimators(parameters);
   } 
 
+  if (parameters.simulation == SET) {
+    simulateMixtureModel(parameters);
+  }
+
   delete(uniform_generator);
 
   return 0;

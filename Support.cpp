@@ -1,4 +1,5 @@
 #include "Support.h"
+#include "Mixture_vMC.h"
 #include "Test.h"
 #include "Structure.h"
 #include "BVM_Sine.h"
@@ -21,6 +22,7 @@ double MIN_N;
 int SPLITTING = 0;
 string EM_LOG_FOLDER;
 int DISTRIBUTION;
+int MSGLEN_FAIL;
 
 struct stat st = {0};
 
@@ -1233,7 +1235,7 @@ void computeEstimators(struct Parameters &parameters)
   if (success && parameters.mixture_model == UNSET) {  // no mixture modelling
     modelOneComponent(parameters,angle_pairs);
   } else if (success && parameters.mixture_model == SET) { // mixture modelling
-    //modelMixture(parameters,unit_coordinates);
+    modelMixture(parameters,angle_pairs);
   }
 }
 
@@ -1303,6 +1305,281 @@ void modelOneComponent(struct Parameters &parameters, std::vector<Vector> &angle
     bvm_sine.computeAllEstimators(angle_pairs,all_estimates,1,0);
   } else if (DISTRIBUTION == COSINE) {
   }
+}
+
+void modelMixture(struct Parameters &parameters, std::vector<Vector> &data)
+{
+  Vector data_weights(data.size(),1);
+  // if the optimal number of components need to be determined
+  if (DISTRIBUTION == SINE) {
+    if (parameters.infer_num_components == SET) {
+      Mixture_Sine mixture;
+      if (parameters.continue_inference == UNSET) {
+        Mixture_Sine m(parameters.start_from,data,data_weights);
+        mixture = m;
+        mixture.estimateParameters();
+      } else if (parameters.continue_inference == SET) {
+        mixture.load(parameters.mixture_file,data,data_weights);
+      } // continue_inference
+      ofstream log(parameters.infer_log.c_str());
+      Mixture_Sine stable = inferComponents(mixture,data.size(),log);
+      log.close();
+    } else if (parameters.infer_num_components == UNSET) {
+      // for a given value of number of components
+      // do the mixture modelling
+      Mixture_Sine mixture(parameters.fit_num_components,data,data_weights);
+      mixture.estimateParameters();
+    }
+  } else if (DISTRIBUTION == COSINE) {
+  }
+}
+
+void simulateMixtureModel(struct Parameters &parameters)
+{
+  std::vector<Vector> data;
+  if (DISTRIBUTION == SINE) {
+    if (parameters.load_mixture == SET) {
+      Mixture_Sine original;
+      original.load(parameters.mixture_file);
+      bool save = 1;
+      if (parameters.read_profiles == SET) {
+        bool success = gatherData(parameters,data);
+        if (!success) {
+          cout << "Error in reading data...\n";
+          exit(1);
+        }
+      } else if (parameters.read_profiles == UNSET) {
+        data = original.generate(parameters.sample_size,save);
+      }
+      double msglen = original.compress(data);
+      if (parameters.heat_map == SET) {
+        original.generateHeatmapData(parameters.res);
+        std::vector<std::vector<int> > bins = updateBins(data,parameters.res);
+        outputBins(bins,parameters.res);
+        /* save mixture_density if not already done */
+        if (parameters.read_profiles == SET) {
+          string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
+          ofstream mix(mix_density_file.c_str());
+          double mix_density;
+          for (int i=0; i<data.size(); i++) {
+            mix_density = exp(original.log_probability(data[i]));
+            for (int j=0; j<data[i].size(); j++) {
+              mix << scientific << setprecision(6) << data[i][j] << "\t\t";
+            } // j
+            mix << scientific << setprecision(6) << mix_density << endl;
+          } // i
+          mix.close();
+        } // if (parameters.read_profiles == SET) {
+      } // if (parameters.heat_map == SET)
+    } else if (parameters.load_mixture == UNSET) {
+      int k = parameters.simulated_components;
+      //srand(time(NULL));
+      Vector weights = generateFromSimplex(k);
+      std::vector<BVM_Sine> components = generateRandomComponents(k);
+      Mixture_Sine original(k,components,weights);
+      bool save = 1;
+      data = original.generate(parameters.sample_size,save);
+      // save the simulated mixture
+      ofstream file("./simulation/simulated_mixture");
+      for (int i=0; i<k; i++) {
+        file << fixed << setw(10) << setprecision(5) << weights[i];
+        file << "\t";
+        components[i].printParameters(file);
+      }
+      file.close();
+    }
+  } else if (DISTRIBUTION == COSINE) {
+  }
+
+  // model a mixture using the original data
+  if (parameters.heat_map == UNSET) {
+    if (parameters.mixture_model == UNSET) {
+      modelOneComponent(parameters,data);
+    } else if (parameters.mixture_model == SET) {
+      modelMixture(parameters,data);
+    }
+  }
+}
+
+Vector generateFromSimplex(int K)
+{
+  Vector values(K,0);
+  double random,sum = 0;
+  for (int i=0; i<K; i++) {
+    // generate a random value in (0,1)
+    random = uniform_random();
+    assert(random > 0 && random < 1);
+    // sampling from an exponential distribution with \lambda = 1
+    values[i] = -log(1-random);
+    sum += values[i];
+  }
+  for (int i=0; i<K; i++) {
+    values[i] /= sum;
+  }
+  return values;
+}
+
+std::vector<BVM_Sine> generateRandomComponents(int num_components)
+{
+  std::vector<BVM_Sine> components;
+  for (int i=0; i<num_components; i++) {
+    double mu1 = uniform_random() * 2 * PI;
+    double mu2 = uniform_random() * 2 * PI;
+    double kappa1 = uniform_random() * MAX_KAPPA;
+    double kappa2 = uniform_random() * MAX_KAPPA;
+    double pho = (uniform_random() * 2 - 1);
+    double lambda = pho * sqrt(kappa1 * kappa2);
+    BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+    components.push_back(bvm_sine);
+  }
+  return components;
+}
+
+Mixture_Sine inferComponents(std::vector<Vector> &data, string &log_file)
+{
+  Vector data_weights(data.size(),1.0);
+  Mixture_Sine m(1,data,data_weights);
+  Mixture_Sine mixture = m;
+  mixture.estimateParameters();
+  ofstream log(log_file.c_str());
+  Mixture_Sine inferred = inferComponents(mixture,data.size(),log);
+  log.close();
+  return inferred;
+}
+
+Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
+{
+  int K,iter = 0;
+  std::vector<BVM_Sine> components;
+  Mixture_Sine modified,improved,parent;
+  Vector sample_size;
+
+  double null_msglen = mixture.computeNullModelMessageLength();
+  log << "Null model encoding: " << null_msglen << " bits."
+      << "\t(" << null_msglen/N << " bits/point)\n\n";
+
+  improved = mixture;
+
+  while (1) {
+    parent = improved;
+    iter++;
+    log << "Iteration #" << iter << endl;
+    log << "Parent:\n";
+    parent.printParameters(log,1);
+    parent.printIndividualMsgLengths(log);
+    components = parent.getComponents();
+    sample_size = parent.getSampleSize();
+    K = components.size();
+    for (int i=0; i<K; i++) { // split() ...
+      if (sample_size[i] > MIN_N) {
+        IGNORE_SPLIT = 0;
+        modified = parent.split(i,log);
+        if (IGNORE_SPLIT == 0) {
+          updateInference(modified,improved,N,log,SPLIT);
+        } else {
+          log << "\t\tIGNORING SPLIT ... \n\n";
+        }
+      }
+    }
+    if (K >= 2) {  // kill() ...
+      for (int i=0; i<K; i++) {
+        modified = parent.kill(i,log);
+        updateInference(modified,improved,N,log,KILL);
+      } // killing each component
+    } // if (K > 2) loop
+    if (K > 1) {  // join() ...
+      for (int i=0; i<K; i++) {
+        int j = parent.getNearestComponent(i); // closest component
+        modified = parent.join(i,j,log);
+        updateInference(modified,improved,N,log,JOIN);
+      } // join() ing nearest components
+    } // if (K > 1) loop
+    if (improved == parent) goto finish;
+  } // if (improved == parent || iter%2 == 0) loop
+
+  finish:
+  string inferred_mixture_file = "./simulation/inferred_mixture";
+  parent.printParameters(inferred_mixture_file);
+  return parent;
+}
+
+/*!
+ *  \brief Updates the inference
+ *  \param modified a reference to a Mixture_Sine
+ *  \param current a reference to a Mixture_Sine
+ *  \param log a reference to a ostream
+ *  \param operation an integer
+ */
+void updateInference(
+  Mixture_Sine &modified, 
+  Mixture_Sine &current, 
+  int N, 
+  ostream &log, 
+  int operation
+) {
+  double modified_value,current_value,improvement_rate;
+
+  switch(CRITERION) {
+    case AIC:
+      modified_value = modified.getAIC();
+      current_value = current.getAIC();
+      break;
+
+    case BIC:
+      modified_value = modified.getBIC();
+      current_value = current.getBIC();
+      break;
+
+    case ICL:
+      modified_value = modified.getICL();
+      current_value = current.getICL();
+      break;
+
+    case MMLC:
+      modified_value = modified.getMinimumMessageLength();
+      current_value = current.getMinimumMessageLength();
+      break;
+  }
+
+/*
+  if (current_value > modified_value) {
+    improvement_rate = (current_value - modified_value) / fabs(current_value);
+    //if (operation == KILL || operation == JOIN || operation == SPLIT) {
+    if (operation == KILL || operation == JOIN) {
+      log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+          << 100 * improvement_rate << " %) ";
+      log << "\t\t[ACCEPT]\n\n";
+      current = modified;
+    } // kill | join 
+    if (operation == SPLIT) {
+      if (improvement_rate >= IMPROVEMENT_RATE) {
+        log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+            << 100 * improvement_rate << " %) ";
+        log << "\t\t[ACCEPT]\n\n";
+        current = modified;
+      } else {
+        log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+            << 100 * improvement_rate << " %) < (" 
+            << 100 * IMPROVEMENT_RATE << " %)" ;
+        log << "\t\t[REJECT]\n\n";
+      } // if-else() 
+    } // split
+  } else {
+    log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
+  } // if (current > modified)
+*/
+
+  if (operation == KILL || operation == JOIN || operation == SPLIT) {
+    if (current_value > modified_value) {
+      improvement_rate = (current_value - modified_value) / fabs(current_value);
+      log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+          << 100 * improvement_rate << " %) ";
+      log << "\t\t[ACCEPT]\n\n";
+      current = modified;
+    } else {
+      log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
+    } // if (current_value > modified_value)
+  } // if (operation)
 }
 
 ////////////////////// TESTING FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1694,8 +1971,9 @@ double banerjee_approx(double &rbar)
   return num/denom;
 }
 
+
 // data = angle_pairs
-void computeSufficientStatisticsSine(
+void computeSufficientStatisticsSineNotParallel(
   std::vector<Vector> &data,
   struct SufficientStatisticsSine &suff_stats
 ) {
@@ -1728,10 +2006,16 @@ void computeSufficientStatisticsSine(
   //print(suff_stats);
 }
 
-void computeSufficientStatisticsSine_parallel(
+// data = angle_pairs
+void computeSufficientStatisticsSine(
   std::vector<Vector> &data,
   struct SufficientStatisticsSine &suff_stats
 ) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsSineNotParallel(data,suff_stats);
+  }
+
   // empty the existing sufficient stats
   suff_stats.N = 0;
   suff_stats.cost1 = 0; suff_stats.cost2 = 0;
@@ -1768,6 +2052,111 @@ void computeSufficientStatisticsSine_parallel(
       suff_stats_vector[tid].sint1cost2 += sint1 * cost2;
       suff_stats_vector[tid].cost1sint2 += cost1 * sint2;
       suff_stats_vector[tid].cost1cost2 += cost1 * cost2;
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    suff_stats.sint1sint2 += suff_stats_vector[i].sint1sint2;
+    suff_stats.sint1cost2 += suff_stats_vector[i].sint1cost2;
+    suff_stats.cost1sint2 += suff_stats_vector[i].cost1sint2;
+    suff_stats.cost1cost2 += suff_stats_vector[i].cost1cost2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsSineNotParallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsSine &suff_stats,
+  Vector &weights
+) {
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.sint1sint2 = 0; suff_stats.sint1cost2 = 0;
+  suff_stats.cost1sint2 = 0; suff_stats.cost1cost2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    suff_stats.N += weights[i];
+
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += (weights[i] * cost1);
+    suff_stats.cost2 += (weights[i] * cost2);
+    suff_stats.sint1 += (weights[i] * sint1);
+    suff_stats.sint2 += (weights[i] * sint2);
+
+    suff_stats.sint1sint2 += (weights[i] * sint1 * sint2);
+    suff_stats.sint1cost2 += (weights[i] * sint1 * cost2);
+    suff_stats.cost1sint2 += (weights[i] * cost1 * sint2);
+    suff_stats.cost1cost2 += (weights[i] * cost1 * cost2);
+  } // for()
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsSine(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsSine &suff_stats,
+  Vector &weights
+) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsSineNotParallel(data,suff_stats,weights);
+  }
+
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.sint1sint2 = 0; suff_stats.sint1cost2 = 0;
+  suff_stats.cost1sint2 = 0; suff_stats.cost1cost2 = 0;
+
+  std::vector<struct SufficientStatisticsSine> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += weights[i];
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += (weights[i] * cost1);
+      suff_stats_vector[tid].cost2 += (weights[i] * cost2);
+      suff_stats_vector[tid].sint1 += (weights[i] * sint1);
+      suff_stats_vector[tid].sint2 += (weights[i] * sint2);
+
+      suff_stats_vector[tid].sint1sint2 += (weights[i] * sint1 * sint2);
+      suff_stats_vector[tid].sint1cost2 += (weights[i] * sint1 * cost2);
+      suff_stats_vector[tid].cost1sint2 += (weights[i] * cost1 * sint2);
+      suff_stats_vector[tid].cost1cost2 += (weights[i] * cost1 * cost2);
     } // for (i)
   } // pragma omp parallel
 

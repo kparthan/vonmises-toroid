@@ -88,6 +88,7 @@ Vector vMC::generate(int sample_size)
     accept:
     u3 = uniform_random();
     angle = mu + (sign(u3-0.5)*acos(f));
+    if (angle < 0) angle += (2*PI);
     thetas[i] = angle;
   }
   //assert(thetas.size() == sample_size);

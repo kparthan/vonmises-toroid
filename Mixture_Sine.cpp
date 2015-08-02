@@ -1,6 +1,6 @@
 #include "Mixture_Sine.h"
 #include "Support.h"
-#include "Optimize.h"
+#include "OptimizeSine.h"
 
 extern int MIXTURE_ID;
 extern int MIXTURE_SIMULATION;
@@ -306,9 +306,9 @@ void Mixture_Sine::updateResponsibilityMatrix()
 /*!
  *  \brief This function updates the terms in the responsibility matrix.
  */
-void Mixture_Sine::computeResponsibilityMatrix(std::vector<Vector> &sample,
-                                          string &output_file)
-{
+void Mixture_Sine::computeResponsibilityMatrix(
+  std::vector<Vector> &sample, string &output_file
+) {
   int sample_size = sample.size();
   Vector emptyvec(sample_size,0);
   std::vector<Vector> resp(K,emptyvec);
@@ -538,9 +538,9 @@ string Mixture_Sine::getLogFile()
       file_name = "./simulation/logs/";
     }
   } else if (INFER_COMPONENTS == SET) {
-    //file_name = "./infer/logs/kent/";
-    //file_name += "m_" + boost::lexical_cast<string>(id) + "_";
-    file_name = EM_LOG_FOLDER + "m_" + boost::lexical_cast<string>(id) + "_";
+    file_name = "./infer/logs/";
+    file_name += "m_" + boost::lexical_cast<string>(id) + "_";
+    //file_name = EM_LOG_FOLDER + "m_" + boost::lexical_cast<string>(id) + "_";
   }
   file_name += boost::lexical_cast<string>(K) + ".log";
   return file_name;
@@ -674,8 +674,8 @@ void Mixture_Sine::EM(
  */
 double Mixture_Sine::computeNullModelMessageLength()
 {
-  // compute logarithm of surface area of nd-sphere
-  double log_area = log(4*PI);
+  // compute logarithm of surface area of 3d-torus (R, r = 1)
+  double log_area = 2*log(2*PI);
   null_msglen = N * (log_area - (2*log(AOM)));
   null_msglen /= log(2);
   return null_msglen;
@@ -825,15 +825,15 @@ void Mixture_Sine::load(string &file_name)
   weights.clear();
   components.clear();
   K = 0;
+
   ifstream file(file_name.c_str());
   string line;
   Vector numbers;
-  Vector unit_mean(3,0),mean(3,0);
-  Vector unit_mj(3,0),mj(3,0),unit_mi(3,0),mi(3,0);
   double sum_weights = 0;
+
   while (getline(file,line)) {
     K++;
-    boost::char_separator<char> sep("mujikapbet,:()[] \t");
+    boost::char_separator<char> sep("muskaplbd,:()[] \t\n");
     boost::tokenizer<boost::char_separator<char> > tokens(line,sep);
     BOOST_FOREACH (const string& t, tokens) {
       istringstream iss(t);
@@ -843,28 +843,19 @@ void Mixture_Sine::load(string &file_name)
     }
     weights.push_back(numbers[0]);
     sum_weights += numbers[0];
-    for (int i=1; i<=3; i++) {
-      mean[i-1] = numbers[i];
-      mj[i-1] = numbers[i+3];
-      mi[i-1] = numbers[i+6];
-    }
-    double kappa = numbers[10];
-    double beta = numbers[11];
-    double ex = 2 * beta / kappa;
-    if (ex >= 1) {
-      ex = 1 - TOLERANCE;
-      beta = 0.5 * kappa * ex;
-    }
-    if (fabs(ex - 1) <= TOLERANCE) {
-      beta -= TOLERANCE;
-    }
-    normalize(mean,unit_mean);
-    normalize(mj,unit_mj); normalize(mi,unit_mi);
-    BVM_Sine kent(unit_mean,unit_mj,unit_mi,kappa,beta);
-    kent.computeExpectation();
-    components.push_back(kent);
+
+    double mu1 = numbers[1] * PI/180; // convert to radians
+    double mu2 = numbers[2] * PI/180; // convert to radians
+    double kappa1 = numbers[3];
+    double kappa2 = numbers[4];
+    double lambda = numbers[5];
+  
+    BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+    bvm_sine.computeExpectation();
+    components.push_back(bvm_sine);
     numbers.clear();
-  }
+    bvm_sine.printParameters(cout);
+  } // while()
   file.close();
   for (int i=0; i<K; i++) {
     weights[i] /= sum_weights;
@@ -904,14 +895,13 @@ void Mixture_Sine::load(string &file_name, std::vector<Vector> &d, Vector &dw)
 int Mixture_Sine::randomComponent()
 {
   double random = uniform_random();
-  //cout << random << endl;
   double previous = 0;
   for (int i=0; i<weights.size(); i++) {
     if (random <= weights[i] + previous) {
       return i;
     }
     previous += weights[i];
-  }
+  } // for()
 }
 
 /*!
@@ -923,25 +913,7 @@ void Mixture_Sine::saveComponentData(int index, std::vector<Vector> &data)
 {
   string data_file = "./visualize/sampled_data/comp";
   data_file += boost::lexical_cast<string>(index+1) + ".dat";
-  ofstream file(data_file.c_str());
-
-  Vector projection(2,0);
-  double theta,phi,rho,z1,z2;
-  string transformed_file = "./visualize/sampled_data/transformed_comp" 
-                            + boost::lexical_cast<string>(index+1) + ".dat";
-  ofstream transformed_comp(transformed_file.c_str());
-
-  for (int j=0; j<data.size(); j++) {
-    for (int k=0; k<3; k++) {
-      file << fixed << setw(10) << setprecision(3) << data[j][k];
-    }
-    file << endl;
-    computeLambertProjection(data[j],projection);
-    transformed_comp << fixed << setw(10) << setprecision(3) << projection[0];
-    transformed_comp << fixed << setw(10) << setprecision(3) << projection[1] << endl;
-  }
-  file.close();
-  transformed_comp.close();
+  writeToFile(data_file,data);
 }
 
 /*!
@@ -951,7 +923,7 @@ void Mixture_Sine::saveComponentData(int index, std::vector<Vector> &data)
  *  \param save_data a boolean variable
  *  \return the random sample
  */
-std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data) 
+std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data)
 {
   sample_size = Vector(K,0);
   for (int i=0; i<num_samples; i++) {
@@ -972,16 +944,13 @@ std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data)
     random_data.push_back(x);
     for (int j=0; j<random_data[i].size(); j++) {
       sample.push_back(random_data[i][j]);
-    }
+    } // for j 
   } // for i
 
   if (save_data) {
     string data_file = "random_sample_mix.dat";
     writeToFile(data_file,sample);
-    string comp_bins = "./visualize/sampled_data/bins_kent/";
-    check_and_create_directory(comp_bins);
-    string comp_density_file;
-    string mix_density_file = "./visualize/sampled_data/bins_kent/mixture_density.dat";
+    string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
     ofstream mix(mix_density_file.c_str());
     double comp_density,mix_density;
     for (int i=0; i<K; i++) {
@@ -1254,28 +1223,26 @@ Mixture_Sine Mixture_Sine::join(int c1, int c2, ostream &log)
  */
 void Mixture_Sine::generateHeatmapData(double res)
 {
-  string comp_bins = "./visualize/sampled_data/bins_kent/";
+  string comp_bins = "./visualize/sampled_data/";
   check_and_create_directory(comp_bins);
 
   /* for the entire mixture */
-  string data_fbins2D = "./visualize/sampled_data/bins_kent/prob_bins2D.dat";
-  string data_fbins3D = "./visualize/sampled_data/bins_kent/prob_bins3D.dat";
+  string data_fbins2D = "./visualize/sampled_data/prob_bins2D.dat";
+  string data_fbins3D = "./visualize/sampled_data/prob_bins3D.dat";
   ofstream fbins2D(data_fbins2D.c_str());
   ofstream fbins3D(data_fbins3D.c_str());
-  Vector x(3,1);
-  Vector point(3,0);
-  for (double theta=0; theta<180; theta+=res) {
-    x[1] = theta * PI/180;
+  Vector angle_pair(2,0);
+  Vector cartesian(3,0);
+  for (double theta=0; theta<360; theta+=res) {
+    angle_pair[0] = theta * PI/180;
     for (double phi=0; phi<360; phi+=res) {
-      x[2] = phi * PI/180;
-      spherical2cartesian(x,point);
-      double pr = exp(log_probability(point));
+      angle_pair[1] = phi * PI/180;
+      double pr = exp(log_probability(angle_pair));
       // 2D bins
       fbins2D << scientific << setprecision(6) << pr << "\t";
       // 3D bins
-      for (int k=0; k<3; k++) {
-        fbins3D << scientific << setprecision(6) << point[k] << "\t";
-      }
+      fbins3D << scientific << setprecision(6) << angle_pair[0] << "\t";
+      fbins3D << scientific << setprecision(6) << angle_pair[1] << "\t";
       fbins3D << scientific << setprecision(6) << pr << endl;
     }
     fbins2D << endl;
@@ -1288,14 +1255,12 @@ void Mixture_Sine::generateHeatmapData(double res)
     string fbins = comp_bins + "comp" + boost::lexical_cast<string>(i+1)
                    + "_prob_bins2D.dat";
     ofstream out(fbins.c_str());
-    Vector x(3,1);
-    Vector point(3,0);
-    for (double theta=0; theta<180; theta+=res) {
-      x[1] = theta * PI/180;
+    Vector angle_pair(2,0);
+    for (double theta=0; theta<360; theta+=res) {
+      angle_pair[0] = theta * PI/180;
       for (double phi=0; phi<360; phi+=res) {
-        x[2] = phi * PI/180;
-        spherical2cartesian(x,point);
-        double pr = exp(components[i].log_density(point));
+        angle_pair[1] = phi * PI/180;
+        double pr = exp(components[i].log_density(angle_pair));
         out << scientific << setprecision(6) << pr << "\t";
       } // phi()
       out << endl;
@@ -1332,8 +1297,9 @@ double Mixture_Sine::computeKLDivergence(Mixture_Sine &other)
 }
 
 // Monte Carlo
-double Mixture_Sine::computeKLDivergence(Mixture_Sine &other, std::vector<Vector> &sample)
-{
+double Mixture_Sine::computeKLDivergence(
+  Mixture_Sine &other, std::vector<Vector> &sample
+) {
   double kldiv = 0,log_fx,log_gx;
   for (int i=0; i<sample.size(); i++) {
     log_fx = log_probability(sample[i]);

@@ -169,7 +169,7 @@ void Test::check_sufficient_stats_sine()
 
   cout << "\nParallel:\n";
   struct SufficientStatisticsSine suff_stats_parallel;
-  computeSufficientStatisticsSine_parallel(angle_pairs,suff_stats_parallel);
+  computeSufficientStatisticsSine(angle_pairs,suff_stats_parallel);
 }
 
 void Test::bvm_sine_ml_estimation()
@@ -205,7 +205,7 @@ void Test::bvm_sine_all_estimation()
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 10; lambda = -3;
+  mu1 = 45; mu2 = 90; kappa1 = 9; kappa2 = 100; lambda = -4.5;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);

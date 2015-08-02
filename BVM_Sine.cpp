@@ -5,6 +5,8 @@
 #include "KappaSolver.h"
 #include "OptimizeSine.h"
 
+extern int ESTIMATION;
+
 BVM_Sine::BVM_Sine()
 {
   mu1 = 0; mu2 = 0;
@@ -554,6 +556,12 @@ double BVM_Sine::computeLogFisherScale()
   return log(fabs(det));
 }
 
+double BVM_Sine::log_density(Vector &angle_pair)
+{
+  assert(angle_pair.size() == 2);
+  return log_density(angle_pair[0],angle_pair[1]);
+}
+
 // log(pdf)
 double BVM_Sine::log_density(double &theta1, double &theta2)
 {
@@ -572,7 +580,7 @@ double BVM_Sine::log_density(double &theta1, double &theta2)
 double BVM_Sine::computeNegativeLogLikelihood(std::vector<Vector> &data)
 {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine_parallel(data,suff_stats);
+  computeSufficientStatisticsSine(data,suff_stats);
   return computeNegativeLogLikelihood(suff_stats);
 }
 
@@ -613,7 +621,7 @@ double BVM_Sine::computeNegativeLogLikelihood(
 double BVM_Sine::computeMessageLength(std::vector<Vector> &data)
 {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine_parallel(data,suff_stats);
+  computeSufficientStatisticsSine(data,suff_stats);
   return computeMessageLength(suff_stats);
 }
 
@@ -647,7 +655,7 @@ void BVM_Sine::computeAllEstimators(
   int compute_kldiv
 ) {
   struct SufficientStatisticsSine suff_stats;
-  computeSufficientStatisticsSine_parallel(data,suff_stats);
+  computeSufficientStatisticsSine(data,suff_stats);
 
   computeAllEstimators(
     data,suff_stats,all_estimates,verbose,compute_kldiv
@@ -835,6 +843,82 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   //estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
+}
+
+void BVM_Sine::estimateParameters(std::vector<Vector> &data, Vector &weights)
+{
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(data,suff_stats,weights);
+
+  struct EstimatesSine estimates;
+  struct EstimatesSine initial_est = computeInitialEstimates(suff_stats);
+
+  string type;
+  switch(ESTIMATION) {
+    case MLE:
+    {
+      type = "MLE";
+      struct EstimatesSine ml_est = initial_est;
+      OptimizeSine opt_mle(type);
+      opt_mle.initialize(
+        ml_est.mu1,ml_est.mu2,ml_est.kappa1,ml_est.kappa2,ml_est.lambda
+      );
+      ml_est = opt_mle.minimize(suff_stats);
+      estimates = ml_est;
+      break;
+    }
+
+    case MAP:
+    {
+      type = "MAP";
+      struct EstimatesSine map_est = initial_est;
+      OptimizeSine opt_map(type);
+      opt_map.initialize(
+        map_est.mu1,map_est.mu2,map_est.kappa1,map_est.kappa2,map_est.lambda
+      );
+      map_est = opt_map.minimize(suff_stats);
+      estimates = map_est;
+      break;
+    }
+
+    case MML:
+    {
+      type = "MML";
+      struct EstimatesSine mml_est = initial_est;
+      OptimizeSine opt_mml(type);
+      opt_mml.initialize(
+        mml_est.mu1,mml_est.mu2,mml_est.kappa1,mml_est.kappa2,mml_est.lambda
+      );
+      mml_est = opt_mml.minimize(suff_stats);
+      estimates = mml_est;
+      break;
+    }
+  } // switch()
+  
+  updateParameters(estimates);
+}
+
+void BVM_Sine::updateParameters(struct EstimatesSine &estimates)
+{
+  mu1 = estimates.mu1;
+  mu2 = estimates.mu2;
+  kappa1 = estimates.kappa1;
+  kappa2 = estimates.kappa2;
+  lambda = estimates.lambda;
+  assert(!boost::math::isnan(mu1));
+  assert(!boost::math::isnan(mu2));
+  assert(!boost::math::isnan(kappa1));
+  assert(!boost::math::isnan(kappa2));
+  assert(!boost::math::isnan(lambda));
+  computeExpectation();
+}
+
+void BVM_Sine::printParameters(ostream &os)
+{
+  os << "[mus]: " << "(" << mu1*180/PI << ", " << mu2*180/PI << ")";
+  os << "\t[kappas]: " << fixed << setprecision(3) 
+     << "(" << kappa1 << ", " << kappa2 << ")";
+  os << "\t[lambda]: " << fixed << setprecision(3) << lambda << endl;
 }
 
 double BVM_Sine::computeKLDivergence(BVM_Sine &other)
