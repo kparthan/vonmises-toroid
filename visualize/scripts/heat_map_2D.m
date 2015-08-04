@@ -18,6 +18,5 @@ function [] = heat_map_2D(file_name)
 
   M = load(file_name);
   mesh(M);
-  %surf(M);
   
 end

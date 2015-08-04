@@ -223,6 +223,42 @@ void Test::bvm_sine_all_estimation()
   writeToFile("bvm_sine.dat",random_sample);
 }
 
+void Test::testing_sample_empirical_distribution()
+{
+  int N = 10000;
+  double res = 1;
+  std::vector<std::vector<int> > true_bins;
+  std::vector<Vector> sampled_angle_pairs 
+  = sample_empirical_distribution(N,res,true_bins);
+  
+  /*std::vector<std::vector<int> > 
+  sampled_bins = updateBins(sampled_angle_pairs,res);
+  outputBins(sampled_bins,res);*/
+
+  string sampled_angle_pairs_density = "./visualize/sampled_data/sampled_density.dat";
+  ofstream out(sampled_angle_pairs_density.c_str());
+  int row,col;
+  for (int i=0; i<N; i++) {
+    Vector angle_pair = sampled_angle_pairs[i];
+    double theta = angle_pair[0] * 180 / PI;  // convert to degrees
+    if (fabs(theta) <= ZERO) {
+      row = 0;
+    } else {
+      row = (int)(ceil(theta/res) - 1);
+    }
+    double phi = angle_pair[1] * 180 / PI;    // convert to degrees
+    if (fabs(phi) <= ZERO) {
+      col = 0;
+    } else {
+      col = (int)(ceil(phi/res) - 1);
+    }
+    out << fixed << scientific << angle_pair[0] << "\t"
+        << angle_pair[1] << "\t"
+        << true_bins[row][col] << endl;
+  }
+  out.close();
+}
+
 /* cosine model related */
 void Test::generate_bvm_cosine()
 {

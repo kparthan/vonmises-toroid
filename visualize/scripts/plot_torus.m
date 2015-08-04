@@ -14,7 +14,8 @@ function [] = plot_torus(data_file)
   axis equal;
   set(gcf, 'Color', 'w');
   %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle','--');
-  surfl(X,Y,Z);
+  surface(X,Y,Z,'FaceColor','none','LineWidth',0.01,'linestyle',':');
+  %surfl(X,Y,Z);
 
   M = load(data_file);
   theta1 = M(:,1);

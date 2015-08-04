@@ -1,5 +1,7 @@
 function [] = heat_map_3D(file_name)
 
+  addpath('export_fig');
+
   % draw a torus 
   r1 = 2;
   r2 = 1;
@@ -14,7 +16,8 @@ function [] = heat_map_3D(file_name)
   hold on;
   axis equal;
   set(gcf, 'Color', 'w');
-  surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle','--');
+  set(gcf,'defaultaxesfontname','Arial');
+  surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
   %surfl(X,Y,Z);
 
   % plot data
@@ -28,10 +31,26 @@ function [] = heat_map_3D(file_name)
 
   density = M(:,3);
 
-  h=scatter3(x,y,z,2,'cdata',density);
+  h=scatter3(x,y,z,1,'cdata',density);
 
-  xlabel('X');
-  ylabel('Y');
+  %set(gca, 'visible', 'off');
+  %view ([-139 40]);
+  %view ([61 -90]);
+
+  xlabel('X','fontsize',20);
+  ylabel('Y','fontsize',20);
   zlabel('Z');
+
+  file_name = '../figs/torus3';
+  output_fig = strcat(file_name,'.fig');
+  output_eps = strcat(file_name,'.eps');
+  output_pdf = strcat(file_name,'.pdf');
+
+  saveas(gcf,output_fig);
+
+  %print2eps(output_eps);
+  %eps2pdf(output_eps,output_pdf,1);
+
+  %export_fig(output_pdf,'-pdf');
 
 end

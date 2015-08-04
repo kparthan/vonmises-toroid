@@ -932,8 +932,10 @@ std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data)
     sample_size[k]++;
   }
   /*ofstream fw("sample_size");
+  cout << "sample size: \n";
   for (int i=0; i<sample_size.size(); i++) {
-    fw << sample_size[i] << endl;
+    //fw << sample_size[i] << endl;
+    cout << sample_size[i] << endl;
   }
   fw.close();*/
 

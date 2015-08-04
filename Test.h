@@ -28,6 +28,8 @@ class Test
     void bvm_sine_ml_estimation();
     void bvm_sine_all_estimation();
 
+    void testing_sample_empirical_distribution();
+
     /* cosine model related */
     void generate_bvm_cosine();
 };

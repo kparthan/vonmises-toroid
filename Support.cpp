@@ -1219,6 +1219,73 @@ void outputBins(std::vector<std::vector<int> > &bins, double res)
   fbins3D.close();
 }
 
+std::vector<Vector> sample_empirical_distribution(
+  int N, double res, std::vector<std::vector<int> > &true_bins
+) {
+  struct Parameters parameters;
+  parameters.profile_file = "./data/dihedral_angles.dat";
+
+  std::vector<Vector> data;
+  gatherData(parameters,data);
+  cout << "data.size(): " << data.size() << endl;
+  //std::vector<std::vector<int> > true_bins = updateBins(data,res);
+  true_bins = updateBins(data,res);
+  //string true_bins_file = "true_bins.dat";  // integers
+  //writeToFile(true_bins_file,true_bins);
+
+  int num_rows = true_bins.size();
+  int num_cols = true_bins[0].size();
+  int num_bins = num_rows * num_cols;
+  cout << "num_bins: " << num_bins << endl;
+
+  Vector emptyvec(num_cols,0);
+  std::vector<Vector> prob_bins(num_rows,emptyvec);
+  Vector elements(num_bins,0);
+  int count = 0;
+  for (int i=0; i<num_rows; i++) {
+    for (int j=0; j<num_cols; j++) {
+      assert(!boost::math::isnan(true_bins[i][j]));
+      prob_bins[i][j] = true_bins[i][j] / (double) data.size();
+      elements[count++] = prob_bins[i][j];
+    } // for (j)
+  } // for (i)
+  //string prob_bins_file = "prob_bins.dat";  // fractional values
+  //writeToFile(prob_bins_file,prob_bins);
+
+  std::vector<int> sorted_index;
+  Vector sorted_elements = sort(elements,sorted_index);
+  Vector cumsum(num_bins,0);
+  cumsum[0] = sorted_elements[0];
+  for (int i=1; i<num_bins; i++) {
+    cumsum[i] = cumsum[i-1] + sorted_elements[i];
+    //cout << sorted_index[i] << "\t\t" << cumsum[i] << endl;
+  }
+
+  std::vector<Vector> random_sample;
+  Vector angle_pair(2,0);
+  for (int i=0; i<N; i++) {
+    double cdf = uniform_random();
+    int bin;
+    for (int j=0; j<num_bins; j++) {
+      if (cdf <= cumsum[j]) {
+        bin = sorted_index[j];
+        break;
+      } // if ()
+    } // for (j)
+    int row = bin / num_cols;
+    double theta = (row + uniform_random()) * res;  // in degrees
+    //double theta = row * res;
+    int col = bin % num_cols;
+    double phi = (col + uniform_random()) * res;   // in degrees`
+    //double phi = col * res;
+    angle_pair[0] = theta * PI/180;
+    angle_pair[1] = phi * PI/180;
+    random_sample.push_back(angle_pair);
+  } // for (i)
+
+  return random_sample;
+}
+
 /*!
  *  \brief This function is used to read the angular profiles and use this data
  *  to estimate parameters of a Von Mises distribution.
@@ -1604,7 +1671,9 @@ void TestFunctions(void)
 
   //test.bvm_sine_ml_estimation();
 
-  test.bvm_sine_all_estimation();
+  //test.bvm_sine_all_estimation();
+
+  test.testing_sample_empirical_distribution();
 
   //test.generate_bvm_cosine();
 }
