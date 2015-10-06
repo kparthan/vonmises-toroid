@@ -6,9 +6,7 @@ extern int ESTIMATION;
 
 OptimizeSine::OptimizeSine(string type)
 {
-  if (type.compare("PMLE") == 0) {
-    ESTIMATION = PMLE;
-  } else if (type.compare("MLE") == 0) {
+  if (type.compare("MLE") == 0) {
     ESTIMATION = MLE;
   } else if (type.compare("MAP") == 0) {
     ESTIMATION = MAP;
@@ -32,7 +30,7 @@ void OptimizeSine::initialize(
     }
   }*/
 }
-
+/*
 struct EstimatesSine OptimizeSine::minimize(
   std::vector<Vector> &data
 ) {
@@ -77,7 +75,7 @@ struct EstimatesSine OptimizeSine::minimize(
   estimates.kappa2 = x[3];
   estimates.lambda = x[4];
   return estimates;
-}
+}*/
 
 struct EstimatesSine OptimizeSine::minimize(
   struct SufficientStatisticsSine &suff_stats

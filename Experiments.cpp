@@ -27,7 +27,7 @@ void Experiments::fisher_uncertainty()
 
 void Experiments::simulate_sine(int iterations)
 {
-  int N = 100;
+  int N = 10;
 
   string n_str = "N_" + boost::lexical_cast<string>(N);
   string parent_dir = "experiments/single_component/bvm_sine/estimates/" + n_str + "/";
@@ -97,8 +97,8 @@ void Experiments::simulate_sine(int iterations)
       Vector msglens(all_estimates.size(),0);
 
       // ignore PMLE
-      all_estimates[PMLE] = all_estimates[MLE];
-      msglens[PMLE] = HUGE_VAL;
+      //all_estimates[PMLE] = all_estimates[MLE];
+      //msglens[PMLE] = HUGE_VAL;
       for (int j=1; j<all_estimates.size(); j++) {
         if (all_estimates[j].kldiv < 0 || all_estimates[j].msglen < 0) goto repeat;
         msglens[j] = all_estimates[j].msglen;

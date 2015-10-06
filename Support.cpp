@@ -212,9 +212,7 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
   }
 
   if (vm.count("estimation")) {
-    if (estimation_method.compare("pmle") == 0) {
-      ESTIMATION = PMLE;
-    } else if (estimation_method.compare("mle") == 0) {
+    if (estimation_method.compare("mle") == 0) {
       ESTIMATION = MLE;
     } else if (estimation_method.compare("map") == 0) {
       ESTIMATION = MAP;
@@ -1671,9 +1669,9 @@ void TestFunctions(void)
 
   //test.bvm_sine_ml_estimation();
 
-  //test.bvm_sine_all_estimation();
+  test.bvm_sine_all_estimation();
 
-  test.testing_sample_empirical_distribution();
+  //test.testing_sample_empirical_distribution();
 
   //test.generate_bvm_cosine();
 }
@@ -1900,7 +1898,8 @@ void chisquare_hypothesis_testing(
 
   double bvm_sine_negloglike,log_ratio_statistic,pvalue;
   for (int i=0; i<num_methods; i++) {
-    if (i != PMLE || i != MLE) {
+    //if (i != PMLE || i != MLE) {
+    if (i != MLE) {
       // null: Kent(i)
       BVM_Sine bvm_sine_ml(
         all_bvm_sine_estimates[i].mu1,
