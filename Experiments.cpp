@@ -8,7 +8,9 @@ extern int NUM_THREADS;
 extern int ENABLE_DATA_PARALLELISM;
 
 Experiments::Experiments()
-{}
+{
+  iterations = 1;
+}
 
 void Experiments::fisher_uncertainty()
 {
@@ -28,12 +30,18 @@ void Experiments::fisher_uncertainty()
 //void Experiments::simulate_sine(int iterations)
 void Experiments::simulate_sine(struct Parameters &parameters)
 {
-  int interations = parameters.iterations;
+  iterations = parameters.iterations;
   double kappa1 = parameters.k1;
   double kappa2 = parameters.k2;
   double rho = parameters.rho;
+  int N = parameters.exp_sample_size;
 
-  int N = 10;
+  cout << "iterations: " << iterations << endl;
+  cout << "kappa1: " << kappa1 << endl;
+  cout << "kappa2: " << kappa2 << endl;
+  cout << "rho: " << rho << endl;
+
+  //int N = 10;
 
   string n_str = "N_" + boost::lexical_cast<string>(N);
   string parent_dir = "experiments/single_component/bvm_sine/estimates/" + n_str + "/";
