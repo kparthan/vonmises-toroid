@@ -50,8 +50,8 @@ void Experiments::simulate_sine(int iterations)
   ssk2 << kappa2;
   string kappa2_str = ssk2.str();
 
-  double rho = 0.1;
-  while (rho <= 0.95) {
+  double rho = 1e-20;
+  //while (rho <= 0.95) {
     double lambda = rho * sqrt(kappa1 * kappa2);
     ostringstream ssr;
     ssr << fixed << setprecision(1);
@@ -93,18 +93,19 @@ void Experiments::simulate_sine(int iterations)
       repeat:
       cout << "Iteration: " << i+1 << endl;
       std::vector<Vector> random_sample = bvm_sine.generate(N);
-      bvm_sine.computeAllEstimators(random_sample,all_estimates,0,1);
+      bvm_sine.computeAllEstimators(random_sample,all_estimates,1,1);
       Vector msglens(all_estimates.size(),0);
 
       // ignore PMLE
       //all_estimates[PMLE] = all_estimates[MLE];
       //msglens[PMLE] = HUGE_VAL;
-      for (int j=1; j<all_estimates.size(); j++) {
+      for (int j=0; j<all_estimates.size(); j++) {
         if (all_estimates[j].kldiv < 0 || all_estimates[j].msglen < 0) goto repeat;
         msglens[j] = all_estimates[j].msglen;
       }
       int min_index = minimumIndex(msglens);
       if (min_index != MML) {  // ignore iteration
+        cout << "min_index != MML; repeating iteration ...\n";
         goto repeat;
       }
       chisquare_hypothesis_testing(all_estimates,statistics,pvalues);
@@ -134,6 +135,6 @@ void Experiments::simulate_sine(int iterations)
     fmu1.close(); fmu2.close();
     fkappa1.close(); fkappa2.close(); flambda.close(); frho.close();
     fnlh.close(); fkl.close(); fmsg.close(); fchi.close(); fpval.close();
-  } // rho
+  //} // rho
 }
 

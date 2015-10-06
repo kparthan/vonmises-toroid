@@ -79,8 +79,8 @@ typedef boost::numeric::ublas::zero_matrix<double> ZeroMatrix;
 #define NUM_METHODS 4 
 #define MLE 0 
 #define MAP 1
-#define MML 2 
-#define MAP_TRANSFORM 3
+#define MAP_TRANSFORM 2 
+#define MML 3
 //#define PMLE 4 
 
 #define AIC 0
