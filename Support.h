@@ -10,6 +10,7 @@ struct Parameters
   int test;                 // flag to test some modules
   int experiments;          // flag to run some experiments 
   int iterations;           // number of iterations
+  double k1,k2,rho;
   string profile_file;      // path to a single profile
   string profiles_dir;      // path to the directory containing the profiles
   int heat_map;             // flag to generate heat map images

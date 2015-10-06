@@ -51,6 +51,9 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
        ("test","run some test cases")
        ("experiments","run experiments")
        ("iter",value<int>(&parameters.iterations),"number of iterations")
+       ("k1",value<double>(&parameters.k1),"kappa 1")
+       ("k2",value<double>(&parameters.k2),"kappa 2")
+       ("rho",value<double>(&parameters.rho),"rho")
        ("profile",value<string>(&parameters.profile_file),"path to the profile")
        ("profiles",value<string>(&parameters.profiles_dir),"path to all profiles")
        ("constrain",value<string>(&constrain),"to constrain kappa")
@@ -1684,7 +1687,7 @@ void RunExperiments(struct Parameters &parameters)
 
   //experiments.fisher_uncertainty();
 
-  experiments.simulate_sine(parameters.iterations);
+  experiments.simulate_sine(parameters);
 }
 
 /*!

@@ -25,8 +25,14 @@ void Experiments::fisher_uncertainty()
   }
 }
 
-void Experiments::simulate_sine(int iterations)
+//void Experiments::simulate_sine(int iterations)
+void Experiments::simulate_sine(struct Parameters &parameters)
 {
+  int interations = parameters.iterations;
+  double kappa1 = parameters.k1;
+  double kappa2 = parameters.k2;
+  double rho = parameters.rho;
+
   int N = 10;
 
   string n_str = "N_" + boost::lexical_cast<string>(N);
@@ -38,8 +44,8 @@ void Experiments::simulate_sine(int iterations)
 
   double mu1 = 90; mu1 *= PI/180;
   double mu2 = 90; mu2 *= PI/180;
-  double kappa1 = 100; 
-  double kappa2 = 100;
+  //double kappa1 = 100; 
+  //double kappa2 = 100;
 
   ostringstream ssk1;
   ssk1 << fixed << setprecision(0);
@@ -50,7 +56,7 @@ void Experiments::simulate_sine(int iterations)
   ssk2 << kappa2;
   string kappa2_str = ssk2.str();
 
-  double rho = 1e-20;
+  //double rho = 1e-20;
   //while (rho <= 0.95) {
     double lambda = rho * sqrt(kappa1 * kappa2);
     ostringstream ssr;
@@ -93,7 +99,7 @@ void Experiments::simulate_sine(int iterations)
       repeat:
       cout << "Iteration: " << i+1 << endl;
       std::vector<Vector> random_sample = bvm_sine.generate(N);
-      bvm_sine.computeAllEstimators(random_sample,all_estimates,1,1);
+      bvm_sine.computeAllEstimators(random_sample,all_estimates,0,1);
       Vector msglens(all_estimates.size(),0);
 
       // ignore PMLE
@@ -130,7 +136,7 @@ void Experiments::simulate_sine(int iterations)
       fchi << endl; fpval << endl;
     } // for i ()
 
-    rho += 0.1;
+    //rho += 0.1;
 
     fmu1.close(); fmu2.close();
     fkappa1.close(); fkappa2.close(); flambda.close(); frho.close();

@@ -13,7 +13,7 @@ class Experiments
 
     void fisher_uncertainty();
 
-    void simulate_sine(int iterations=1);
+    void simulate_sine(struct Parameters &);
 };
 
 #endif
