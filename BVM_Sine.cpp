@@ -838,8 +838,10 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   estimates.kappa2 = solver2.minimize();
   cout << "kappa2_init: " << estimates.kappa2 << endl;
 
+  estimates.rho = 0.5;
+  estimates.lambda = estimates.rho * sqrt(estimates.kappa1 * estimates.kappa2);
   //estimates.lambda = 0.5 * (estimates.kappa1 + estimates.kappa2);
-  estimates.lambda = 0.5 * sqrt(estimates.kappa1 * estimates.kappa2);
+  //estimates.lambda = 0.5 * sqrt(estimates.kappa1 * estimates.kappa2);
   //estimates.lambda = uniform_random() * sqrt(estimates.kappa1 * estimates.kappa2);
 
   return estimates;
