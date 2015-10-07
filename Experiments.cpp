@@ -33,13 +33,13 @@ void Experiments::simulate_sine(struct Parameters &parameters)
   iterations = parameters.iterations;
   double kappa1 = parameters.k1;
   double kappa2 = parameters.k2;
-  //double rho = parameters.rho;
+  double rho = parameters.rho;
   int N = parameters.exp_sample_size;
 
   cout << "iterations: " << iterations << endl;
   cout << "kappa1: " << kappa1 << endl;
   cout << "kappa2: " << kappa2 << endl;
-  //cout << "rho: " << rho << endl;
+  cout << "rho: " << rho << endl;
 
   //int N = 10;
 
@@ -64,8 +64,8 @@ void Experiments::simulate_sine(struct Parameters &parameters)
   ssk2 << kappa2;
   string kappa2_str = ssk2.str();
 
-  double rho = 0.1;
-  while (rho <= 0.95) {
+  //double rho = 0.1;
+  //while (rho <= 0.95) {
     double lambda = rho * sqrt(kappa1 * kappa2);
     ostringstream ssr;
     ssr << fixed << setprecision(1);
@@ -149,6 +149,6 @@ void Experiments::simulate_sine(struct Parameters &parameters)
     fmu1.close(); fmu2.close();
     fkappa1.close(); fkappa2.close(); flambda.close(); frho.close();
     fnlh.close(); fkl.close(); fmsg.close(); fchi.close(); fpval.close();
-  } // rho
+  //} // rho
 }
 

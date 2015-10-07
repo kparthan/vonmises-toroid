@@ -1898,7 +1898,7 @@ void chisquare_hypothesis_testing(
     all_bvm_sine_estimates[MLE].lambda
   );
   double bvm_sine_ml_negloglike = all_bvm_sine_estimates[MLE].negloglike;
-  cout << "BVM_Sine (MLE) negloglike: " << bvm_sine_ml_negloglike << endl;
+  //cout << "BVM_Sine (MLE) negloglike: " << bvm_sine_ml_negloglike << endl;
 
   double bvm_sine_negloglike,log_ratio_statistic,pvalue;
   for (int i=0; i<num_methods; i++) {

@@ -821,22 +821,22 @@ struct EstimatesSine BVM_Sine::computeInitialEstimates(
   double cos_sum = suff_stats.cost1;
   double sin_sum = suff_stats.sint1;
   double rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  cout << "rbar: " << rbar << endl;
+  //cout << "rbar: " << rbar << endl;
   double constant = cos(estimates.mu1) * suff_stats.cost1 
                     + sin(estimates.mu1) * suff_stats.sint1;
   KappaSolver solver1(suff_stats.N,constant,rbar);
   estimates.kappa1 = solver1.minimize();
-  cout << "kappa1_init: " << estimates.kappa1 << endl;
+  //cout << "kappa1_init: " << estimates.kappa1 << endl;
 
   cos_sum = suff_stats.cost2;
   sin_sum = suff_stats.sint2;
   rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
-  cout << "rbar: " << rbar << endl;
+  //cout << "rbar: " << rbar << endl;
   constant = cos(estimates.mu2) * suff_stats.cost2 
              + sin(estimates.mu2) * suff_stats.sint2;
   KappaSolver solver2(suff_stats.N,constant,rbar);
   estimates.kappa2 = solver2.minimize();
-  cout << "kappa2_init: " << estimates.kappa2 << endl;
+  //cout << "kappa2_init: " << estimates.kappa2 << endl;
 
   estimates.rho = 0.5;
   estimates.lambda = estimates.rho * sqrt(estimates.kappa1 * estimates.kappa2);
