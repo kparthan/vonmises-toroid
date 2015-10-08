@@ -1,10 +1,11 @@
+% data_file: N X 2 angle pairs (in radians)
 function [] = plot_torus(data_file)
 
   r1 = 2;
   r2 = 1;
 
+  % plot the outline of the torus
   [u,v] = meshgrid(0:10:360);
-
   X = (r1 + r2*cosd(v)).*cosd(u);
   Y = (r1 + r2*cosd(v)).*sind(u);
   Z = r2*sind(v);
@@ -25,6 +26,8 @@ function [] = plot_torus(data_file)
   y = (r1 + r2*cos(theta2)).*sin(theta1);
   z = r2*sin(theta2);
   plot3(x,y,z,'.','Color',[1 0 0]);
+
+  view([-143 38]);
 
   xlabel('X');
   ylabel('Y');
