@@ -87,8 +87,11 @@ void Test::generate_bvm_sine()
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
 
-  std::vector<Vector> random_sample = bvm_sine.generate_cartesian(N);
-  writeToFile("bvm_sine2.dat",random_sample);
+  std::vector<Vector> angle_pairs = bvm_sine.generate(N);
+  writeToFile("angle_pairs.dat",angle_pairs);
+
+  std::vector<Vector> random_sample = bvm_sine.generate_cartesian(angle_pairs);
+  writeToFile("bvm_sine.dat",random_sample);
 }
 
 void Test::bvm_sine_normalization_constant()
@@ -265,12 +268,17 @@ void Test::generate_bvm_cosine()
   double mu1,mu2,kappa1,kappa2,kappa3;
   int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 200; kappa2 = 200; kappa3 = 100;
+  //mu1 = 90; mu2 = 90; kappa1 = 200; kappa2 = 200; kappa3 = 100;
+  //mu1 = 360-66.2; mu2 = 149.6; kappa1 = 65.4; kappa2 = 45.7; kappa3 = 17.3;
+  mu1 = 67.4; mu2 = 96.2; kappa1 = 3.6; kappa2 = 1.9; kappa3 = 0.8;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
 
-  std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(N);
+  std::vector<Vector> angle_pairs = bvm_cosine.generate(N);
+  writeToFile("angle_pairs.dat",angle_pairs);
+
+  std::vector<Vector> random_sample = bvm_cosine.generate_cartesian(angle_pairs);
   writeToFile("bvm_cosine.dat",random_sample);
 }
 

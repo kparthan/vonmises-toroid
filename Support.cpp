@@ -1673,11 +1673,11 @@ void TestFunctions(void)
 
   //test.bvm_sine_ml_estimation();
 
-  test.bvm_sine_all_estimation();
+  //test.bvm_sine_all_estimation();
 
   //test.testing_sample_empirical_distribution();
 
-  //test.generate_bvm_cosine();
+  test.generate_bvm_cosine();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\

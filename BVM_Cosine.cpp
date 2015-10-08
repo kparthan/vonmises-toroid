@@ -2,6 +2,10 @@
 #include "vMC.h"
 #include "Mixture_vMC.h"
 #include "MarginalDensityCosine.h"
+#include "KappaSolver.h"
+#include "OptimizeCosine.h"
+
+extern int ESTIMATION;
 
 BVM_Cosine::BVM_Cosine()
 {
@@ -9,6 +13,7 @@ BVM_Cosine::BVM_Cosine()
   kappa1 = 1; kappa2 = 1;
   kappa3 = 0; // independent
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Cosine::BVM_Cosine(double kappa1, double kappa2, double kappa3) :
@@ -16,6 +21,7 @@ BVM_Cosine::BVM_Cosine(double kappa1, double kappa2, double kappa3) :
 {
   mu1 = 0; mu2 = 0;
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Cosine::BVM_Cosine(
@@ -23,6 +29,7 @@ BVM_Cosine::BVM_Cosine(
 ) : mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), kappa3(kappa3)
 {
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Cosine BVM_Cosine::operator=(const BVM_Cosine &source)
@@ -35,10 +42,37 @@ BVM_Cosine BVM_Cosine::operator=(const BVM_Cosine &source)
     kappa3 = source.kappa3;
     constants = source.constants;
     computed = source.computed;
+    computed_lognorm = source.computed_lognorm;
   }
   return *this;
 }
 
+double BVM_Cosine::Mean1()
+{
+  return mu1;
+}
+
+double BVM_Cosine::Mean2()
+{
+  return mu2;
+}
+
+double BVM_Cosine::Kappa1()
+{
+  return kappa1;
+}
+
+double BVM_Cosine::Kappa2()
+{
+  return kappa2;
+}
+
+double BVM_Cosine::Kappa3()
+{
+  return kappa3;
+}
+
+// generates <theta1,theta2> pairs such that theta1,theta2 \in [0,2pi)
 std::vector<Vector> BVM_Cosine::generate(int sample_size)
 {
   std::vector<Vector> angle_pairs(sample_size);
@@ -58,7 +92,7 @@ std::vector<Vector> BVM_Cosine::generate(int sample_size)
     else unimodal = UNSET;
 
     if (unimodal == SET) { /* marginal density is unimodal */
-      cout << "unimodal: \n";
+      //cout << "unimodal: \n";
       Vector solution = marginal.minimize_unimodal_objective();
       //double optimal_kappa = solution[1];
       //cout << "optimal_kappa: " << optimal_kappa << endl;
@@ -67,7 +101,7 @@ std::vector<Vector> BVM_Cosine::generate(int sample_size)
       vMC proposal(mu1,optimal_kappa);
       double log_max = -solution[1];
       if (log_max < 0) log_max = 0;
-      cout << "log_max: " << log_max << endl;
+      //cout << "log_max: " << log_max << endl;
 
       int rem_sample_size = sample_size;
       int count = 0;
@@ -221,6 +255,14 @@ void BVM_Cosine::computeExpectation()
 void BVM_Cosine::computeConstants()
 {
   constants.log_c = computeLogNormalizationConstant();
+}
+
+double BVM_Sine::getLogNormalizationConstant()
+{
+  if (computed_lognorm == UNSET) {
+    constants.log_c = computeLogNormalizationConstant();  
+  }
+  return constants.log_c;
 }
 
 /*!

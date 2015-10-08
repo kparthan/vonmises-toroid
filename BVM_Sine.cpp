@@ -13,6 +13,7 @@ BVM_Sine::BVM_Sine()
   kappa1 = 1; kappa2 = 1;
   lambda = 0; // independent
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Sine::BVM_Sine(double kappa1, double kappa2, double lambda) :
@@ -23,8 +24,9 @@ BVM_Sine::BVM_Sine(double kappa1, double kappa2, double lambda) :
   computed_lognorm = UNSET;
 }
 
-BVM_Sine::BVM_Sine(double mu1, double mu2, double kappa1, double kappa2, double lambda) :
-          mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
+BVM_Sine::BVM_Sine(
+  double mu1, double mu2, double kappa1, double kappa2, double lambda
+) : mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2), lambda(lambda)
 {
   computed = UNSET;
   computed_lognorm = UNSET;
@@ -316,7 +318,6 @@ double BVM_Sine::getLogNormalizationConstant()
 {
   if (computed_lognorm == UNSET) {
     constants.log_c = computeLogNormalizationConstant();  
-    computed_lognorm = SET;
   }
   return constants.log_c;
 }
@@ -328,6 +329,7 @@ double BVM_Sine::computeLogNormalizationConstant()
 {
   double log_series_sum = compute_series_A(0,0);
   //cout << "log_series_sum: " << log_series_sum << endl;
+  computed_lognorm = SET;
   return log_series_sum;
 }
 
