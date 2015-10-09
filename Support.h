@@ -55,6 +55,19 @@ struct SufficientStatisticsSine {
   double sint1sint2,sint1cost2,cost1sint2,cost1cost2;
 };
 
+struct EstimatesCosine
+{
+  double mu1,mu2;
+  double kappa1,kappa2,kappa3,rho;
+  double msglen,negloglike,kldiv;
+};
+
+struct SufficientStatisticsCosine {
+  double N;
+  double cost1,cost2,sint1,sint2;
+  double cost1_t2,sint1_t2;
+};
+
 // general functions
 struct Parameters parseCommandLineInput (int, char **); 
 void Usage (const char *, options_description &);
@@ -67,6 +80,8 @@ string extractName(string &);
 void print(ostream &, const Vector &, int);
 void print(string &, struct EstimatesSine &);
 void print(struct SufficientStatisticsSine &);
+void print(string &, struct EstimatesCosine &);
+void print(struct SufficientStatisticsCosine &);
 void check_and_create_directory(string &);
 
 double scale_to_aom(double &);
@@ -178,6 +193,20 @@ double ConstraintSine(const Vector &, std::vector<double> &, void *);
 vMC getConditionalDensitySine(
   double &, double &, double &, double &, double &
 );
+
+void computeSufficientStatisticsCosineNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsCosine &
+);
+void computeSufficientStatisticsCosine(
+  std::vector<Vector> &, struct SufficientStatisticsCosine &
+);
+void computeSufficientStatisticsCosineNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsCosine &, Vector &
+);
+void computeSufficientStatisticsCosine(
+  std::vector<Vector> &, struct SufficientStatisticsCosine &, Vector &
+);
+double ConstraintCosine(const Vector &, std::vector<double> &, void *);
 
 #endif
 

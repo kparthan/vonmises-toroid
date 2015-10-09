@@ -400,6 +400,29 @@ void print(struct SufficientStatisticsSine &suff_stats)
   cout << "cost1 cost2: " << suff_stats.cost1cost2 << endl;
 }
 
+void print(string &type, struct EstimatesCosine &estimates)
+{
+  cout << "\nTYPE: " << type << endl;
+  cout << "m1_est: " << estimates.mu1 * 180/PI << "; ";
+  cout << "m2_est: " << estimates.mu2 * 180/PI << "; ";
+  cout << "k1_est: " << estimates.kappa1 << "; ";
+  cout << "k2_est: " << estimates.kappa2 << "; ";
+  cout << "k3_est: " << estimates.kappa3 << "; ";
+  cout << "rho_est: " << estimates.rho << endl;
+}
+
+void print(struct SufficientStatisticsCosine &suff_stats)
+{
+  cout << "sufficient stats cosine:\n";
+  cout << "N: " << suff_stats.N << endl;
+  cout << "cost1: " << suff_stats.cost1 << endl;
+  cout << "sint1: " << suff_stats.sint1 << endl;
+  cout << "cost2: " << suff_stats.cost2 << endl;
+  cout << "sint2: " << suff_stats.sint2 << endl;
+  cout << "cos(t1-t2): " << suff_stats.cost1_t2 << endl;
+  cout << "sin(t1-t2): " << suff_stats.sint1_t2 << endl;
+}
+
 void check_and_create_directory(string &directory)
 {
   if (stat(directory.c_str(), &st) == -1) {
@@ -2043,7 +2066,7 @@ double banerjee_approx(double &rbar)
   return num/denom;
 }
 
-
+/* Sufficient statistics for the Sine model */
 // data = angle_pairs
 void computeSufficientStatisticsSineNotParallel(
   std::vector<Vector> &data,
@@ -2273,5 +2296,205 @@ vMC getConditionalDensitySine(
   double k = sqrt(asq);
   vMC vmc(m,k);
   return vmc;
+}
+
+/* Sufficient statistics for the Cosine model */
+// data = angle_pairs
+void computeSufficientStatisticsCosineNotParallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsCosine &suff_stats
+) {
+  suff_stats.N = data.size();
+
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.cost1_t2 = 0; suff_stats.sint1_t2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += cost1;
+    suff_stats.cost2 += cost2;
+    suff_stats.sint1 += sint1;
+    suff_stats.sint2 += sint2;
+
+    suff_stats.cost1_t2 += cos(t1-t2);
+    suff_stats.sint1_t2 += sin(t1-t2);
+  } // for()
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsCosine(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsCosine &suff_stats
+) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsCosineNotParallel(data,suff_stats);
+  }
+
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.cost1_t2 = 0; suff_stats.sint1_t2 = 0;
+
+  std::vector<struct SufficientStatisticsCosine> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += 1;
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += cost1;
+      suff_stats_vector[tid].cost2 += cost2;
+      suff_stats_vector[tid].sint1 += sint1;
+      suff_stats_vector[tid].sint2 += sint2;
+
+      suff_stats_vector[tid].cost1_t2 += cos(t1-t2);
+      suff_stats_vector[tid].sint1_t2 += sin(t1-t2);
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    suff_stats.cost1_t2 += suff_stats_vector[i].cost1_t2;
+    suff_stats.sint1_t2 += suff_stats_vector[i].sint1_t2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsCosineNotParallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsCosine &suff_stats,
+  Vector &weights
+) {
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.cost1_t2 = 0; suff_stats.sint1_t2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    suff_stats.N += weights[i];
+
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += (weights[i] * cost1);
+    suff_stats.cost2 += (weights[i] * cost2);
+    suff_stats.sint1 += (weights[i] * sint1);
+    suff_stats.sint2 += (weights[i] * sint2);
+
+    suff_stats.cost1_t2 += (weights[i] * cos(t1-t2));
+    suff_stats.sint1_t2 += (weights[i] * sin(t1-t2));
+  } // for()
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsCosine(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsCosine &suff_stats,
+  Vector &weights
+) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsCosineNotParallel(data,suff_stats,weights);
+  }
+
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+  suff_stats.cost1_t2 = 0; suff_stats.sint1_t2 = 0;
+
+  std::vector<struct SufficientStatisticsCosine> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += weights[i];
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += (weights[i] * cost1);
+      suff_stats_vector[tid].cost2 += (weights[i] * cost2);
+      suff_stats_vector[tid].sint1 += (weights[i] * sint1);
+      suff_stats_vector[tid].sint2 += (weights[i] * sint2);
+
+      suff_stats_vector[tid].cost1_t2 += (weights[i] * cos(t1-t2));
+      suff_stats_vector[tid].sint1_t2 += (weights[i] * sin(t1-t2));
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    suff_stats.cost1_t2 += suff_stats_vector[i].cost1_t2;
+    suff_stats.sint1_t2 += suff_stats_vector[i].sint1_t2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
+}
+
+double ConstraintCosine(const Vector &x, std::vector<double> &grad, void *data)
+{
+    double k1 = x[2];
+    double k2 = x[3];
+    double k3 = x[4];
+    return (k3*(k1+k2) - k1*k2);
 }
 

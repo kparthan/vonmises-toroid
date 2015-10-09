@@ -6,18 +6,15 @@
 #include "BVM_Cosine.h"
 #include "Support.h"
 
-//extern int MOMENT_FAIL,MLE_FAIL,MAP_FAIL,MML_FAIL;
-//extern bool FAIL_STATUS;
-
 // MLE 
-class ML_Sine
+class ML_Cosine
 {
   private:
-    struct SufficientStatisticsSine suff_stats;
+    struct SufficientStatisticsCosine suff_stats;
 
   public:
-    ML_Sine(
-      struct SufficientStatisticsSine &suff_stats
+    ML_Cosine(
+      struct SufficientStatisticsCosine &suff_stats
     ) : suff_stats(suff_stats)
     {}
 
@@ -34,26 +31,26 @@ class ML_Sine
             return -HUGE_VAL;
           } // if() ends ...
         } // for() ends ...
-        return (*reinterpret_cast<ML_Sine*>(data))(x, grad); 
+        return (*reinterpret_cast<ML_Cosine*>(data))(x, grad); 
     }
 
     /*!
      *  minimize function: 
-     *   N * log c(k1,k2,lambda) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
-     *                           - lambda * sin(t1-mu1) * sin(t2-mu2)
+     *   N * log c(k1,k2,kappa3) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
+     *                           + kappa3 * cos((t1-mu1)-(t2-mu2))
      */
     double operator() (const Vector &x, Vector &grad) {
-      struct EstimatesSine estimates;
+      struct EstimatesCosine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
       //if (estimates.mu1 < 0) estimates.mu1 += 2*PI;
       //if (estimates.mu2 < 0) estimates.mu2 += 2*PI;
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
-      estimates.lambda = x[4];
+      estimates.kappa3 = x[4];
 
-      BVM_Sine bvm(
-        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+      BVM_Cosine bvm(
+        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.kappa3
       );
       double fval = bvm.computeNegativeLogLikelihood(estimates,suff_stats);
                     //- 2 * suff_stats.N * log(AOM);
@@ -62,70 +59,15 @@ class ML_Sine
     }
 };
 
-// Pseudo-MLE 
-class PML_Sine
-{
-  private:
-    std::vector<Vector> data_angles;
-
-  public:
-    PML_Sine(std::vector<Vector> &data_angles) : data_angles(data_angles)
-    {}
-
-    static double wrap(
-      const Vector &x, 
-      Vector &grad, 
-      void *data) {
-        for (int i=0; i<x.size(); i++) {
-          if(boost::math::isnan(x[i])) {  // return this sub-optimal state 
-            /*if (FAIL_STATUS == 0) {
-              MLE_FAIL++;
-              FAIL_STATUS = 1;
-            }*/
-            return -HUGE_VAL;
-          } // if() ends ...
-        } // for() ends ...
-        return (*reinterpret_cast<PML_Sine*>(data))(x, grad); 
-    }
-
-    /*!
-     *  minimize function: 
-     *   N * log c(k1,k2,lambda) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
-     *                           - lambda * sin(t1-mu1) * sin(t2-mu2)
-     */
-    double operator() (const Vector &x, Vector &grad) {
-      cout << "here\n";
-      double mu1 = x[0];
-      double mu2 = x[1];
-      double kappa1 = x[2];
-      double kappa2 = x[3];
-      double lambda = x[4];
-
-      double fval = 0;
-      for (int i=0; i<data_angles.size(); i++) {
-        double t1 = data_angles[i][0];
-        double t2 = data_angles[i][1];
-
-        vMC vmc2 = getConditionalDensitySine(t1,mu1,mu2,kappa2,lambda);
-        fval += vmc2.log_density(t2);
-
-        vMC vmc1 = getConditionalDensitySine(t2,mu2,mu1,kappa1,lambda);
-        fval += vmc1.log_density(t1);
-      }
-
-      return -fval;
-    }
-};
-
 // MAP 
-class MAP_Sine
+class MAP_Cosine
 {
   private:
-    struct SufficientStatisticsSine suff_stats;
+    struct SufficientStatisticsCosine suff_stats;
 
   public:
-    MAP_Sine(
-      struct SufficientStatisticsSine &suff_stats
+    MAP_Cosine(
+      struct SufficientStatisticsCosine &suff_stats
     ) : suff_stats(suff_stats)
     {}
 
@@ -142,24 +84,24 @@ class MAP_Sine
             return -HUGE_VAL;
           } // if() ends ...
         } // for() ends ...
-        return (*reinterpret_cast<MAP_Sine*>(data))(x, grad); 
+        return (*reinterpret_cast<MAP_Cosine*>(data))(x, grad); 
     }
 
     /*!
      *  minimize function: 
-     *   N * log c(k1,k2,lambda) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
-     *                           - lambda * sin(t1-mu1) * sin(t2-mu2)
+     *   N * log c(k1,k2,kappa3) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
+     *                           + kappa3 * cos((t1-mu1)-(t2-mu2))
      */
     double operator() (const Vector &x, Vector &grad) {
-      struct EstimatesSine estimates;
+      struct EstimatesCosine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
-      estimates.lambda = x[4];
+      estimates.kappa3 = x[4];
 
-      BVM_Sine bvm(
-        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+      BVM_Cosine bvm(
+        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.kappa3
       );
       double log_prior = bvm.computeLogParametersPriorDensity();
       double fval = -log_prior + bvm.computeNegativeLogLikelihood(estimates,suff_stats);
@@ -170,14 +112,14 @@ class MAP_Sine
 };
 
 // MAP Transform 
-class MAP_Transform_Sine
+class MAP_Transform_Cosine
 {
   private:
-    struct SufficientStatisticsSine suff_stats;
+    struct SufficientStatisticsCosine suff_stats;
 
   public:
-    MAP_Transform_Sine(
-      struct SufficientStatisticsSine &suff_stats
+    MAP_Transform_Cosine(
+      struct SufficientStatisticsCosine &suff_stats
     ) : suff_stats(suff_stats)
     {}
 
@@ -194,25 +136,25 @@ class MAP_Transform_Sine
             return -HUGE_VAL;
           } // if() ends ...
         } // for() ends ...
-        return (*reinterpret_cast<MAP_Transform_Sine*>(data))(x, grad); 
+        return (*reinterpret_cast<MAP_Transform_Cosine*>(data))(x, grad); 
     }
 
     /*!
      *  minimize function: 
-     *   N * log c(k1,k2,lambda) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
-     *                           - lambda * sin(t1-mu1) * sin(t2-mu2)
+     *   N * log c(k1,k2,kappa3) - k1 * cos(t1-mu1) - k2 * cos(t2-mu2) 
+     *                           + kappa3 * cos((t1-mu1)-(t2-mu2))
      */
     double operator() (const Vector &x, Vector &grad) {
-      struct EstimatesSine estimates;
+      struct EstimatesCosine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
       double rho = x[4];
-      estimates.lambda = rho * sqrt(estimates.kappa1 * estimates.kappa2);
+      estimates.kappa3 = rho * (estimates.kappa1 * estimates.kappa2) / (estimates.kappa1 + estimates.kappa2);
 
-      BVM_Sine bvm(
-        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+      BVM_Cosine bvm(
+        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.kappa3
       );
       double log_prior = bvm.computeLogParametersPriorDensityTransform();
       double fval = -log_prior + bvm.computeNegativeLogLikelihood(estimates,suff_stats);
@@ -223,16 +165,16 @@ class MAP_Transform_Sine
 };
 
 // MML
-class MML_Sine
+class MML_Cosine
 {
   private:
-    struct SufficientStatisticsSine suff_stats;
+    struct SufficientStatisticsCosine suff_stats;
 
     double const_lattk;
 
   public:
-    MML_Sine(
-      struct SufficientStatisticsSine &suff_stats
+    MML_Cosine(
+      struct SufficientStatisticsCosine &suff_stats
     ) : suff_stats(suff_stats)
     {
       const_lattk = -6.455;
@@ -251,22 +193,22 @@ class MML_Sine
             return 0;
           } // if() ends ...
         } // for() ends ...
-        return (*reinterpret_cast<MML_Sine*>(data))(x, grad); 
+        return (*reinterpret_cast<MML_Cosine*>(data))(x, grad); 
     }
 
     /*!
      *
      */
     double operator() (const std::vector<double> &x, std::vector<double> &grad) {
-      struct EstimatesSine estimates;
+      struct EstimatesCosine estimates;
       estimates.mu1 = x[0];
       estimates.mu2 = x[1];
       estimates.kappa1 = x[2];
       estimates.kappa2 = x[3];
-      estimates.lambda = x[4];
+      estimates.kappa3 = x[4];
 
-      BVM_Sine bvm(
-        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
+      BVM_Cosine bvm(
+        estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.kappa3
       );
       double log_prior = bvm.computeLogParametersPriorDensity();
       double log_fisher = bvm.computeLogFisherInformation(suff_stats.N);
@@ -287,18 +229,17 @@ class MML_Sine
     }
 };
 
-class OptimizeSine
+class OptimizeCosine
 {
   private:
-    double mu1,mu2,kappa1,kappa2,lambda;
+    double mu1,mu2,kappa1,kappa2,kappa3;
 
   public:
-    OptimizeSine(string);
+    OptimizeCosine(string);
 
     void initialize(double, double, double, double, double);
 
-    struct EstimatesSine minimize(std::vector<Vector> &);
-    struct EstimatesSine minimize(struct SufficientStatisticsSine &);
+    struct EstimatesCosine minimize(struct SufficientStatisticsCosine &);
 };
 
 #endif

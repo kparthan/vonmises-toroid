@@ -4,7 +4,7 @@ extern int CONSTRAIN_KAPPA;
 extern double MAX_KAPPA;
 extern int ESTIMATION;
 
-OptimizeSine::OptimizeSine(string type)
+OptimizeCosine::OptimizeCosine(string type)
 {
   if (type.compare("MLE") == 0) {
     ESTIMATION = MLE;
@@ -17,10 +17,10 @@ OptimizeSine::OptimizeSine(string type)
   } 
 }
 
-void OptimizeSine::initialize(
-  double m1, double m2, double k1, double k2, double lam
+void OptimizeCosine::initialize(
+  double m1, double m2, double k1, double k2, double k3 
 ) {
-  mu1 = m1; mu2 = m2; kappa1 = k1; kappa2 = k2; lambda = lam;
+  mu1 = m1; mu2 = m2; kappa1 = k1; kappa2 = k2; kappa3 = k3;
   
   /*if (CONSTRAIN_KAPPA == SET) {
     if (kappa >= MAX_KAPPA) {
@@ -31,7 +31,7 @@ void OptimizeSine::initialize(
   }*/
 }
 /*
-struct EstimatesSine OptimizeSine::minimize(
+struct EstimatesCosine OptimizeCosine::minimize(
   std::vector<Vector> &data
 ) {
   int num_params = 5;
@@ -40,14 +40,14 @@ struct EstimatesSine OptimizeSine::minimize(
   nlopt::opt opt(nlopt::LN_COBYLA, num_params);
 
   Vector lb(num_params,TOLERANCE);
-  lb[4] = -HUGE_VAL; // lambda
+  lb[4] = -HUGE_VAL; // kappa3
 
   Vector ub(num_params,0);
   ub[0] = 2*PI;     // mu1
   ub[1] = 2*PI;     // mu2
   ub[2] = HUGE_VAL; // kappa1
   ub[3] = HUGE_VAL; // kappa2
-  ub[4] = HUGE_VAL; // lambda
+  ub[4] = HUGE_VAL; // kappa3
 
   double LIMIT = 1e-4;
   double minf;
@@ -55,32 +55,32 @@ struct EstimatesSine OptimizeSine::minimize(
   opt.set_lower_bounds(lb);
   opt.set_upper_bounds(ub);
   opt.set_xtol_rel(LIMIT);
-  x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = lambda;
+  x[0] = mu1; x[1] = mu2; x[2] = kappa1; x[3] = kappa2; x[4] = kappa3;
   for (int i=0; i<4; i++) {
     if (x[i] < TOLERANCE) x[i] = TOLERANCE;
   }
-  opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
+  opt.add_inequality_constraint(ConstraintCosine, NULL, TOLERANCE);
 
   // ESTIMATION = PMLE
-  PML_Sine pmle(data);
-  opt.set_min_objective(PML_Sine::wrap, &pmle);
+  PML_Cosine pmle(data);
+  opt.set_min_objective(PML_Cosine::wrap, &pmle);
   nlopt::result result = opt.optimize(x,minf);
 
   assert(!boost::math::isnan(minf));
 
-  struct EstimatesSine estimates;
+  struct EstimatesCosine estimates;
   estimates.mu1 = x[0];
   estimates.mu2 = x[1];
   estimates.kappa1 = x[2];
   estimates.kappa2 = x[3];
-  estimates.lambda = x[4];
+  estimates.kappa3 = x[4];
   return estimates;
 }*/
 
-struct EstimatesSine OptimizeSine::minimize(
-  struct SufficientStatisticsSine &suff_stats
+struct EstimatesCosine OptimizeCosine::minimize(
+  struct SufficientStatisticsCosine &suff_stats
 ) {
-  struct EstimatesSine estimates;
+  struct EstimatesCosine estimates;
   int num_params = 5;
   double LIMIT = 1e-4;
   double minf;
@@ -101,14 +101,12 @@ struct EstimatesSine OptimizeSine::minimize(
   }
 
   if (ESTIMATION == MLE || ESTIMATION == MAP || ESTIMATION == MML) {
-    lb[4] = -HUGE_VAL; // lambda
-    ub[4] = HUGE_VAL; // lambda
-    x[4] = lambda;
-    opt.add_inequality_constraint(ConstraintSine, NULL, TOLERANCE);
+    ub[4] = HUGE_VAL; // kappa3
+    x[4] = kappa3;
+    opt.add_inequality_constraint(ConstraintCosine, NULL, TOLERANCE);
   } else if (ESTIMATION == MAP_TRANSFORM) {
-    lb[4] = -1; // rho 
     ub[4] = 1; // rho 
-    x[4] = lambda / (sqrt(x[2] * x[3]));
+    x[4] = kappa3 * (kappa1 + kappa2)/ (kappa1 * kappa2);
   }
 
   opt.set_lower_bounds(lb);
@@ -118,32 +116,32 @@ struct EstimatesSine OptimizeSine::minimize(
   switch(ESTIMATION) {
     case MLE:
     {
-      ML_Sine mle(suff_stats);
-      opt.set_min_objective(ML_Sine::wrap, &mle);
+      ML_Cosine mle(suff_stats);
+      opt.set_min_objective(ML_Cosine::wrap, &mle);
       nlopt::result result = opt.optimize(x,minf);
       break;
     }
 
     case MAP:
     {
-      MAP_Sine map(suff_stats);
-      opt.set_min_objective(MAP_Sine::wrap, &map);
+      MAP_Cosine map(suff_stats);
+      opt.set_min_objective(MAP_Cosine::wrap, &map);
       nlopt::result result = opt.optimize(x,minf);
       break;
     }
 
     case MAP_TRANSFORM:
     {
-      MAP_Transform_Sine map2(suff_stats);
-      opt.set_min_objective(MAP_Transform_Sine::wrap, &map2);
+      MAP_Transform_Cosine map2(suff_stats);
+      opt.set_min_objective(MAP_Transform_Cosine::wrap, &map2);
       nlopt::result result = opt.optimize(x,minf);
       break;
     }
 
     case MML:
     {
-      MML_Sine mml(suff_stats);
-      opt.set_min_objective(MML_Sine::wrap, &mml);
+      MML_Cosine mml(suff_stats);
+      opt.set_min_objective(MML_Cosine::wrap, &mml);
       nlopt::result result = opt.optimize(x,minf);
       break;
     }
@@ -162,11 +160,11 @@ struct EstimatesSine OptimizeSine::minimize(
   estimates.kappa2 = x[3];
 
   if (ESTIMATION != MAP_TRANSFORM) {
-    estimates.lambda = x[4];
-    estimates.rho = estimates.lambda / sqrt(estimates.kappa1 * estimates.kappa2);
+    estimates.kappa3 = x[4];
+    estimates.rho = estimates.kappa3 * (estimates.kappa1 + estimates.kappa2) / (estimates.kappa1 * estimates.kappa2);
   } else if (ESTIMATION == MAP_TRANSFORM) {
     estimates.rho = x[4];
-    estimates.lambda = estimates.rho * sqrt(estimates.kappa1 * estimates.kappa2);
+    estimates.kappa3 = estimates.rho * (estimates.kappa1 * estimates.kappa2) / (estimates.kappa1 + estimates.kappa2);
   }
 
   return estimates;

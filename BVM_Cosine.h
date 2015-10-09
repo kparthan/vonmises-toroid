@@ -9,6 +9,7 @@ class BVM_Cosine
     double mu1,mu2;
 
     double kappa1,kappa2,kappa3;  // k3 < (k1 * k2) / (k1 + k2) (unimodal)
+                                  // rho = k3(k1+k2)/(k1*k2)
 
     struct Constants {
       double log_c,log_dc_dk1,log_dc_dk2,log_dc_dk3;
@@ -67,8 +68,57 @@ class BVM_Cosine
 
     void computeConstants();
 
+    double getLogNormalizationConstant();
     double computeLogNormalizationConstant();
 
+    double computeLogParametersProbability(double);
+    double computeLogParametersPriorDensity();
+    double computeLogParametersPriorDensityTransform();
+
+    double computeLogFisherInformation(double);
+    double computeLogFisherInformation_Single();
+    double computeLogFisherAxes();
+    double computeLogFisherScale();
+
+    double log_density(Vector &);
+    double log_density(double &, double &);
+
+    double computeNegativeLogLikelihood(std::vector<Vector> &);
+    double computeNegativeLogLikelihood(struct SufficientStatisticsSine &);
+    double computeNegativeLogLikelihood(
+      struct EstimatesSine &, struct SufficientStatisticsSine &
+    );
+
+    double computeMessageLength(std::vector<Vector> &);
+    double computeMessageLength(struct SufficientStatisticsSine &);
+    double computeMessageLength(
+      struct EstimatesSine &, struct SufficientStatisticsSine &
+    );
+
+    void computeAllEstimators(
+      std::vector<Vector> &, 
+      std::vector<struct EstimatesSine> &,
+      int, int
+    );
+
+    void computeAllEstimators(
+      std::vector<Vector> &, 
+      struct SufficientStatisticsSine &,
+      std::vector<struct EstimatesSine> &,
+      int, int
+    );
+
+    struct EstimatesSine computeInitialEstimates(
+      struct SufficientStatisticsSine &
+    );
+
+    void estimateParameters(std::vector<Vector> &, Vector &);
+    void updateParameters(struct EstimatesSine &);
+
+    void printParameters(ostream &);
+
+    double computeKLDivergence(BVM_Sine &);
+    double computeKLDivergence(struct EstimatesSine &);
 };
 
 #endif

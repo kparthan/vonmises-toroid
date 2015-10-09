@@ -11,7 +11,7 @@ class BVM_Sine
     double mu1,mu2;
 
     double kappa1,kappa2,lambda;  // l^2 < k1 * k2 (unimodal)
-
+                                  // rho = lambda/sqrt(k1*k2)
     struct Constants {
       double log_c,log_dc_dk1,log_dc_dk2;
       double log_dc_dl;
