@@ -952,11 +952,46 @@ double BVM_Sine::computeKLDivergence(BVM_Sine &other)
   ans += (lambda_diff * constants.cl_c);
 
   double lambda_term = lambdab * sin(mu1_diff) * sin(mu2_diff);
-  ans += (lambda_term * constants.ck1k2_c);
+  //cout << "lambda_term: " << lambda_term << endl;
+  ans -= (lambda_term * constants.ck1k2_c);
 
   assert(ans >= 0);
   return ans/log(2);  // KL divergence (in bits)
 }
+
+/*double BVM_Sine::computeKLDivergence2(BVM_Sine &other)
+{
+  if (computed != SET) {
+    computeExpectation();
+  }
+
+  double log_norm_b = other.getLogNormalizationConstant();
+  double ans = log_norm_b - constants.log_c;
+
+  double mu1b = other.Mean1();
+  double mu1_diff = mu1 - mu1b;
+  double mu2b = other.Mean2();
+  double mu2_diff = mu2 - mu2b;
+
+  double kappa1b = other.Kappa1();
+  double kappa2b = other.Kappa2();
+
+  double kappa1_diff = kappa1 - kappa1b * cos(mu1_diff);
+  ans += (kappa1_diff * constants.ck1_c);
+  double kappa2_diff = kappa2 - kappa2b * cos(mu2_diff);
+  ans += (kappa2_diff * constants.ck2_c);
+
+  double lambdab = other.Lambda();
+  double lambda_diff = lambda - (lambdab * cos(mu1_diff) * cos(mu2_diff));
+  ans += (lambda_diff * constants.cl_c);
+
+  double lambda_term = lambdab * sin(mu1_diff) * sin(mu2_diff);
+  //cout << "lambda_term: " << lambda_term << endl;
+  ans += (lambda_term * constants.ck1k2_c);
+
+  assert(ans >= 0);
+  return ans/log(2);  // KL divergence (in bits)
+}*/
 
 double BVM_Sine::computeKLDivergence(struct EstimatesSine &estimates)
 {
@@ -964,5 +999,18 @@ double BVM_Sine::computeKLDivergence(struct EstimatesSine &estimates)
     estimates.mu1,estimates.mu2,estimates.kappa1,estimates.kappa2,estimates.lambda
   );
   return computeKLDivergence(bvm_sine);
+}
+
+double BVM_Sine::computeKLDivergence(BVM_Sine &other, std::vector<Vector> &angle_pairs)
+{
+  double ans = 0;
+  for (int i=0; i<angle_pairs.size(); i++) {
+    double log_f = log_density(angle_pairs[i]);
+    double log_g = other.log_density(angle_pairs[i]);
+    ans += (log_f - log_g);
+  } // for()
+  //assert(ans >= 0);
+  ans /= angle_pairs.size();
+  return ans/log(2);  // KL divergence (in bits)
 }
 

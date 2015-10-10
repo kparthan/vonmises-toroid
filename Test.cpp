@@ -175,6 +175,56 @@ void Test::check_sufficient_stats_sine()
   computeSufficientStatisticsSine(angle_pairs,suff_stats_parallel);
 }
 
+void Test::bvm_sine_kldiv()
+{
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 10;
+
+  mu1 = 90; mu2 = 90; kappa1 = 1; kappa2 = 1; lambda = 0.9;
+  mu1 *= PI/180; mu2 *= PI/180;
+
+  BVM_Sine bvm_sine1(mu1,mu2,kappa1,kappa2,lambda);
+
+  mu1 = 100; mu2 = 100; kappa1 = 1; kappa2 = 1; lambda = 0.9;
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Sine bvm_sine2(mu1,mu2,kappa1,kappa2,lambda);
+
+  double kldiv = bvm_sine1.computeKLDivergence(bvm_sine2);
+  cout << "kldiv: " << kldiv << endl;
+}
+
+void Test::bvm_sine_kldiv2()
+{
+  double mu1,mu2,kappa1,kappa2,lambda;
+  int N = 100000;
+
+  mu1 = 60; mu2 = 90; kappa1 = 100; kappa2 = 1; lambda = 0.5;
+  mu1 *= PI/180; mu2 *= PI/180;
+
+  BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
+  std::vector<Vector> angle_pairs = bvm_sine.generate(N);
+  //writeToFile("angle_pairs.dat",angle_pairs);
+
+  mu1 = 50; mu2 = 40; kappa1 = 1; kappa2 = 10; lambda = 0.4;
+  mu1 *= PI/180; mu2 *= PI/180;
+
+  BVM_Sine bvm_sine2(mu1,mu2,kappa1,kappa2,lambda);
+
+  /*std::vector<struct EstimatesSine> estimates;
+  bvm_sine.computeAllEstimators(angle_pairs,estimates,1,1);
+
+  struct EstimatesSine mle = estimates[MLE];
+  BVM_Sine bvm_sine2(mle.mu1,mle.mu2,mle.kappa1,mle.kappa2,mle.lambda);*/
+
+  double kldiv = bvm_sine.computeKLDivergence(bvm_sine2);
+  cout << "\nkldiv (actual -): " << kldiv << endl;
+  /*kldiv = bvm_sine.computeKLDivergence2(bvm_sine2);
+  cout << "kldiv (actual +): " << kldiv << endl;*/
+
+  kldiv = bvm_sine.computeKLDivergence(bvm_sine2,angle_pairs);
+  cout << "kldiv (empirical): " << kldiv << endl;
+}
+
 void Test::bvm_sine_ml_estimation()
 {
   double mu1,mu2,kappa1,kappa2,lambda;
@@ -282,4 +332,17 @@ void Test::generate_bvm_cosine()
   writeToFile("bvm_cosine.dat",random_sample);
 }
 
+
+void Test::bvm_cosine_normalization_constant()
+{
+  double mu1,mu2,kappa1,kappa2,kappa3;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; kappa3 = 10;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
+  double log_norm = bvm_cosine.computeLogNormalizationConstant();
+  cout << "log_norm: " << log_norm << endl;
+}
 

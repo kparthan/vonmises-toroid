@@ -1694,13 +1694,19 @@ void TestFunctions(void)
 
   //test.check_sufficient_stats_sine();
 
+  //test.bvm_sine_kldiv();
+
+  test.bvm_sine_kldiv2();
+
   //test.bvm_sine_ml_estimation();
 
   //test.bvm_sine_all_estimation();
 
   //test.testing_sample_empirical_distribution();
 
-  test.generate_bvm_cosine();
+  //test.generate_bvm_cosine();
+
+  //test.bvm_cosine_normalization_constant();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\

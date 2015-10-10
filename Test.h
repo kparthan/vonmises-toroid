@@ -25,6 +25,9 @@ class Test
 
     void check_sufficient_stats_sine();
 
+    void bvm_sine_kldiv();
+    void bvm_sine_kldiv2();
+
     void bvm_sine_ml_estimation();
     void bvm_sine_all_estimation();
 
@@ -32,6 +35,9 @@ class Test
 
     /* cosine model related */
     void generate_bvm_cosine();
+
+    void bvm_cosine_normalization_constant();
+    void bvm_cosine_constants();
 };
 
 #endif

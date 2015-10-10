@@ -13,7 +13,7 @@ class BVM_Cosine
 
     struct Constants {
       double log_c,log_dc_dk1,log_dc_dk2,log_dc_dk3;
-      double log_d2c_dk1dk2,log_d2c_dk1dk1,log_d2c_dk2dk2;
+      double log_d2c_dk1dk1,log_d2c_dk2dk2,log_d2c_dk3dk3;
       double log_d2c_dk1dk2,log_d2c_dk1dk3,log_d2c_dk2dk3;
 
       double ck1_c;   // E[ cos(t1-mu1) ]
@@ -27,11 +27,6 @@ class BVM_Cosine
       double ck1k2_c; // E[ cos(t1-mu1) cos(t2-mu2) ]
       double ck1k3_c; // - E[ cos(t1-mu1) cos(t1-t2-mu1+mu2) ]
       double ck2k3_c; // - E[ cos(t2-mu2) cos(t1-t2-mu1+mu2) ]
-    } constants;
-
-    struct Constants {
-      double log_c,log_ck1,log_ck2,log_ck3;
-      double ck1_c,ck2_c,ck3_c;
     } constants;
 
     int computed,computed_lognorm;
@@ -84,41 +79,41 @@ class BVM_Cosine
     double log_density(double &, double &);
 
     double computeNegativeLogLikelihood(std::vector<Vector> &);
-    double computeNegativeLogLikelihood(struct SufficientStatisticsSine &);
+    double computeNegativeLogLikelihood(struct SufficientStatisticsCosine &);
     double computeNegativeLogLikelihood(
-      struct EstimatesSine &, struct SufficientStatisticsSine &
+      struct EstimatesCosine &, struct SufficientStatisticsCosine &
     );
 
     double computeMessageLength(std::vector<Vector> &);
-    double computeMessageLength(struct SufficientStatisticsSine &);
+    double computeMessageLength(struct SufficientStatisticsCosine &);
     double computeMessageLength(
-      struct EstimatesSine &, struct SufficientStatisticsSine &
+      struct EstimatesCosine &, struct SufficientStatisticsCosine &
     );
 
     void computeAllEstimators(
       std::vector<Vector> &, 
-      std::vector<struct EstimatesSine> &,
+      std::vector<struct EstimatesCosine> &,
       int, int
     );
 
     void computeAllEstimators(
       std::vector<Vector> &, 
-      struct SufficientStatisticsSine &,
-      std::vector<struct EstimatesSine> &,
+      struct SufficientStatisticsCosine &,
+      std::vector<struct EstimatesCosine> &,
       int, int
     );
 
-    struct EstimatesSine computeInitialEstimates(
-      struct SufficientStatisticsSine &
+    struct EstimatesCosine computeInitialEstimates(
+      struct SufficientStatisticsCosine &
     );
 
     void estimateParameters(std::vector<Vector> &, Vector &);
-    void updateParameters(struct EstimatesSine &);
+    void updateParameters(struct EstimatesCosine &);
 
     void printParameters(ostream &);
 
-    double computeKLDivergence(BVM_Sine &);
-    double computeKLDivergence(struct EstimatesSine &);
+    double computeKLDivergence(BVM_Cosine &);
+    double computeKLDivergence(struct EstimatesCosine &);
 };
 
 #endif

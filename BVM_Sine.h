@@ -118,7 +118,9 @@ class BVM_Sine
     void printParameters(ostream &);
 
     double computeKLDivergence(BVM_Sine &);
+    //double computeKLDivergence2(BVM_Sine &);
     double computeKLDivergence(struct EstimatesSine &);
+    double computeKLDivergence(BVM_Sine &, std::vector<Vector> &);
 };
 
 #endif

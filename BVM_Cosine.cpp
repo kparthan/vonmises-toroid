@@ -357,7 +357,7 @@ double BVM_Cosine::computeLogFisherInformation_Single()
 double BVM_Cosine::computeLogFisherAxes()
 {
   // L: -ve log-likelihood
-
+/*
   // E [d^2 L / d mu1^2]
   double t1 = kappa1 * constants.ck1_c + lambda * constants.cl_c;
 
@@ -370,13 +370,14 @@ double BVM_Cosine::computeLogFisherAxes()
   double det = fabs(t1 * t2 - t3 * t3);
   //assert(det > 0);
   //cout << "det: " << det << endl;
-  return log(det);
+  return log(det);*/
+  return 0;
 }
 
 double BVM_Cosine::computeLogFisherScale()
 {
   Matrix fisher_scale = ZeroMatrix(3,3);
-
+/*
   // L: -ve log-likelihood
 
   // E [d^2 L / d k1^2]
@@ -400,7 +401,7 @@ double BVM_Cosine::computeLogFisherScale()
   fisher_scale(1,0) = fisher_scale(0,1);
   fisher_scale(2,0) = fisher_scale(0,2);
   fisher_scale(2,1) = fisher_scale(1,2);
-
+*/
   double det = determinant_3d(fisher_scale);
   //cout << "det: " << det << endl; //exit(1);
   return log(fabs(det));
@@ -728,12 +729,12 @@ void BVM_Cosine::updateParameters(struct EstimatesCosine &estimates)
   mu2 = estimates.mu2;
   kappa1 = estimates.kappa1;
   kappa2 = estimates.kappa2;
-  lambda = estimates.kappa3;
+  kappa3 = estimates.kappa3;
   assert(!boost::math::isnan(mu1));
   assert(!boost::math::isnan(mu2));
   assert(!boost::math::isnan(kappa1));
   assert(!boost::math::isnan(kappa2));
-  assert(!boost::math::isnan(lambda));
+  assert(!boost::math::isnan(kappa3));
   computeExpectation();
 }
 
@@ -742,7 +743,7 @@ void BVM_Cosine::printParameters(ostream &os)
   os << "[mus]: " << "(" << mu1*180/PI << ", " << mu2*180/PI << ")";
   os << "\t[kappas]: " << fixed << setprecision(3) 
      << "(" << kappa1 << ", " << kappa2 << ")";
-  os << "\t[lambda]: " << fixed << setprecision(3) << lambda << endl;
+  os << "\t[kappa3]: " << fixed << setprecision(3) << kappa3 << endl;
 }
 
 double BVM_Cosine::computeKLDivergence(BVM_Cosine &other)
@@ -750,7 +751,7 @@ double BVM_Cosine::computeKLDivergence(BVM_Cosine &other)
   if (computed != SET) {
     computeExpectation();
   }
-
+/*
   double log_norm_b = other.getLogNormalizationConstant();
   double ans = log_norm_b - constants.log_c;
 
@@ -776,6 +777,7 @@ double BVM_Cosine::computeKLDivergence(BVM_Cosine &other)
 
   assert(ans >= 0);
   return ans/log(2);  // KL divergence (in bits)
+*/
 }
 
 double BVM_Cosine::computeKLDivergence(struct EstimatesCosine &estimates)
