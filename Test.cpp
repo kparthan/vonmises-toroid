@@ -336,12 +336,12 @@ void Test::generate_bvm_cosine()
 void Test::bvm_cosine_normalization_constant()
 {
   double mu1,mu2,kappa1,kappa2,kappa3;
-  int N = 1000;
 
-  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 20; kappa3 = 10;
-
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 50; kappa3 = 10;
   mu1 *= PI/180; mu2 *= PI/180;
+
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
+
   double log_norm = bvm_cosine.computeLogNormalizationConstant();
   cout << "log_norm: " << log_norm << endl;
 }

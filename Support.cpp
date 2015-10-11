@@ -619,15 +619,18 @@ double uniform_random()
   //return rand()/(double)RAND_MAX;
 }
 
-double computeLogModifiedBesselFirstKind(double alpha, double x)
+// computes log (I_alpha(z))
+double computeLogModifiedBesselFirstKind(double alpha, double z)
 {
-  if (!(alpha >= 0 && fabs(x) >= 0)) {
-    cout << "Error logModifiedBesselFirstKind: (alpha,x) = (" << alpha << "," << x << ")\n";
+  if (!(alpha >= 0 && fabs(z) >= 0)) {
+    cout << "Error logModifiedBesselFirstKind: (alpha,x) = (" << alpha << "," << z << ")\n";
     exit(1);
   }
-  if (fabs(x) <= TOLERANCE) {
+  if (fabs(z) <= TOLERANCE) {
     return -LARGE_NUMBER;
   } 
+
+  double x = fabs(z);
 
   // constant term log(x^2/4)
   double log_x2_4 = 2.0 * log(x/2.0);
@@ -1696,7 +1699,7 @@ void TestFunctions(void)
 
   //test.bvm_sine_kldiv();
 
-  test.bvm_sine_kldiv2();
+  //test.bvm_sine_kldiv2();
 
   //test.bvm_sine_ml_estimation();
 
@@ -1706,7 +1709,7 @@ void TestFunctions(void)
 
   //test.generate_bvm_cosine();
 
-  //test.bvm_cosine_normalization_constant();
+  test.bvm_cosine_normalization_constant();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\

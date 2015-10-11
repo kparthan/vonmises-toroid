@@ -268,6 +268,7 @@ double BVM_Cosine::getLogNormalizationConstant()
 /*!
  *  logarithm of normalization constant
  */
+/*
 double BVM_Cosine::computeLogNormalizationConstant()
 {
   double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
@@ -288,6 +289,11 @@ double BVM_Cosine::computeLogNormalizationConstant()
     double t_j = exp(log_diff);
     series_sum += t_j;
     if (t_j/series_sum <= 1e-6) {
+      cout << "log_bessel_sum: " << log_bessel_sum << endl;
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_diff: " << log_diff << endl;
+      cout << "t_j: " << t_j << endl;
+      cout << "t_j/series_sum: " << t_j/series_sum << endl << endl;
       break;
     } // if()
   } // while()
@@ -297,6 +303,54 @@ double BVM_Cosine::computeLogNormalizationConstant()
   double log_const = 2 * log(2*PI) + log_bessel_sum + log(tmp2);
   computed_lognorm = SET;
   return log_const;
+}*/
+
+double BVM_Cosine::computeLogNormalizationConstant()
+{
+  double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
+                          + computeLogModifiedBesselFirstKind(0,kappa2)
+                          + computeLogModifiedBesselFirstKind(0,kappa3);
+
+  double log_sum_odd = compute_series_partial(1);
+  double log_sum_even = compute_series_partial(2);
+
+  assert(log_sum_odd > log_sum_even);
+  double ratio = exp(log_sum_even - log_sum_odd);
+  double log_tmp = log(2) - log_bessel_sum + log_sum_odd + log(1-ratio);
+  double tmp2 = 1 - exp(log_tmp);
+
+  double log_const = 2 * log(2*PI) + log_bessel_sum + log(tmp2);
+  computed_lognorm = SET;
+  return log_const;
+}
+
+double BVM_Cosine::compute_series_partial(int begin)
+{
+  int j = begin;
+  double log_f1 = computeLogModifiedBesselFirstKind(j,kappa1)
+                  + computeLogModifiedBesselFirstKind(j,kappa2)
+                  + computeLogModifiedBesselFirstKind(j,kappa3);
+  double series_sum = 1;
+
+  while (1) {
+    j += 2;
+    double log_fj = computeLogModifiedBesselFirstKind(j,kappa1)
+                    + computeLogModifiedBesselFirstKind(j,kappa2)
+                    + computeLogModifiedBesselFirstKind(j,kappa3);
+    double log_diff = log_fj - log_f1;
+    double t_j = exp(log_diff);
+    series_sum += t_j;
+    if (t_j/series_sum <= 1e-15) {
+      /*cout << "log_bessel_sum: " << log_bessel_sum << endl;
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_diff: " << log_diff << endl;
+      cout << "t_j: " << t_j << endl;
+      cout << "t_j/series_sum: " << t_j/series_sum << endl << endl;*/
+      break;
+    } // if()
+  } // while()
+  double log_sum_from_f1 = log_f1 + log(series_sum);
+  return log_sum_from_f1;
 }
 
 double BVM_Cosine::computeLogParametersProbability(double Neff)

@@ -65,6 +65,7 @@ class BVM_Cosine
 
     double getLogNormalizationConstant();
     double computeLogNormalizationConstant();
+    double compute_series_partial(int);
 
     double computeLogParametersProbability(double);
     double computeLogParametersPriorDensity();
