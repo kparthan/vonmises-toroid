@@ -268,48 +268,11 @@ double BVM_Cosine::getLogNormalizationConstant()
 /*!
  *  logarithm of normalization constant
  */
-/*
 double BVM_Cosine::computeLogNormalizationConstant()
 {
   double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
                           + computeLogModifiedBesselFirstKind(0,kappa2)
-                          + computeLogModifiedBesselFirstKind(0,kappa3);
-  int j = 1;
-  double log_f1 = computeLogModifiedBesselFirstKind(j,kappa1)
-                  + computeLogModifiedBesselFirstKind(j,kappa2)
-                  + computeLogModifiedBesselFirstKind(j,kappa3);
-  double series_sum = 1;
-
-  while (1) {
-    j++;
-    double log_fj = computeLogModifiedBesselFirstKind(j,kappa1)
-                    + computeLogModifiedBesselFirstKind(j,kappa2)
-                    + computeLogModifiedBesselFirstKind(j,kappa3);
-    double log_diff = log_fj - log_f1;
-    double t_j = exp(log_diff);
-    series_sum += t_j;
-    if (t_j/series_sum <= 1e-6) {
-      cout << "log_bessel_sum: " << log_bessel_sum << endl;
-      cout << "j: " << j << "; series_sum: " << series_sum << endl;
-      cout << "log_diff: " << log_diff << endl;
-      cout << "t_j: " << t_j << endl;
-      cout << "t_j/series_sum: " << t_j/series_sum << endl << endl;
-      break;
-    } // if()
-  } // while()
-  double log_sum_from_f1 = log_f1 + log(series_sum);
-  double log_tmp = log_sum_from_f1 + log(2) - log_bessel_sum;
-  double tmp2 = 1 + exp(log_tmp);
-  double log_const = 2 * log(2*PI) + log_bessel_sum + log(tmp2);
-  computed_lognorm = SET;
-  return log_const;
-}*/
-
-double BVM_Cosine::computeLogNormalizationConstant()
-{
-  double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
-                          + computeLogModifiedBesselFirstKind(0,kappa2)
-                          + computeLogModifiedBesselFirstKind(0,kappa3);
+                          + computeLogModifiedBesselFirstKind(0,fabs(kappa3));
 
   double log_sum_odd = compute_series_partial(1);
   double log_sum_even = compute_series_partial(2);
@@ -324,19 +287,20 @@ double BVM_Cosine::computeLogNormalizationConstant()
   return log_const;
 }
 
-double BVM_Cosine::compute_series_partial(int begin)
+double BVM_Cosine::series_type1_partial(int begin, Vector &offset)
 {
-  int j = begin;
-  double log_f1 = computeLogModifiedBesselFirstKind(j,kappa1)
-                  + computeLogModifiedBesselFirstKind(j,kappa2)
-                  + computeLogModifiedBesselFirstKind(j,kappa3);
+  int j = begin;  // 1 or 2 (odd or even)
+  double abs_kappa3 = fabs(kappa3);
+  double log_f1 = computeLogModifiedBesselFirstKind(j+offset[0],kappa1)
+                  + computeLogModifiedBesselFirstKind(j+offset[1],kappa2)
+                  + computeLogModifiedBesselFirstKind(j+offset[2],abs_kappa3);
   double series_sum = 1;
 
   while (1) {
     j += 2;
-    double log_fj = computeLogModifiedBesselFirstKind(j,kappa1)
-                    + computeLogModifiedBesselFirstKind(j,kappa2)
-                    + computeLogModifiedBesselFirstKind(j,kappa3);
+    double log_fj = computeLogModifiedBesselFirstKind(j+offset[0],kappa1)
+                    + computeLogModifiedBesselFirstKind(j+offset[1],kappa2)
+                    + computeLogModifiedBesselFirstKind(j+offset[2],abs_kappa3);
     double log_diff = log_fj - log_f1;
     double t_j = exp(log_diff);
     series_sum += t_j;
@@ -351,6 +315,14 @@ double BVM_Cosine::compute_series_partial(int begin)
   } // while()
   double log_sum_from_f1 = log_f1 + log(series_sum);
   return log_sum_from_f1;
+}
+
+// I_(j+offset)(k1) I_j(k2) I_j(k3)
+double BVM_Cosine::series_type1(Vector &offset)
+{
+  double log_sum_odd = series_type1_partial(1,offset);
+  double log_sum_even = series_type1_partial(2,offset);
+
 }
 
 double BVM_Cosine::computeLogParametersProbability(double Neff)
