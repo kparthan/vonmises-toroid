@@ -273,6 +273,7 @@ double BVM_Cosine::getLogNormalizationConstant()
 /*!
  *  logarithm of normalization constant
  */
+/*
 double BVM_Cosine::computeLogNormalizationConstant()
 {
   double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
@@ -303,6 +304,85 @@ double BVM_Cosine::computeLogNormalizationConstant()
     cout << "tmp2: " << tmp2 << endl;
     ans = 2 * log(2*PI) + log(tmp2);
   }
+
+  constants.log_c = ans;
+  computed_lognorm = SET;
+  return ans;
+}
+*/
+double BVM_Cosine::computeLogNormalizationConstant()
+{
+/*
+  double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
+                          + computeLogModifiedBesselFirstKind(0,kappa2)
+                          + computeLogModifiedBesselFirstKind(0,fabs(kappa3));
+  cout << "log_bessel_sum: " << log_bessel_sum << endl;
+
+  double log_sum_odd = series_type1_kappa1_partial(1,0);
+  double log_sum_even = series_type1_kappa1_partial(2,0);
+
+  assert(log_sum_odd > log_sum_even);
+
+  double ratio = exp(log_sum_even - log_sum_odd);
+  double ans,log_tmp,tmp2;
+
+  cout << "log_sum_odd: " << log_sum_odd << endl;
+  cout << "log_sum_even: " << log_sum_even << endl;
+  cout << "ratio: " << ratio << endl;
+
+  if (kappa3 <= 0) {  // series contains all +ve terms ...
+    log_tmp = log(2) - log_bessel_sum + log_sum_odd + log(1+ratio);
+    tmp2 = 1 + exp(log_tmp);
+    ans = 2 * log(2*PI) + log_bessel_sum + log(tmp2);
+  } else if (kappa3 > 0) {  // series contains +ve and -ve terms ...
+    log_tmp = log(2) + log_sum_odd + log(1-ratio);
+    cout << "log_tmp: " << log_tmp << endl;
+    tmp2 = -exp(log_tmp) + exp(log_bessel_sum);
+    cout << "tmp2: " << tmp2 << endl;
+    ans = 2 * log(2*PI) + log(tmp2);
+  }
+*/
+  double log_f0 = computeLogModifiedBesselFirstKind(0,kappa1)
+                          + computeLogModifiedBesselFirstKind(0,kappa2)
+                          + computeLogModifiedBesselFirstKind(0,fabs(kappa3));
+  int j = 1;
+  double log_fj = computeLogModifiedBesselFirstKind(j,kappa1)
+                          + computeLogModifiedBesselFirstKind(j,kappa2)
+                          + computeLogModifiedBesselFirstKind(j,fabs(kappa3));
+  double log_fjp1 = computeLogModifiedBesselFirstKind(j+1,kappa1)
+                          + computeLogModifiedBesselFirstKind(j+1,kappa2)
+                          + computeLogModifiedBesselFirstKind(j+1,fabs(kappa3));
+  double log_diff = log_fjp1 - log_fj;
+  double log_g1 = log_fj + log(1-exp(log_diff));
+  double series_sum = 1;
+
+  while (1) {
+    j += 2;
+    log_fj = computeLogModifiedBesselFirstKind(j,kappa1)
+                            + computeLogModifiedBesselFirstKind(j,kappa2)
+                            + computeLogModifiedBesselFirstKind(j,fabs(kappa3));
+    log_fjp1 = computeLogModifiedBesselFirstKind(j+1,kappa1)
+                            + computeLogModifiedBesselFirstKind(j+1,kappa2)
+                            + computeLogModifiedBesselFirstKind(j+1,fabs(kappa3));
+    log_diff = log_fjp1 - log_fj;
+    double log_gj = log_fj + log(1-exp(log_diff));
+    double t_j = exp(log_gj - log_g1);
+    series_sum += t_j;
+    if (t_j/series_sum <= SERIES_TOLERANCE) {
+      cout << "j: " << j << "; t_j: " << t_j << endl;
+      cout << "log_f0: " << log_f0 << endl;
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_diff: " << log_diff << endl;
+      cout << "t_j/series_sum: " << t_j/series_sum << endl << endl;
+      break;
+    }
+  } // while()
+
+  double log_sum_from_g1 = log_g1 + log(series_sum) + log(2);
+  cout << "log_sum_from_g1: " << log_sum_from_g1 << endl;
+  log_diff = log_sum_from_g1 - log_f0;
+  cout << "log_diff: " << log_diff << endl;
+  double ans = 2*log(2*PI) + log_f0 + log(1 - exp(log_diff));
 
   constants.log_c = ans;
   computed_lognorm = SET;
