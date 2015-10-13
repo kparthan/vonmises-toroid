@@ -337,12 +337,40 @@ void Test::bvm_cosine_normalization_constant()
 {
   double mu1,mu2,kappa1,kappa2,kappa3;
 
-  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 50; kappa3 = 10;
+  mu1 = 90; mu2 = 90; kappa1 = 100; kappa2 = 50; kappa3 = -10;
   mu1 *= PI/180; mu2 *= PI/180;
 
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
 
   double log_norm = bvm_cosine.computeLogNormalizationConstant();
   cout << "log_norm: " << log_norm << endl;
+}
+
+void Test::bvm_cosine_constants()
+{
+  double mu1,mu2,kappa1,kappa2,kappa3;
+  int N = 1000;
+
+  mu1 = 0; mu2 = 0; kappa1 = 100; kappa2 = 50; kappa3 = 30;
+  mu1 *= PI/180; mu2 *= PI/180;
+
+  BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
+  cout << "correlation: " << cosine_correlation(kappa1,kappa2,kappa3) << endl;
+  BVM_Cosine::Constants constants = bvm_cosine.getConstants();
+
+ // cout << "log_norm: " << constants.log_c << endl;
+ // cout << "log_dc_dk1: " << constants.log_dc_dk1 << endl;
+ // cout << "log_dc_dk2: " << constants.log_dc_dk2 << endl;
+ // cout << "log_dc_dk3: " << constants.log_dc_dk3 << endl;
+  cout << "norm: " << exp(constants.log_c) << endl;
+//  cout << "dc_dk1: " << exp(constants.log_dc_dk1) << endl;
+//  cout << "dc_dk2: " << exp(constants.log_dc_dk2) << endl;
+//  cout << "dc_dk3: " << exp(constants.log_dc_dk3) << endl;
+//  cout << "d2c_dk1dk1: " << exp(constants.log_d2c_dk1dk1) << endl;
+//  cout << "d2c_dk2dk2: " << exp(constants.log_d2c_dk2dk2) << endl;
+//  cout << "d2c_dk3dk3: " << exp(constants.log_d2c_dk3dk3) << endl;
+//  cout << "d2c_dk1dk2: " << exp(constants.log_d2c_dk1dk2) << endl;
+//  cout << "d2c_dk1dk3: " << exp(constants.log_d2c_dk1dk3) << endl;
+//  cout << "d2c_dk2dk3: " << exp(constants.log_d2c_dk2dk3) << endl;
 }
 

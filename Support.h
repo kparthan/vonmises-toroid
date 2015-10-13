@@ -194,6 +194,7 @@ vMC getConditionalDensitySine(
   double &, double &, double &, double &, double &
 );
 
+double cosine_correlation(double, double, double);
 void computeSufficientStatisticsCosineNotParallel(
   std::vector<Vector> &, struct SufficientStatisticsCosine &
 );

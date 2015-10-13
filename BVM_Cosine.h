@@ -5,11 +5,13 @@
 
 class BVM_Cosine
 {
+  friend class Test;
+
   private:
     double mu1,mu2;
 
     double kappa1,kappa2,kappa3;  // k3 < (k1 * k2) / (k1 + k2) (unimodal)
-                                  // rho = k3(k1+k2)/(k1*k2)
+                                  // rho = k3 / (sqrt(k1-k3) * sqrt(k2-k3))
 
     struct Constants {
       double log_c,log_dc_dk1,log_dc_dk2,log_dc_dk3;
@@ -65,7 +67,13 @@ class BVM_Cosine
 
     double getLogNormalizationConstant();
     double computeLogNormalizationConstant();
-    double compute_series_partial(int);
+
+    double compute_log_dc_dk1();
+    double compute_log_dc_dk2();
+    double compute_log_dc_dk3();
+
+    double series_type1_kappa1_partial(int, int);
+    double series_type2_kappa1_partial(int, int);
 
     double computeLogParametersProbability(double);
     double computeLogParametersPriorDensity();

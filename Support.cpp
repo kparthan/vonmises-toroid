@@ -23,6 +23,7 @@ int SPLITTING = 0;
 string EM_LOG_FOLDER;
 int DISTRIBUTION;
 int MSGLEN_FAIL;
+double SERIES_TOLERANCE=ZERO;
 
 struct stat st = {0};
 
@@ -1709,7 +1710,9 @@ void TestFunctions(void)
 
   //test.generate_bvm_cosine();
 
-  test.bvm_cosine_normalization_constant();
+  //test.bvm_cosine_normalization_constant();
+
+  test.bvm_cosine_constants();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -2308,6 +2311,15 @@ vMC getConditionalDensitySine(
 }
 
 /* Sufficient statistics for the Cosine model */
+
+double cosine_correlation(double kappa1, double kappa2, double kappa3)
+{
+  double diff1 = (kappa1 - kappa3);
+  double diff2 = (kappa2 - kappa3);
+  double product = diff1 * diff2;
+  return -(kappa3/sqrt(product));
+}
+
 // data = angle_pairs
 void computeSufficientStatisticsCosineNotParallel(
   std::vector<Vector> &data,
