@@ -351,7 +351,7 @@ void Test::bvm_cosine_constants()
   double mu1,mu2,kappa1,kappa2,kappa3;
   int N = 1000;
 
-  mu1 = 0; mu2 = 0; kappa1 = 100; kappa2 = 50; kappa3 = 20;
+  mu1 = 0; mu2 = 0; kappa1 = 100; kappa2 = 50; kappa3 = 30;
   mu1 *= PI/180; mu2 *= PI/180;
 
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);

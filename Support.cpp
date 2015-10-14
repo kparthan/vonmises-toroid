@@ -23,7 +23,7 @@ int SPLITTING = 0;
 string EM_LOG_FOLDER;
 int DISTRIBUTION;
 int MSGLEN_FAIL;
-double SERIES_TOLERANCE=ZERO;
+double SERIES_TOLERANCE=1e-100;
 
 struct stat st = {0};
 
@@ -621,6 +621,59 @@ double uniform_random()
 }
 
 // computes log (I_alpha(z))
+long double computeLogModifiedBesselFirstKind(long double alpha, long double z)
+{
+  if (!(alpha >= 0 && fabs(z) >= 0)) {
+    cout << "Error logModifiedBesselFirstKind: (alpha,x) = (" << alpha << "," << z << ")\n";
+    exit(1);
+  }
+  if (fabs(z) <= TOLERANCE) {
+    return -LARGE_NUMBER;
+  } 
+
+  long double x = fabs(z);
+
+  // constant term log(x^2/4)
+  long double log_x2_4 = 2.0 * log(x/2.0);
+  long double four_x2 = 4.0 / (x * x);
+
+  long double m = 1;
+  long double log_sm_prev = -boost::math::lgamma<long double>(alpha+1); // log(t0)
+  long double log_sm_current;
+  long double log_tm_prev = log_sm_prev; // log(t0)
+  long double log_tm_current;
+  long double cm_prev = 0,cm_current; 
+  long double ratio = (alpha+1) * four_x2;  // t0/t1
+  while(ratio < 1) {
+    cm_current = (cm_prev + 1) * ratio;
+    log_tm_current = log_tm_prev - log(ratio); 
+    log_sm_prev = log_tm_current + log(cm_current + 1);
+    m++;
+    ratio = m * (m+alpha) * four_x2;
+    log_tm_prev = log_tm_current;
+    cm_prev = cm_current;
+  } // while() ends ...
+  long double k = m;
+  log_tm_current = log_tm_prev - log(ratio);  // log(tk)
+  long double c = log_tm_current - log_sm_prev;
+  long double tk_sk_1 = exp(c);
+  long double y = log_sm_prev;
+  long double zm = 1;
+  long double log_rm_prev = 0,log_rm_current,rm;
+  while(1) {
+    log_sm_current = y + log(1 + tk_sk_1 * zm);
+    m++;
+    log_rm_current = (log_x2_4 - log(m) - log(m+alpha)) + log_rm_prev;
+    rm = exp(log_rm_current);
+    zm += rm;
+    if (rm/zm < 1e-100)  break;
+    log_sm_prev = log_sm_current;
+    log_rm_prev = log_rm_current;
+  } // while() ends ...
+  log_sm_current = y + log(1 + tk_sk_1 * zm);
+  return (log_sm_current + (alpha * log(x/2.0)));
+}
+
 double computeLogModifiedBesselFirstKind(double alpha, double z)
 {
   if (!(alpha >= 0 && fabs(z) >= 0)) {

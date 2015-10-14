@@ -72,7 +72,8 @@ class BVM_Cosine
     double compute_log_dc_dk2();
     double compute_log_dc_dk3();
 
-    double series_type1_kappa1_partial(int, int);
+    long double series_type1_kappa1_partial(int, int);
+    long double series_type1_kappa1_partial(int, int, double);
     double series_type2_kappa1_partial(int, int);
 
     double computeLogParametersProbability(double);

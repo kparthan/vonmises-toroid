@@ -312,19 +312,19 @@ double BVM_Cosine::computeLogNormalizationConstant()
 */
 double BVM_Cosine::computeLogNormalizationConstant()
 {
-/*
-  double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
+
+  long double log_bessel_sum = computeLogModifiedBesselFirstKind(0,kappa1)
                           + computeLogModifiedBesselFirstKind(0,kappa2)
                           + computeLogModifiedBesselFirstKind(0,fabs(kappa3));
   cout << "log_bessel_sum: " << log_bessel_sum << endl;
 
-  double log_sum_odd = series_type1_kappa1_partial(1,0);
-  double log_sum_even = series_type1_kappa1_partial(2,0);
+  long double log_sum_odd = series_type1_kappa1_partial(1,0);
+  long double log_sum_even = series_type1_kappa1_partial(2,0);
 
   assert(log_sum_odd > log_sum_even);
 
-  double ratio = exp(log_sum_even - log_sum_odd);
-  double ans,log_tmp,tmp2;
+  long double ratio = exp(log_sum_even - log_sum_odd);
+  long double ans,log_tmp,tmp2;
 
   cout << "log_sum_odd: " << log_sum_odd << endl;
   cout << "log_sum_even: " << log_sum_even << endl;
@@ -335,13 +335,41 @@ double BVM_Cosine::computeLogNormalizationConstant()
     tmp2 = 1 + exp(log_tmp);
     ans = 2 * log(2*PI) + log_bessel_sum + log(tmp2);
   } else if (kappa3 > 0) {  // series contains +ve and -ve terms ...
-    log_tmp = log(2) + log_sum_odd + log(1-ratio);
+    long double log_sum_even = series_type1_kappa1_partial(2,0);
+    long double log_a = log_bessel_sum;
+    long double log_c = log_sum_even + log(2);
+    long double log_ac;
+    if (log_c > log_a) {
+      log_ac = log_c + log(1+exp(log_a - log_c));
+    } else {
+      log_ac = log_a + log(1+exp(log_c - log_a));
+    }
+    long double log_sum_odd = series_type1_kappa1_partial(1,0,log_ac);
+
+    long double log_b = log_sum_odd + log(2);
+    long double b_ac = exp(log_b - log_ac);
+    cout << "log_a: " << log_a << endl;
+    cout << "log_b: " << log_b << endl;
+    cout << "log_c: " << log_c << endl;
+    cout << "log_ac: " << log_ac << endl;
+    cout << "b_ac: " << b_ac << endl;
+    cout << "(1-b_ac): " << (1-b_ac) << endl;
+    cout << "log(1-b_ac): " << log1p(-b_ac) << endl;
+    long double a_b = exp(log_a - log_b);
+    long double c_b = exp(log_c - log_b);
+    cout << "a/b: " << a_b << endl;
+    cout << "c/b: " << c_b << endl;
+    long double tmp = a_b + c_b - 1; cout << "tmp: " << tmp << endl; //assert(tmp > 0);
+    long double log_tmp2 = log_ac + log(1-exp(log_b-log_ac)); //log1p(tmp);
+    ans = 2*log(2*PI) + log_tmp2;
+    /*log_tmp = log(2) - log_bessel_sum + log_sum_odd + log(1-ratio);
     cout << "log_tmp: " << log_tmp << endl;
-    tmp2 = -exp(log_tmp) + exp(log_bessel_sum);
+    tmp2 = 1 - exp(log_tmp);
     cout << "tmp2: " << tmp2 << endl;
-    ans = 2 * log(2*PI) + log(tmp2);
+    ans = 2 * log(2*PI) + log_bessel_sum + log(tmp2);*/
   }
-*/
+
+/*
   double log_f0 = computeLogModifiedBesselFirstKind(0,kappa1)
                           + computeLogModifiedBesselFirstKind(0,kappa2)
                           + computeLogModifiedBesselFirstKind(0,fabs(kappa3));
@@ -382,7 +410,7 @@ double BVM_Cosine::computeLogNormalizationConstant()
   cout << "log_sum_from_g1: " << log_sum_from_g1 << endl;
   log_diff = log_sum_from_g1 - log_f0;
   cout << "log_diff: " << log_diff << endl;
-  double ans = 2*log(2*PI) + log_f0 + log(1 - exp(log_diff));
+  double ans = 2*log(2*PI) + log_f0 + log(1 - exp(log_diff));*/
 
   constants.log_c = ans;
   computed_lognorm = SET;
@@ -447,22 +475,22 @@ double BVM_Cosine::compute_log_dc_dk3()
 {
 }
 
-double BVM_Cosine::series_type1_kappa1_partial(int begin, int offset)
+long double BVM_Cosine::series_type1_kappa1_partial(int begin, int offset)
 {
   int j = begin;  // 1 or 2 (odd or even)
-  double abs_kappa3 = fabs(kappa3);
-  double log_f1 = computeLogModifiedBesselFirstKind(j+offset,kappa1)
+  long double abs_kappa3 = fabs(kappa3);
+  long double log_f1 = computeLogModifiedBesselFirstKind(j+offset,kappa1)
                   + computeLogModifiedBesselFirstKind(j,kappa2)
                   + computeLogModifiedBesselFirstKind(j,abs_kappa3);
-  double series_sum = 0;
+  long double series_sum = 1;
 
   while (1) {
     j += 2;
-    double log_fj = computeLogModifiedBesselFirstKind(j+offset,kappa1)
+    long double log_fj = computeLogModifiedBesselFirstKind(j+offset,kappa1)
                     + computeLogModifiedBesselFirstKind(j,kappa2)
                     + computeLogModifiedBesselFirstKind(j,abs_kappa3);
-    double log_diff = log_fj - log_f1;
-    double t_j = exp(log_diff);
+    long double log_diff = log_fj - log_f1;
+    long double t_j = exp(log_diff);
     series_sum += t_j;
     if (t_j/series_sum <= SERIES_TOLERANCE) {
       cout << "j: " << j << "; t_j: " << t_j << endl;
@@ -473,7 +501,42 @@ double BVM_Cosine::series_type1_kappa1_partial(int begin, int offset)
       break;
     } // if()
   } // while()
-  double log_sum_from_f1 = log_f1 + log1p(series_sum);
+  long double log_sum_from_f1 = log_f1 + log(series_sum);
+  return log_sum_from_f1;
+}
+
+long double BVM_Cosine::series_type1_kappa1_partial(int begin, int offset, double bound)
+{
+  int j = begin;  // 1 or 2 (odd or even)
+  long double abs_kappa3 = fabs(kappa3);
+  long double log_f1 = computeLogModifiedBesselFirstKind(j+offset,kappa1)
+                  + computeLogModifiedBesselFirstKind(j,kappa2)
+                  + computeLogModifiedBesselFirstKind(j,abs_kappa3);
+  long double series_sum = 1;
+
+  while (1) {
+    j += 2;
+    long double log_fj = computeLogModifiedBesselFirstKind(j+offset,kappa1)
+                    + computeLogModifiedBesselFirstKind(j,kappa2)
+                    + computeLogModifiedBesselFirstKind(j,abs_kappa3);
+    long double log_diff = log_fj - log_f1;
+    long double t_j = exp(log_diff);
+    series_sum += t_j;
+    long double check = log(2) + log_f1 + log(series_sum);
+    if (check > bound) {
+      series_sum -= t_j;
+      break;
+    }
+    if (t_j/series_sum <= SERIES_TOLERANCE) {
+      cout << "j: " << j << "; t_j: " << t_j << endl;
+      /*cout << "log_bessel_sum: " << log_bessel_sum << endl;
+      cout << "j: " << j << "; series_sum: " << series_sum << endl;
+      cout << "log_diff: " << log_diff << endl;
+      cout << "t_j/series_sum: " << t_j/series_sum << endl << endl;*/
+      break;
+    } // if()
+  } // while()
+  long double log_sum_from_f1 = log_f1 + log(series_sum);
   return log_sum_from_f1;
 }
 

@@ -97,6 +97,7 @@ Vector crossProduct(Vector &, Vector &);
 double computeSum(Vector &);
 double computeLogSurfaceAreaSphere(int);
 double uniform_random();
+long double computeLogModifiedBesselFirstKind(long double, long double);
 double computeLogModifiedBesselFirstKind(double, double);
 double computeLogRatioBessel(double, double);
 double computeRatioBessel(double);
