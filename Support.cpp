@@ -2572,3 +2572,89 @@ double ConstraintCosine(const Vector &x, std::vector<double> &grad, void *data)
     return (k3*(k1+k2) - k1*k2);
 }
 
+double norm_constant_integral (double *k, size_t dim, void *params)
+{
+  double *params2 = (double *)params;
+  /*cout << "params: ";
+  for (int i=0; i<5; i++) {
+    cout << params2[i] << "; ";
+  } cout << endl;*/
+
+  double mu1 = params2[0];
+  double mu2 = params2[1];
+  double kappa1 = params2[2];
+  double kappa2 = params2[3];
+  double kappa3 = params2[4];
+
+  double x = k[0] - mu1;
+  double y = k[1] - mu2;
+
+  double t1 = kappa1 * cos(x);
+  double t2 = kappa2 * cos(y);
+  double t3 = kappa3 * cos(x-y);
+
+  double exponent = t1 + t2 - t3;
+  return exp(exponent);
+}
+
+double integration(double mu1, double mu2, double kappa1, double kappa2, double kappa3)
+{
+  double res, err;
+
+  double params[5] = {mu1,mu2,kappa1,kappa2,kappa3};
+  double xl[2] = { 0, 0};
+  double xu[2] = { 2*PI, 2*PI};
+
+  const gsl_rng_type *T;
+  gsl_rng *r;
+
+  gsl_monte_function G = { &norm_constant_integral, 2, params };
+
+  size_t calls = 1000000;
+
+  gsl_rng_env_setup ();
+
+  T = gsl_rng_default;
+  r = gsl_rng_alloc (T);
+
+  {
+    gsl_monte_plain_state *s = gsl_monte_plain_alloc (2);
+    gsl_monte_plain_integrate (&G, xl, xu, 2, calls, r, s, 
+                               &res, &err);
+    gsl_monte_plain_free (s);
+
+    cout << "integral value 1: " << res << endl;
+  }
+
+  {
+    gsl_monte_miser_state *s = gsl_monte_miser_alloc (2);
+    gsl_monte_miser_integrate (&G, xl, xu, 2, calls, r, s,
+                               &res, &err);
+    gsl_monte_miser_free (s);
+
+    cout << "integral value 2: " << res << endl;
+  }
+
+  {
+    gsl_monte_vegas_state *s = gsl_monte_vegas_alloc (2);
+
+    gsl_monte_vegas_integrate (&G, xl, xu, 2, 10000, r, s,
+                               &res, &err);
+
+    do
+      {
+        gsl_monte_vegas_integrate (&G, xl, xu, 2, calls/5, r, s,
+                                   &res, &err);
+        //printf ("result = % .6f sigma = % .6f "
+        //        "chisq/dof = %.1f\n", res, err, gsl_monte_vegas_chisq (s));
+      }
+    while (fabs (gsl_monte_vegas_chisq (s) - 1.0) > 0.5);
+
+    cout << "integral value 3: " << res << endl;
+
+    gsl_monte_vegas_free (s);
+  }
+
+  gsl_rng_free (r);
+}
+

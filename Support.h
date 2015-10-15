@@ -210,5 +210,8 @@ void computeSufficientStatisticsCosine(
 );
 double ConstraintCosine(const Vector &, std::vector<double> &, void *);
 
+double norm_constant_integral (double *, size_t, void *);
+double integration(double, double, double, double, double);
+
 #endif
 

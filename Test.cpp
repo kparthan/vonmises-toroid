@@ -351,12 +351,14 @@ void Test::bvm_cosine_constants()
   double mu1,mu2,kappa1,kappa2,kappa3;
   int N = 1000;
 
-  mu1 = 0; mu2 = 0; kappa1 = 100; kappa2 = 50; kappa3 = 30;
+  mu1 = 0; mu2 = 0; kappa1 = 100; kappa2 = 50; kappa3 = -30;
   mu1 *= PI/180; mu2 *= PI/180;
 
   BVM_Cosine bvm_cosine(mu1,mu2,kappa1,kappa2,kappa3);
   cout << "correlation: " << cosine_correlation(kappa1,kappa2,kappa3) << endl;
   BVM_Cosine::Constants constants = bvm_cosine.getConstants();
+
+  double norm2 = integration(mu1,mu2,kappa1,kappa2,kappa3);
 
  // cout << "log_norm: " << constants.log_c << endl;
  // cout << "log_dc_dk1: " << constants.log_dc_dk1 << endl;
