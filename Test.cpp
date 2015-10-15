@@ -363,6 +363,7 @@ void Test::bvm_cosine_constants()
  // cout << "log_dc_dk2: " << constants.log_dc_dk2 << endl;
  // cout << "log_dc_dk3: " << constants.log_dc_dk3 << endl;
   cout << "norm: " << exp(constants.log_c) << endl;
+  cout << "log_norm: " << constants.log_c << endl;
 //  cout << "dc_dk1: " << exp(constants.log_dc_dk1) << endl;
 //  cout << "dc_dk2: " << exp(constants.log_dc_dk2) << endl;
 //  cout << "dc_dk3: " << exp(constants.log_dc_dk3) << endl;
