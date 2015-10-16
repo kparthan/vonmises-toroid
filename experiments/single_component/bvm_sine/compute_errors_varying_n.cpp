@@ -367,7 +367,7 @@ void compute_lambda_errors(
 ) {
   double lambda = rho * sqrt(kappa1 * kappa2);
 
-  std::vector<Vector> kappas_est;
+  std::vector<Vector> lambda_est;
   Vector biassq_est,variance_est,mse_est;
 
   string biassq_file = errors_folder + "biassq_lambda";
@@ -383,10 +383,10 @@ void compute_lambda_errors(
                        + "_r_" + rho_str + "/";
 
   string kappas_file = current_dir + "lambda_est";
-  kappas_est = load_table(kappas_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(kappas_est,lambda);
-  variance_est = computeVariance(kappas_est,lambda);
-  mse_est = computeMeanSquaredError(kappas_est,lambda);
+  lambda_est = load_table(kappas_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(lambda_est,lambda);
+  variance_est = computeVariance(lambda_est,lambda);
+  mse_est = computeMeanSquaredError(lambda_est,lambda);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -520,49 +520,46 @@ void compute_all_errors()
   combine(mse_files,output_file);
 }
 
-//void computeWins(
-//  int map_index, ostream &out, std::vector<Vector> &values
-//) {
-//  std::vector<int> wins(4,0);
-//  int min_index;
-//
-//  for (int i=0; i<values.size(); i++) {
-//    min_index = minimumIndex(map_index,values[i]);
-//    wins[min_index]++;
-//  }
-//  double percent_wins;
-//  for (int j=0; j<wins.size(); j++) {
-//    percent_wins = wins[j] * 100.0 / values.size();
-//    out << fixed << setw(10) << setprecision(2) << percent_wins;
-//  }
-//  out << endl;
-//}
-//
-//void process_kldivs(int N)
-//{
-//  int num_maps,map_index;
-//  if (NUM_METHODS == 5) {
-//    num_maps = 2;
-//  } else {
-//    num_maps = 3;
-//  }
-//
-//  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
-//  for (int i=1; i<=num_maps; i++) {
-//    if (i == 1) map_index = 2;
-//    else if (i == 2) map_index = 4;
-//    else if (i == 3) map_index = 5;
-//    string wins_kldivs_file = errors_folder + common + "wins_kldivs_map"
-//                              + boost::lexical_cast<string>(i) + ".dat";
-//    ofstream out(wins_kldivs_file.c_str(),ios::app);
-//    out << fixed << setw(10) << setprecision(0) << N << "\t\t";
-//    string kldivs_file = n_str + "_prior" + prior_str + "/"
-//                         "k_" + kappa_str + "_e_" + rho_str + "/kldivs";
-//    std::vector<Vector> kldivs = load_table(kldivs_file,NUM_METHODS);
-//    computeWins(map_index,out,kldivs);
-//    out.close();
-//  }
-//}
+void computeWins(
+  int map_index, ostream &out, std::vector<Vector> &values
+) {
+  std::vector<int> wins(3,0);
+  int min_index;
+
+  for (int i=0; i<values.size(); i++) {
+    min_index = minimumIndex(map_index,values[i]);
+    wins[min_index]++;
+  }
+  double percent_wins;
+  for (int j=0; j<wins.size(); j++) {
+    percent_wins = wins[j] * 100.0 / values.size();
+    out << fixed << setw(10) << setprecision(2) << percent_wins;
+  }
+  out << endl;
+}
+
+void process_kldivs(int N)
+{
+  int num_maps = 2;
+  int map_index;
+
+  //string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  for (int i=1; i<=num_maps; i++) {
+    if (i == 1) map_index = 1;
+    else if (i == 2) map_index = 2;
+    string wins_kldivs_file = errors_folder + "wins_kldivs_map"
+                              + boost::lexical_cast<string>(i) + ".dat";
+    ofstream out(wins_kldivs_file.c_str(),ios::app);
+    out << fixed << setw(10) << setprecision(0) << N << "\t\t";
+    string kldivs_file = n_str + 
+                         + "k1_" + kappa1_str 
+                         + "_k2_" + kappa2_str 
+                         + "_r_" + rho_str + "/kldivs";
+    std::vector<Vector> kldivs = load_table(kldivs_file,NUM_METHODS);
+    computeWins(map_index,out,kldivs);
+    out.close();
+  } // for()
+}
 
 void process_estimates(double kappa1, double kappa2, double rho)
 {
@@ -576,7 +573,6 @@ void process_estimates(double kappa1, double kappa2, double rho)
 
     // kappa errors
     compute_kappa1_errors(N,kappa1);
-
     // kappa2 errors
     compute_kappa2_errors(N,kappa2);
 
@@ -594,280 +590,263 @@ void process_estimates(double kappa1, double kappa2, double rho)
   } // for(N)
 }
 
-//void common_plot(
-//  string &data_file, string &script_file, string &plot_file, string &ylabel
-//) {
-//  ofstream out(script_file.c_str());
-//  out << "set terminal postscript eps enhanced color\n\n";
-//  out << "set output \"" << plot_file << "\"\n\n";
-//  out << "set style data linespoints\n";
-//  out << "set style fill solid 1.0 noborder\n";
-//  out << "set xlabel \"Sample size\\n\"\n";
-//  out << "set ylabel \"" << ylabel << "\"\n";
-//  out << "set xr [10:50]\n";
-//  out << "set xlabel font \"Times-Roman, 25\"\n";
-//  out << "set ylabel font \"Times-Roman, 25\"\n";
-//  out << "set xtics font \"Times-Roman, 20\"\n";
-//  out << "set ytics font \"Times-Roman, 20\"\n";
-//  out << "set xtics nomirror\n";
-//  out << "set ytics nomirror\n";
-//  out << "set border 2 back\n";
-//  if (NUM_METHODS == 5) {
-//    out << "plot \"" << data_file << "\" using 1:2 t \"MOMENT\" lc rgb \"red\", \\\n"
-//        << "\"\" using 1:3 t \"MLE\" lc rgb \"blue\", \\\n"
-//        << "\"\" using 1:4 t \"MAP1\" lc rgb \"dark-green\", \\\n"
-//        << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\", \\\n"
-//        << "\"\" using 1:6 t \"MAP2\" lc rgb \"black\"\n";
-//  } else if (NUM_METHODS == 6) {
-//    out << "plot \"" << data_file << "\" using 1:2 t \"MOMENT\" lc rgb \"red\", \\\n"
-//        << "\"\" using 1:7 t \"MAP3 = MLE\" lc rgb \"blue\", \\\n"
-//        << "\"\" using 1:4 t \"MAP1\" lc rgb \"dark-green\", \\\n"
-//        << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\", \\\n"
-//        << "\"\" using 1:6 t \"MAP2\" lc rgb \"black\"\n";
-//  }
-//  out.close();
-//  string cmd = "gnuplot -persist " + script_file;
-//  if(system(cmd.c_str()));
-//}
-//
-//void plot_mu1_errors(
-//  string &kappa_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_mu1";
-//  script_file = errors_folder + common + "biassq_mu1.p";
-//  plot_file = errors_folder + common + "biassq_mu1.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_mu1";
-//  script_file = errors_folder + common + "variance_mu1.p";
-//  plot_file = errors_folder + common + "variance_mu1.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_mu1";
-//  script_file = errors_folder + common + "mse_mu1.p";
-//  plot_file = errors_folder + common + "mse_mu1.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_mu2_errors(
-//  string &kappa_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_mu2";
-//  script_file = errors_folder + common + "biassq_mu2.p";
-//  plot_file = errors_folder + common + "biassq_mu2.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_mu2";
-//  script_file = errors_folder + common + "variance_mu2.p";
-//  plot_file = errors_folder + common + "variance_mu2.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_mu2";
-//  script_file = errors_folder + common + "mse_mu2.p";
-//  plot_file = errors_folder + common + "mse_mu2.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_eta_errors(
-//  string &kappa_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_eta";
-//  script_file = errors_folder + common + "biassq_eta.p";
-//  plot_file = errors_folder + common + "biassq_eta.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_eta";
-//  script_file = errors_folder + common + "variance_eta.p";
-//  plot_file = errors_folder + common + "variance_eta.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_eta";
-//  script_file = errors_folder + common + "mse_eta.p";
-//  plot_file = errors_folder + common + "mse_eta.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_kappa_errors(
-//  string &kappa_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_kappa";
-//  script_file = errors_folder + common + "biassq_kappa.p";
-//  plot_file = errors_folder + common + "biassq_kappa.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_kappa";
-//  script_file = errors_folder + common + "variance_kappa.p";
-//  plot_file = errors_folder + common + "variance_kappa.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_kappa";
-//  script_file = errors_folder + common + "mse_kappa.p";
-//  plot_file = errors_folder + common + "mse_kappa.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_kappa2_errors(
-//  string &kappa2_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_kappa2";
-//  script_file = errors_folder + common + "biassq_kappa2.p";
-//  plot_file = errors_folder + common + "biassq_kappa2.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_kappa2";
-//  script_file = errors_folder + common + "variance_kappa2.p";
-//  plot_file = errors_folder + common + "variance_kappa2.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_kappa2";
-//  script_file = errors_folder + common + "mse_kappa2.p";
-//  plot_file = errors_folder + common + "mse_kappa2.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_rho_errors(
-//  string &rho_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_rho";
-//  script_file = errors_folder + common + "biassq_rho.p";
-//  plot_file = errors_folder + common + "biassq_rho.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_rho";
-//  script_file = errors_folder + common + "variance_rho.p";
-//  plot_file = errors_folder + common + "variance_rho.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_rho";
-//  script_file = errors_folder + common + "mse_rho.p";
-//  plot_file = errors_folder + common + "mse_rho.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_all_errors(
-//  string &all_str, string &errors_folder
-//) {
-//  string data_file,script_file,plot_file,ylabel;
-//
-//  data_file = errors_folder + common + "biassq_all";
-//  script_file = errors_folder + common + "biassq_all.p";
-//  plot_file = errors_folder + common + "biassq_all.eps";
-//  ylabel = "Bias squared";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "variance_all";
-//  script_file = errors_folder + common + "variance_all.p";
-//  plot_file = errors_folder + common + "variance_all.eps";
-//  ylabel = "Variance";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//
-//  data_file = errors_folder + common + "mse_all";
-//  script_file = errors_folder + common + "mse_all.p";
-//  plot_file = errors_folder + common + "mse_all.eps";
-//  ylabel = "Mean squared error";
-//  common_plot(data_file,script_file,plot_file,ylabel);
-//}
-//
-//void plot_errors()
+void common_plot(
+  string &data_file, string &script_file, string &plot_file, string &ylabel
+) {
+  ofstream out(script_file.c_str());
+  out << "set terminal postscript eps enhanced color\n\n";
+  out << "set output \"" << plot_file << "\"\n\n";
+  out << "set style data linespoints\n";
+  out << "set style fill solid 1.0 noborder\n";
+  out << "set xlabel \"Sample size\\n\"\n";
+  out << "set ylabel \"" << ylabel << "\"\n";
+  out << "set xr [10:50]\n";
+  out << "set xlabel font \"Times-Roman, 25\"\n";
+  out << "set ylabel font \"Times-Roman, 25\"\n";
+  out << "set xtics font \"Times-Roman, 20\"\n";
+  out << "set ytics font \"Times-Roman, 20\"\n";
+  out << "set xtics nomirror\n";
+  out << "set ytics nomirror\n";
+  out << "set border 2 back\n";
+  out << "plot \"" << data_file << "\" using 1:2 t \"MLE\" lc rgb \"red\", \\\n"
+      << "\"\" using 1:3 t \"MAP1\" lc rgb \"blue\", \\\n"
+      << "\"\" using 1:4 t \"MAP2\" lc rgb \"dark-green\", \\\n"
+      << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\"\n";
+  out.close();
+  string cmd = "gnuplot -persist " + script_file;
+  if(system(cmd.c_str()));
+}
+
+void plot_mu1_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_mu1";
+  script_file = errors_folder + "biassq_mu1.p";
+  plot_file = errors_folder + "biassq_mu1.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_mu1";
+  script_file = errors_folder + "variance_mu1.p";
+  plot_file = errors_folder + "variance_mu1.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_mu1";
+  script_file = errors_folder + "mse_mu1.p";
+  plot_file = errors_folder + "mse_mu1.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_mu2_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_mu2";
+  script_file = errors_folder + "biassq_mu2.p";
+  plot_file = errors_folder + "biassq_mu2.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_mu2";
+  script_file = errors_folder + "variance_mu2.p";
+  plot_file = errors_folder + "variance_mu2.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_mu2";
+  script_file = errors_folder + "mse_mu2.p";
+  plot_file = errors_folder + "mse_mu2.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_kappa1_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_kappa1";
+  script_file = errors_folder + "biassq_kappa1.p";
+  plot_file = errors_folder + "biassq_kappa1.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_kappa1";
+  script_file = errors_folder + "variance_kappa1.p";
+  plot_file = errors_folder + "variance_kappa1.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_kappa1";
+  script_file = errors_folder + "mse_kappa1.p";
+  plot_file = errors_folder + "mse_kappa1.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_kappa2_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_kappa2";
+  script_file = errors_folder + "biassq_kappa2.p";
+  plot_file = errors_folder + "biassq_kappa2.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_kappa2";
+  script_file = errors_folder + "variance_kappa2.p";
+  plot_file = errors_folder + "variance_kappa2.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_kappa2";
+  script_file = errors_folder + "mse_kappa2.p";
+  plot_file = errors_folder + "mse_kappa2.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_lambda_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_lambda";
+  script_file = errors_folder + "biassq_lambda.p";
+  plot_file = errors_folder + "biassq_lambda.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_lambda";
+  script_file = errors_folder + "variance_lambda.p";
+  plot_file = errors_folder + "variance_lambda.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_lambda";
+  script_file = errors_folder + "mse_lambda.p";
+  plot_file = errors_folder + "mse_lambda.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_rho_errors() 
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_rho";
+  script_file = errors_folder + "biassq_rho.p";
+  plot_file = errors_folder + "biassq_rho.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_rho";
+  script_file = errors_folder + "variance_rho.p";
+  plot_file = errors_folder + "variance_rho.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_rho";
+  script_file = errors_folder + "mse_rho.p";
+  plot_file = errors_folder + "mse_rho.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_all_errors()
+{
+  string data_file,script_file,plot_file,ylabel;
+
+  data_file = errors_folder + "biassq_all";
+  script_file = errors_folder + "biassq_all.p";
+  plot_file = errors_folder + "biassq_all.eps";
+  ylabel = "Bias squared";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "variance_all";
+  script_file = errors_folder + "variance_all.p";
+  plot_file = errors_folder + "variance_all.eps";
+  ylabel = "Variance";
+  common_plot(data_file,script_file,plot_file,ylabel);
+
+  data_file = errors_folder + "mse_all";
+  script_file = errors_folder + "mse_all.p";
+  plot_file = errors_folder + "mse_all.eps";
+  ylabel = "Mean squared error";
+  common_plot(data_file,script_file,plot_file,ylabel);
+}
+
+void plot_errors()
+{
+  // mu1 errors
+  plot_mu1_errors();
+  // mu2 errors
+  plot_mu2_errors();
+
+  // kappa errors
+  plot_kappa1_errors();
+  // kappa2 errors
+  plot_kappa2_errors();
+
+  // lambda errors
+  plot_lambda_errors();
+  // rho errors
+  plot_rho_errors();
+
+  // all errors
+  plot_all_errors();
+}
+
+void plot_script_kldivs_wins(int num_map)
+{
+  string map = boost::lexical_cast<string>(num_map);
+  string wins_kldivs_file = errors_folder + "wins_kldivs_map" + map + ".dat";
+  string script_file = errors_folder + "wins_kldivs_map" + map + ".p";
+  string plot_file = errors_folder + "wins_kldivs_map" + map + ".eps";
+  ofstream out(script_file.c_str());
+  out << "set terminal postscript eps enhanced color\n\n";
+  out << "set output \"" << plot_file << "\"\n\n";
+  out << "set grid y\n";
+  out << "set style data histograms\n";
+  out << "set style fill solid 1.0 noborder\n";
+  out << "set ytics 10 nomirror\n";
+  out << "set yrange [:100]\n";
+  out << "set xlabel font \"Times-Roman, 25\"\n";
+  out << "set ylabel font \"Times-Roman, 25\"\n";
+  out << "set xtics font \"Times-Roman, 20\"\n";
+  out << "set ytics font \"Times-Roman, 20\"\n";
+  out << "set xlabel \"Sample size\\n\"\n";
+  out << "set ylabel \"\% of wins\"\n";
+  out << "set ytics 10\n\n"; 
+  out << "set xtics nomirror\n";
+  out << "set border 2 back\n";
+  if (num_map == 1) {
+    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MLE\" lc rgb \"red\", \\\n"
+        << "\"\" using 3 t \"MAP1\" lc rgb \"blue\", \\\n"
+        << "\"\" using 4:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
+  } else if (num_map == 2) {
+    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MLE\" lc rgb \"red\", \\\n"
+        << "\"\" using 3 t \"MAP2\" lc rgb \"dark-green\", \\\n"
+        << "\"\" using 4:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
+  }
+  out.close();
+  string cmd = "gnuplot -persist " + script_file;
+  if(system(cmd.c_str()));
+}
+
+//void boxplot_test_stats(int option)
 //{
-//  // mu1 errors
-//  plot_mu1_errors(kappa_str,errors_folder);
-//  // mu2 errors
-//  plot_mu2_errors(kappa_str,errors_folder);
-//  // eta errors
-//  plot_eta_errors(kappa_str,errors_folder);
-//
-//  // kappa errors
-//  plot_kappa_errors(kappa_str,errors_folder);
-//  // kappa2 errors
-//  plot_kappa2_errors(kappa_str,errors_folder);
-//  // rho errors
-//  plot_rho_errors(kappa_str,errors_folder);
-//
-//  // all errors
-//  plot_all_errors(kappa_str,errors_folder);
-//}
-//
-//void plot_script_kldivs_wins(string &kldivs_folder, int num_map)
-//{
-//  string map = boost::lexical_cast<string>(num_map);
-//  string wins_kldivs_file = kldivs_folder + common + "wins_kldivs_map" + map + ".dat";
-//  string script_file = kldivs_folder + common + "wins_kldivs_map" + map + ".p";
-//  string plot_file = kldivs_folder + common + "wins_kldivs_map" + map + ".eps";
-//  ofstream out(script_file.c_str());
-//  out << "set terminal postscript eps enhanced color\n\n";
-//  out << "set output \"" << plot_file << "\"\n\n";
-//  out << "set grid y\n";
-//  out << "set style data histograms\n";
-//  out << "set style fill solid 1.0 noborder\n";
-//  out << "set ytics 10 nomirror\n";
-//  out << "set yrange [:100]\n";
-//  out << "set xlabel font \"Times-Roman, 25\"\n";
-//  out << "set ylabel font \"Times-Roman, 25\"\n";
-//  out << "set xtics font \"Times-Roman, 20\"\n";
-//  out << "set ytics font \"Times-Roman, 20\"\n";
-//  out << "set xlabel \"Sample size\\n\"\n";
-//  out << "set ylabel \"\% of wins\"\n";
-//  out << "set ytics 10\n\n"; 
-//  out << "set xtics nomirror\n";
-//  out << "set border 2 back\n";
-//  if (num_map != 3) {
-//    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MOMENT\" lc rgb \"red\", \\\n"
-//        << "\"\" using 3 t \"MLE\" lc rgb \"blue\", \\\n"
-//        << "\"\" using 4 t \"MAP" << num_map << "\" lc rgb \"dark-green\", \\\n"
-//        << "\"\" using 5:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
-//  } else {
-//    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MOMENT\" lc rgb \"red\", \\\n"
-//        << "\"\" using 4 t \"MAP3 = MLE\" lc rgb \"dark-green\", \\\n"
-//        << "\"\" using 5:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
-//  }
-//  out.close();
-//  string cmd = "gnuplot -persist " + script_file;
-//  if(system(cmd.c_str()));
-//}
-//
-//void boxplot_test_stats_fixed_kappa(
-//  string &errors_folder, int option
-//) {
 //  string stats_file,script_file,plot_file,ylabel;
 //
 //  if (option == 1) {
 //    script_file = errors_folder + "boxplot_test_statistics.p";
-//    plot_file = errors_folder + common + "boxplot_test_statistics.eps";
+//    plot_file = errors_folder + "boxplot_test_statistics.eps";
 //    ylabel = "Test statistic";
 //  } else if (option == 2) {
 //    script_file = errors_folder + "boxplot_pvalues.p";
-//    plot_file = errors_folder + common + "boxplot_pvalues.eps";
+//    plot_file = errors_folder + "boxplot_pvalues.eps";
 //    ylabel = "p-values";
 //  }
 //
@@ -899,7 +878,7 @@ void process_estimates(double kappa1, double kappa2, double rho)
 //  out << "d_width=0.5*box_width\n\n";
 //
 //  int col = 1;
-//  for (int N=10; N<=50; N+=5) {
+//  for (int N=10; N<=50; N+=10) {
 //    string n_str = boost::lexical_cast<string>(N);
 //    if (option == 1) {
 //      stats_file = "./estimates/N_" + n_str + "_prior" + prior_str + "/k_" + kappa_str + "_e_" + rho_str + "/chisq_stat";
@@ -927,24 +906,20 @@ void process_estimates(double kappa1, double kappa2, double rho)
 //  string cmd = "gnuplot -persist " + script_file;
 //  if(system(cmd.c_str()));
 //}
-//
-//void plot_kldivs()
-//{
-//  int num_maps,map_index;
-//  if (NUM_METHODS == 5) {
-//    num_maps = 2;
-//  } else {
-//    num_maps = 3;
-//  }
-//
-//  for (int i=1; i<=num_maps; i++) {
-//    plot_script_kldivs_wins(errors_folder,i);
-//  }
-//
-//  boxplot_test_stats_fixed_kappa(errors_folder,1);
-//  boxplot_test_stats_fixed_kappa(errors_folder,2);
-//}
-//
+
+void plot_kldivs()
+{
+  int num_maps = 2;
+  int map_index;
+
+  for (int i=1; i<=num_maps; i++) {
+    plot_script_kldivs_wins(i);
+  }
+
+  //boxplot_test_stats(1);
+  //boxplot_test_stats(2);
+}
+
 /* E **********************************************************************************/ 
 
 /* S **********************************************************************************/ 
@@ -974,7 +949,7 @@ void create_required_folders(
   rho_str = ssr.str();
 
   errors_folder = "./analysis/k1_" + kappa1_str + "_k2_" + kappa2_str 
-                         + "_r_" + rho_str + "/";
+                  + "_r_" + rho_str + "/";
   check_and_create_directory(errors_folder);
 
   /*for (int N=10; N<=50; N+=10) {
@@ -1022,9 +997,9 @@ int main(int argc, char **argv)
 
         process_estimates(kappa1,kappa2,rho);
 
-        //plot_errors();
+        plot_errors();
 
-        //plot_kldivs();
+        plot_kldivs();
       //} // rho()
     //} // kappa2()
   //} // kappa1()
