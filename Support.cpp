@@ -1279,7 +1279,7 @@ void outputBins(std::vector<std::vector<int> > &bins, double res)
   fbins3D_file = "./visualize/sampled_data/bins3D.dat";
   ofstream fbins2D(fbins2D_file.c_str());
   ofstream fbins3D(fbins3D_file.c_str());
-  Vector cartesian(3,0);
+  //Vector cartesian(3,0);
   Vector angle_pair(2,0);
   for (int i=0; i<bins.size(); i++) {
     phi = 0;
@@ -1288,15 +1288,17 @@ void outputBins(std::vector<std::vector<int> > &bins, double res)
       fbins2D << fixed << setw(10) << bins[i][j];
       phi += res;
       angle_pair[1] = phi * PI / 180;
-      toroid2cartesian(angle_pair,cartesian);
+      /*toroid2cartesian(angle_pair,cartesian);
       for (int k=0; k<3; k++) {
         fbins3D << fixed << setw(10) << setprecision(4) << cartesian[k];
-      }
+      }*/ // for(k)
+      fbins3D << fixed << scientific << setprecision(6) 
+              << angle_pair[0] << "\t" << angle_pair[1] << "\t";
       fbins3D << fixed << setw(10) << bins[i][j] << endl;
-    }
+    } // for(j)
     theta += res;
     fbins2D << endl;
-  }
+  } // for(i)
   fbins2D.close();
   fbins3D.close();
 }
