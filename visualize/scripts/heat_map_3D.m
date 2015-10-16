@@ -41,12 +41,12 @@ function [] = heat_map_3D(file_name)
   ylabel('Y','fontsize',20);
   zlabel('Z');
 
-  file_name = '../figs/torus3';
-  output_fig = strcat(file_name,'.fig');
-  output_eps = strcat(file_name,'.eps');
-  output_pdf = strcat(file_name,'.pdf');
+%  file_name = '../figs/torus3';
+%  output_fig = strcat(file_name,'.fig');
+%  output_eps = strcat(file_name,'.eps');
+%  output_pdf = strcat(file_name,'.pdf');
 
-  saveas(gcf,output_fig);
+  %saveas(gcf,output_fig);
 
   %print2eps(output_eps);
   %eps2pdf(output_eps,output_pdf,1);
