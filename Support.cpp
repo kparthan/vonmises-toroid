@@ -620,62 +620,9 @@ double uniform_random()
   //return rand()/(double)RAND_MAX;
 }
 
-// computes log (I_alpha(z))
-long double computeLogModifiedBesselFirstKind(long double alpha, long double z)
-{
-  if (!(alpha >= 0 && fabs(z) >= 0)) {
-    cout << "Error logModifiedBesselFirstKind: (alpha,x) = (" << alpha << "," << z << ")\n";
-    exit(1);
-  }
-  if (fabs(z) <= TOLERANCE) {
-    return -LARGE_NUMBER;
-  } 
-
-  long double x = fabs(z);
-
-  // constant term log(x^2/4)
-  long double log_x2_4 = 2.0 * log(x/2.0);
-  long double four_x2 = 4.0 / (x * x);
-
-  long double m = 1;
-  long double log_sm_prev = -boost::math::lgamma<long double>(alpha+1); // log(t0)
-  long double log_sm_current;
-  long double log_tm_prev = log_sm_prev; // log(t0)
-  long double log_tm_current;
-  long double cm_prev = 0,cm_current; 
-  long double ratio = (alpha+1) * four_x2;  // t0/t1
-  while(ratio < 1) {
-    cm_current = (cm_prev + 1) * ratio;
-    log_tm_current = log_tm_prev - log(ratio); 
-    log_sm_prev = log_tm_current + log(cm_current + 1);
-    m++;
-    ratio = m * (m+alpha) * four_x2;
-    log_tm_prev = log_tm_current;
-    cm_prev = cm_current;
-  } // while() ends ...
-  long double k = m;
-  log_tm_current = log_tm_prev - log(ratio);  // log(tk)
-  long double c = log_tm_current - log_sm_prev;
-  long double tk_sk_1 = exp(c);
-  long double y = log_sm_prev;
-  long double zm = 1;
-  long double log_rm_prev = 0,log_rm_current,rm;
-  while(1) {
-    log_sm_current = y + log(1 + tk_sk_1 * zm);
-    m++;
-    log_rm_current = (log_x2_4 - log(m) - log(m+alpha)) + log_rm_prev;
-    rm = exp(log_rm_current);
-    zm += rm;
-    if (rm/zm < 1e-100)  break;
-    log_sm_prev = log_sm_current;
-    log_rm_prev = log_rm_current;
-  } // while() ends ...
-  log_sm_current = y + log(1 + tk_sk_1 * zm);
-  return (log_sm_current + (alpha * log(x/2.0)));
-}
-
 double computeLogModifiedBesselFirstKind(double alpha, double z)
 {
+
   if (!(alpha >= 0 && fabs(z) >= 0)) {
     cout << "Error logModifiedBesselFirstKind: (alpha,x) = (" << alpha << "," << z << ")\n";
     exit(1);
@@ -725,6 +672,8 @@ double computeLogModifiedBesselFirstKind(double alpha, double z)
   } // while() ends ...
   log_sm_current = y + log(1 + tk_sk_1 * zm);
   return (log_sm_current + (alpha * log(x/2.0)));
+
+//  return log(cyl_bessel_i(alpha,z));
 }
 
 // A_d(k) = I_{d/2}(k) / I_{d/2-1}(k)
@@ -973,74 +922,35 @@ Matrix computeNormalizedDispersionMatrix(std::vector<Vector> &sample)
   return dispersion/sample.size();
 }
 
-// theta in radians ...
-Matrix rotate_about_arbitrary_axis(Vector &axis, double theta)
-{
-  Matrix K = ZeroMatrix(3,3);
-  K(0,1) = -axis[2];
-  K(0,2) = axis[1];
-  K(1,2) = -axis[0];
-  K(1,0) = -K(0,1);
-  K(2,0) = -K(0,2);
-  K(2,1) = -K(1,2);
-
-  Matrix Ksq = prod(K,K);
-  Matrix I = IdentityMatrix(3,3);
-  Matrix sinm = sin(theta) * K;
-  Matrix cosm = (1-cos(theta)) * Ksq;
-  Matrix tmp = sinm + cosm;
-  Matrix R = I + tmp;
-  return R;
-}
-
-// anti-clockwise rotation about +X
-Matrix rotate_about_xaxis(double theta)
-{
-  Matrix r = IdentityMatrix(3,3);
-  r(1,1) = cos(theta);
-  r(1,2) = -sin(theta);
-  r(2,1) = -r(1,2); // sin(theta)
-  r(2,2) = r(1,1);  // cos(theta)
-  return r;
-}
-
-// anti-clockwise rotation about +Y
-Matrix rotate_about_yaxis(double theta)
-{
-  Matrix r = IdentityMatrix(3,3);
-  r(0,0) = cos(theta);
-  r(0,2) = sin(theta);
-  r(2,0) = -r(0,2); // -sin(theta)
-  r(2,2) = r(0,0);  // cos(theta)
-  return r;
-}
-
-// anti-clockwise rotation about +Z
-Matrix rotate_about_zaxis(double theta)
-{
-  Matrix r = IdentityMatrix(3,3);
-  r(0,0) = cos(theta);
-  r(0,1) = -sin(theta);
-  r(1,0) = -r(0,1); // sin(theta)
-  r(1,1) = r(0,0);  // cos(theta)
-  return r;
-}
-
-/*
- *  \brief Transformation of x using T
- *  \param x a reference to a vector<vector<double> >
- *  \param T a reference to a Matrix<double>
- *  \return the transformed vector list
- */
-std::vector<Vector> transform(
-  std::vector<Vector> &x, 
-  Matrix &T
+void computeMeanAndCovariance(
+  std::vector<Vector> &data, 
+  Vector &weights,
+  Vector &mean, 
+  Matrix &cov
 ) {
-  std::vector<Vector> y(x.size());
-  for (int i=0; i<x.size(); i++) {
-    y[i] = prod(T,x[i]);
+  int N = data.size();
+  int D = data[0].size();
+
+  double Neff;
+  mean = computeVectorSum(data,weights,Neff);
+  for (int i=0; i<D; i++) {
+    mean[i] /= Neff;
   }
-  return y;
+
+  std::vector<Vector> x_mu(N);
+  Vector diff(D,0);
+  for (int i=0; i<N; i++) {
+    for (int j=0; j<D; j++) {
+      diff[j] = data[i][j] - mean[j];
+    }
+    x_mu[i] = diff;
+  }
+  Matrix S = computeDispersionMatrix(x_mu,weights);
+  if (Neff > 1) {
+    cov = S / (Neff - 1);
+  } else {
+    cov = S / Neff;
+  }
 }
 
 /*!
@@ -1179,6 +1089,17 @@ void jacobiRotateMatrix(
       + (s*(temp - (tau*eigen_vectors(i,max_col))));
   }
   return;
+}
+
+double computeSquaredEuclideanDistance(Vector &p1, Vector &p2)
+{
+  int D = p1.size();
+  double distsq = 0;
+  for (int i=0; i<D; i++) {
+    distsq += (p1[i] - p2[i]) * (p1[i] - p2[i]);
+  }
+  //return sqrt(distsq);
+  return distsq;
 }
 
 double compute_aic(int k, int n, double neg_log_likelihood)
@@ -1624,6 +1545,7 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
     for (int i=0; i<K; i++) { // split() ...
       if (sample_size[i] > MIN_N) {
         IGNORE_SPLIT = 0;
+        cout << "Splitting component " << i+1 << " ...\n";
         modified = parent.split(i,log);
         if (IGNORE_SPLIT == 0) {
           updateInference(modified,improved,N,log,SPLIT);
@@ -1631,9 +1553,10 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
           log << "\t\tIGNORING SPLIT ... \n\n";
         }
       }
-    }
+    } // split() ends ... 
     if (K >= 2) {  // kill() ...
       for (int i=0; i<K; i++) {
+        cout << "Deleting component " << i+1 << " ...\n";
         modified = parent.kill(i,log);
         updateInference(modified,improved,N,log,KILL);
       } // killing each component
@@ -1641,6 +1564,7 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
     if (K > 1) {  // join() ...
       for (int i=0; i<K; i++) {
         int j = parent.getNearestComponent(i); // closest component
+        cout << "Merging components " << i+1 << "and " << "j+1" << " ...\n";
         modified = parent.join(i,j,log);
         updateInference(modified,improved,N,log,JOIN);
       } // join() ing nearest components
@@ -1670,7 +1594,7 @@ void updateInference(
 ) {
   double modified_value,current_value,improvement_rate;
 
-  switch(CRITERION) {
+  /*switch(CRITERION) {
     case AIC:
       modified_value = modified.getAIC();
       current_value = current.getAIC();
@@ -1690,7 +1614,7 @@ void updateInference(
       modified_value = modified.getMinimumMessageLength();
       current_value = current.getMinimumMessageLength();
       break;
-  }
+  }*/
 
 /*
   if (current_value > modified_value) {
@@ -1719,6 +1643,9 @@ void updateInference(
     log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
   } // if (current > modified)
 */
+
+  modified_value = modified.getMinimumMessageLength();
+  current_value = current.getMinimumMessageLength();
 
   if (operation == KILL || operation == JOIN || operation == SPLIT) {
     if (current_value > modified_value) {
@@ -1946,7 +1873,7 @@ double computeVariance(Vector &list)
 int minimumIndex(Vector &values)
 {
   int min_index = 0;
-  long double min_val = values[0];
+  double min_val = values[0];
   for (int i=1; i<values.size(); i++) { 
     if (values[i] <= min_val) {
       min_index = i;

@@ -88,6 +88,7 @@ class Mixture_Sine
 
     //! Initialize parameters
     void initialize();
+    void initialize_children();
 
     //! Updates the effective sample size
     void updateEffectiveSampleSize();

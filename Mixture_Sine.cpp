@@ -217,6 +217,87 @@ void Mixture_Sine::initialize()
   updateComponents();
 }
 
+void Mixture_Sine::initialize_children()
+{
+  assert(K == 2);
+  Vector mean;
+  Matrix cov;
+  computeMeanAndCovariance(data,data_weights,mean,cov);
+
+  /* eigen decomposition of cov */
+  int D = 2;
+  Vector eigen_values(D,0);
+  Matrix eigen_vectors = IdentityMatrix(D,D);
+  eigenDecomposition(cov,eigen_values,eigen_vectors);
+  //cout << "eigen_values: "; print(cout,eigen_values,3); cout << endl;
+  int max_eig = maximumIndex(eigen_values);
+  Vector projection_axis(D,0);
+  for (int i=0; i<D; i++) {
+    projection_axis[i] = eigen_vectors(i,max_eig);
+  }
+  std::vector<Vector> init_means(K);
+  init_means[0] = Vector(D,0);
+  init_means[1] = Vector(D,0);
+  double add;
+  for (int i=0; i<D; i++) {
+    add = sqrt(eigen_values[max_eig]) * projection_axis[i];
+    init_means[0][i] = mean[i] + add; 
+    init_means[1][i] = mean[i] - add;
+    if (init_means[0][i] > 2*PI)  init_means[0][i] -= 2*PI;
+    if (init_means[1][i] < 0)  init_means[1][i] += 2*PI;
+  }
+  //cout << "projection_axis: "; print(cout,projection_axis,3); cout << endl;
+  //cout << "init_means[0]: "; print(cout,init_means[0],3); cout << endl;
+  //cout << "init_means[1]: "; print(cout,init_means[1],3); cout << endl;
+  for (int i=0; i<2; i++) {
+    cout << "init_means[" << i << "]: ("
+         << init_means[i][0] * 180/PI << ", "
+         << init_means[i][1] * 180/PI << ")\n";
+  }
+
+  /* initialize memberships (hard) */
+  Vector tmp(N,0);
+  responsibility = std::vector<Vector>(K,tmp);
+  Vector distances(K,0);
+  int nearest;
+  for (int i=0; i<N; i++) {
+    for (int j=0; j<K; j++) {
+      distances[j] = data_weights[i] * computeSquaredEuclideanDistance(init_means[j],data[i]);
+    } // for j()
+    nearest = minimumIndex(distances);
+    responsibility[nearest][i] = 1;
+  } // for i()
+
+  sample_size = Vector(K,0);
+  updateEffectiveSampleSize();
+  /*for (int i=0; i<K; i++) {
+    if (sample_size[i] < MIN_N) {
+      cout << "... split_initialize_max_variance_deterministic failed ...\n"; //sleep(5);
+      initialize_random_assignment_hard();
+      return;
+    }
+  }*/
+  weights = Vector(K,0);
+  if (ESTIMATION == MML) {
+    updateWeights();
+  } else {
+    updateWeights_ML();
+  }
+
+  // initialize parameters of each component
+  for (int i=0; i<K; i++) {
+    struct SufficientStatisticsSine suff_stats;
+    computeSufficientStatisticsSine(data,suff_stats,responsibility[i]);
+
+    BVM_Sine bvm_sine_tmp;
+    struct EstimatesSine initial_est = bvm_sine_tmp.computeInitialEstimates(suff_stats);
+    BVM_Sine bvm_sine(
+      init_means[i][0],init_means[i][1],initial_est.kappa1,initial_est.kappa2,initial_est.lambda
+    );
+    components.push_back(bvm_sine);
+  } // for(i)
+}
+
 /*!
  *  \brief This function updates the effective sample size of each component.
  */
@@ -508,6 +589,7 @@ double Mixture_Sine::computeMinimumMessageLength(int verbose /* default = 0 (don
     cout << "Iw: " << Iw << endl;
     cout << "It: " << sum_It << endl;
     cout << "Il: " << Il << endl;
+    cout << "Total msglen: " << minimum_msglen << endl;
   }
 
   return minimum_msglen;
@@ -553,13 +635,14 @@ string Mixture_Sine::getLogFile()
  */
 double Mixture_Sine::estimateParameters()
 {
-  /*if (SPLITTING == 1) {
+  if (SPLITTING == 1) {
     initialize_children();
+    //initialize();
   } else {
     initialize();
-  }*/
+  }
 
-  initialize();
+ // initialize();
 
   EM();
 
@@ -595,7 +678,7 @@ void Mixture_Sine::EM()
     );
   }
 
-  switch(CRITERION) {
+  /*switch(CRITERION) {
     case AIC:
       aic = computeAIC();
       break;
@@ -610,7 +693,7 @@ void Mixture_Sine::EM()
 
     case MMLC:
       break;
-  }
+  }*/
 
   //log.close();
 }
@@ -642,7 +725,7 @@ void Mixture_Sine::EM(
     (this->*update_weights)();
 
     updateComponents();
-    current = (this->*objective_function)(0);
+    current = (this->*objective_function)(0); 
     printParameters(log,iter,current);
     if (iter != 1) {
       //assert(current > 0);
@@ -654,7 +737,7 @@ void Mixture_Sine::EM(
           (iter > MIN_ITER && (fabs(prev - current) <= impr_rate * fabs(prev)))
          ) {
         stop:
-        current = computeMinimumMessageLength();
+        current = computeMinimumMessageLength(1);  // 1 = verbose
         /*log << "\nSample size: " << N << endl;
         log << "BVM_Sine encoding rate: " << current << " bits.";
         log << "\t(" << current/N << " bits/point)" << endl;
@@ -772,7 +855,7 @@ void Mixture_Sine::printParameters(ostream &os, int num_tabs)
   os << tabs << "BVM_Sine encoding: " << minimum_msglen << " bits. "
      << "(" << minimum_msglen/N << " bits/point)" << endl;
 
-  switch(CRITERION) {
+  /*switch(CRITERION) {
     case AIC:
       aic = computeAIC();
       os << tabs << "AIC: " << aic << endl;
@@ -790,7 +873,7 @@ void Mixture_Sine::printParameters(ostream &os, int num_tabs)
 
     case MMLC:
       break;
-  }
+  }*/
   os << endl;
 }
 

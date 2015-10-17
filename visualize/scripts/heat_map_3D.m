@@ -2,21 +2,19 @@ function [] = heat_map_3D(file_name)
 
   addpath('export_fig');
 
-  % draw a torus 
-  r1 = 2;
-  r2 = 1;
-
-  [u,v] = meshgrid(0:10:360);
-
-  X = (r1 + r2*cosd(v)).*cosd(u);
-  Y = (r1 + r2*cosd(v)).*sind(u);
-  Z = r2*sind(v);
-
   fig = figure();
   hold on;
   axis equal;
   set(gcf, 'Color', 'w');
   set(gcf,'defaultaxesfontname','Arial');
+
+  % draw a torus 
+  r1 = 2;
+  r2 = 1;
+  [u,v] = meshgrid(0:10:360);
+  X = (r1 + r2*cosd(v)).*cosd(u);
+  Y = (r1 + r2*cosd(v)).*sind(u);
+  Z = r2*sind(v);
   surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
   %surfl(X,Y,Z);
 

@@ -16,7 +16,7 @@ class UniformRandomNumberGenerator
     UniformRandomNumberGenerator(Generator &num_gen) : number_generator(num_gen)
     {}
 
-    long double operator()()
+    double operator()()
     {
       return number_generator();
     }
