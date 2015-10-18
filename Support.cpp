@@ -1564,7 +1564,7 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
     if (K > 1) {  // join() ...
       for (int i=0; i<K; i++) {
         int j = parent.getNearestComponent(i); // closest component
-        cout << "Merging components " << i+1 << "and " << "j+1" << " ...\n";
+        cout << "Merging components " << i+1 << " and " << j+1 << " ...\n";
         modified = parent.join(i,j,log);
         updateInference(modified,improved,N,log,JOIN);
       } // join() ing nearest components
