@@ -15,8 +15,7 @@ function [] = heat_map_3D(file_name)
   X = (r1 + r2*cosd(v)).*cosd(u);
   Y = (r1 + r2*cosd(v)).*sind(u);
   Z = r2*sind(v);
-  surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
-  %surfl(X,Y,Z);
+  %surface(X,Y,Z,'FaceColor','none','LineWidth',0.1,'linestyle',':');
 
   % plot data
   M = load(file_name);
@@ -28,6 +27,8 @@ function [] = heat_map_3D(file_name)
   z = r2*sin(theta2);
 
   density = M(:,3);
+  max_density = max(density);
+  caxis([0 max_density]); % colormap range
 
   h=scatter3(x,y,z,1,'cdata',density);
 
@@ -35,20 +36,21 @@ function [] = heat_map_3D(file_name)
   %view ([-139 40]);
   %view ([61 -90]);
 
-  xlabel('X','fontsize',20);
-  ylabel('Y','fontsize',20);
-  zlabel('Z');
+  axis off;
+  %xlabel('X','fontsize',20);
+  %ylabel('Y','fontsize',20);
+  %zlabel('Z');
 
-%  file_name = '../figs/torus3';
-%  output_fig = strcat(file_name,'.fig');
-%  output_eps = strcat(file_name,'.eps');
-%  output_pdf = strcat(file_name,'.pdf');
+  file_name = '../figs/torus_9';
+  output_fig = strcat(file_name,'.fig');
+  output_eps = strcat(file_name,'.eps');
+  output_pdf = strcat(file_name,'.pdf');
 
-  %saveas(gcf,output_fig);
+  saveas(gcf,output_fig);
 
   %print2eps(output_eps);
   %eps2pdf(output_eps,output_pdf,1);
 
-  %export_fig(output_pdf,'-pdf');
+  export_fig(output_pdf,'-pdf');
 
 end
