@@ -806,6 +806,18 @@ void BVM_Sine::computeAllEstimators(
     min_index = MML;
     min_msg = mml_est.msglen;
   }
+
+  /* MAP TYPE 3 : ROSENBLATT TRANSFORM */
+  // same as ML estimates ...
+  // print the transformation z1,...,z5
+  double z1 = all_estimates[MLE].mu1 / (2*PI);
+  double z2 = all_estimates[MLE].mu2 / (2*PI);
+  double z3 = 1 - cos(atan(all_estimates[MLE].kappa1));
+  double z4 = 1 - cos(atan(all_estimates[MLE].kappa2));
+  double z5 = (all_estimates[MLE].rho + 1) * 0.5;
+  cout << "ROSENBLATT TRANSFORM ...\n";
+  cout << "z1: " << z1 << "; z2: " << z2 << "; z3: " << z3 
+       << "; z4: " << z4 << "; z5: " << z5 << endl;
 }
 
 struct EstimatesSine BVM_Sine::computeInitialEstimates(

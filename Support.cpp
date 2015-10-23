@@ -379,8 +379,11 @@ void print(ostream &os, const Vector &v, int precision)
 void print(string &type, struct EstimatesSine &estimates)
 {
   cout << "\nTYPE: " << type << endl;
-  cout << "m1_est: " << estimates.mu1 * 180/PI << "; ";
-  cout << "m2_est: " << estimates.mu2 * 180/PI << "; ";
+  cout << "m1_est: " << estimates.mu1 
+       << " (" << estimates.mu1 * 180/PI << " degrees); ";
+  cout << "m2_est: " << estimates.mu2 
+       << " (" << estimates.mu2 * 180/PI << " degrees); ";
+  //cout << "m1_est: " << estimates.mu1 * 180/PI << "; ";
   cout << "k1_est: " << estimates.kappa1 << "; ";
   cout << "k2_est: " << estimates.kappa2 << "; ";
   cout << "lambda_est: " << estimates.lambda << "; ";
@@ -1686,7 +1689,7 @@ void TestFunctions(void)
 
   //test.bvm_sine_ml_estimation();
 
-  //test.bvm_sine_all_estimation();
+  test.bvm_sine_all_estimation();
 
   //test.testing_sample_empirical_distribution();
 
@@ -1694,7 +1697,7 @@ void TestFunctions(void)
 
   //test.bvm_cosine_normalization_constant();
 
-  test.bvm_cosine_constants();
+  //test.bvm_cosine_constants();
 }
 
 ////////////////////// EXPERIMENTS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
