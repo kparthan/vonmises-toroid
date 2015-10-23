@@ -258,7 +258,7 @@ void Test::bvm_sine_all_estimation()
   double mu1,mu2,kappa1,kappa2,lambda;
   int N = 10;
 
-  mu1 = 90; mu2 = 90; kappa1 = 1; kappa2 = 10; lambda = 0.9;
+  mu1 = 90; mu2 = 90; kappa1 = 10; kappa2 = 10; lambda = 9;
 
   mu1 *= PI/180; mu2 *= PI/180;
   BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
