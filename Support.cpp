@@ -1619,7 +1619,9 @@ void updateInference(
       break;
   }*/
 
-/*
+  modified_value = modified.getMinimumMessageLength();
+  current_value = current.getMinimumMessageLength();
+
   if (current_value > modified_value) {
     improvement_rate = (current_value - modified_value) / fabs(current_value);
     //if (operation == KILL || operation == JOIN || operation == SPLIT) {
@@ -1645,11 +1647,8 @@ void updateInference(
   } else {
     log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
   } // if (current > modified)
-*/
 
-  modified_value = modified.getMinimumMessageLength();
-  current_value = current.getMinimumMessageLength();
-
+/*
   if (operation == KILL || operation == JOIN || operation == SPLIT) {
     if (current_value > modified_value) {
       improvement_rate = (current_value - modified_value) / fabs(current_value);
@@ -1661,6 +1660,7 @@ void updateInference(
       log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
     } // if (current_value > modified_value)
   } // if (operation)
+*/
 }
 
 ////////////////////// TESTING FUNCTIONS \\\\\\\\\\\\\\\\\\\\\\\\\\\\
