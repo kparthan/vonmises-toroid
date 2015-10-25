@@ -18,18 +18,21 @@ using namespace boost::filesystem;
 
 typedef std::vector<double> Vector;
 
-#define NUM_METHODS 4 
-#define MLE 0 
-#define MAP 1             // MAP1
-#define MAP_TRANSFORM 2   // MAP2
-#define MML 3
-#define MAP3_TRANSFORM 4  // MAP3
+#define MOMENT 0 
+#define MLE 1
+#define MAP 2
+#define MML 3 
+#define MAP_ECCENTRICITY_TRANSFORM 4
+#define MAP_UNIFORM_TRANSFORM 5
 
-#define MU1 M_PI/2.0
-#define MU2 M_PI/2.0
+#define PSI M_PI/4.0
+#define ALPHA M_PI/2.0
+#define ETA M_PI/2.0
 
 struct stat st = {0};
-string kappa1_str,kappa2_str,rho_str,n_str,errors_folder;
+int NUM_METHODS;
+string kappa_str,ecc_str,prior_str,errors_folder;
+string common;
 
 std::vector<Vector> load_table(string &file_name, int D)
 {
@@ -116,12 +119,12 @@ std::vector<Vector> flip(std::vector<Vector> &table)
 
 int minimumIndex(int map_index, Vector &values)
 {
-  Vector new_list(3,0);
-  new_list[MLE] = values[MLE];
-  if (map_index == MAP) new_list[MAP] = values[MAP];
-  else if (map_index == MAP_TRANSFORM) new_list[MAP] = values[MAP_TRANSFORM];
-  else if (map_index == MAP3_TRANSFORM) new_list[MAP] = values[MLE];
-  new_list[MAP+1] = values[MML];
+  Vector new_list(4,0);
+  new_list[MOMENT] = values[MOMENT];
+  if (map_index == 5) new_list[MLE] = values[map_index];
+  else new_list[MLE] = values[MLE];
+  new_list[MAP] = values[map_index];
+  new_list[MML] = values[MML];
 
   int min_index = 0;
   double min_val = new_list[0];
@@ -143,7 +146,6 @@ double computeMean(Vector &list)
   return sum / (double)list.size();
 }
 
-// column means
 Vector computeMeans(std::vector<Vector> &table)
 {
   std::vector<Vector> inverted_table = flip(table);
@@ -200,30 +202,27 @@ Vector computeMeanSquaredError(std::vector<Vector> &p_est, double p)
   return mse;
 }
 
-void compute_mu1_errors(int N) 
+void compute_psi_errors(int N) 
 {
-  //string n_str = "./estimates/N_" + boost::lexical_cast<string>(N) + "/";
-  std::vector<Vector> mu1_est;
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  std::vector<Vector> psi_est;
   Vector biassq_est,variance_est,mse_est;
 
-  string biassq_file = errors_folder + "biassq_mu1";
-  string variance_file = errors_folder + "variance_mu1";
-  string mse_file = errors_folder + "mse_mu1";
+  string biassq_file = errors_folder + common + "biassq_psi";
+  string variance_file = errors_folder + common + "variance_psi";
+  string mse_file = errors_folder + common + "mse_psi";
   ofstream biassq(biassq_file.c_str(),ios::app);
   ofstream variance(variance_file.c_str(),ios::app);
   ofstream mse(mse_file.c_str(),ios::app);
 
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
-  //cout << "current_dir: " << current_dir << endl;
+  string current_dir = n_str + "_prior" + prior_str + "/" 
+                       + "k_" + kappa_str + "_e_" + ecc_str + "/";
 
-  string mu1_file = current_dir + "mu1_est";
-  mu1_est = load_table(mu1_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(mu1_est,MU1);
-  variance_est = computeVariance(mu1_est,MU1);
-  mse_est = computeMeanSquaredError(mu1_est,MU1);
+  string psi_file = current_dir + "psi_est";
+  psi_est = load_table(psi_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(psi_est,PSI);
+  variance_est = computeVariance(psi_est,PSI);
+  mse_est = computeMeanSquaredError(psi_est,PSI);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -242,28 +241,27 @@ void compute_mu1_errors(int N)
   mse.close();
 }
 
-void compute_mu2_errors(int N) 
+void compute_alpha_errors(int N) 
 {
-  std::vector<Vector> mu2_est;
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  std::vector<Vector> alpha_est;
   Vector biassq_est,variance_est,mse_est;
 
-  string biassq_file = errors_folder + "biassq_mu2";
-  string variance_file = errors_folder + "variance_mu2";
-  string mse_file = errors_folder + "mse_mu2";
+  string biassq_file = errors_folder + common + "biassq_alpha";
+  string variance_file = errors_folder + common + "variance_alpha";
+  string mse_file = errors_folder + common + "mse_alpha";
   ofstream biassq(biassq_file.c_str(),ios::app);
   ofstream variance(variance_file.c_str(),ios::app);
   ofstream mse(mse_file.c_str(),ios::app);
 
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
+  string current_dir = n_str + "_prior" + prior_str + "/"
+                       + "k_" + kappa_str + "_e_" + ecc_str + "/";
 
-  string mu2_file = current_dir + "mu2_est";
-  mu2_est = load_table(mu2_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(mu2_est,MU2);
-  variance_est = computeVariance(mu2_est,MU2);
-  mse_est = computeMeanSquaredError(mu2_est,MU2);
+  string alpha_file = current_dir + "alpha_est";
+  alpha_est = load_table(alpha_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(alpha_est,ALPHA);
+  variance_est = computeVariance(alpha_est,ALPHA);
+  mse_est = computeMeanSquaredError(alpha_est,ALPHA);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -282,29 +280,67 @@ void compute_mu2_errors(int N)
   mse.close();
 }
 
-void compute_kappa1_errors(
-  int N, double kappa1
+void compute_eta_errors(int N) 
+{
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  std::vector<Vector> eta_est;
+  Vector biassq_est,variance_est,mse_est;
+
+  string biassq_file = errors_folder + common + "biassq_eta";
+  string variance_file = errors_folder + common + "variance_eta";
+  string mse_file = errors_folder + common + "mse_eta";
+  ofstream biassq(biassq_file.c_str(),ios::app);
+  ofstream variance(variance_file.c_str(),ios::app);
+  ofstream mse(mse_file.c_str(),ios::app);
+
+  string current_dir = n_str + "_prior" + prior_str + "/"
+                       + "k_" + kappa_str + "_e_" + ecc_str + "/";
+
+  string eta_file = current_dir + "eta_est";
+  eta_est = load_table(eta_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(eta_est,ETA);
+  variance_est = computeVariance(eta_est,ETA);
+  mse_est = computeMeanSquaredError(eta_est,ETA);
+
+  biassq << fixed << setw(10) << setprecision(0) << N << "\t";
+  variance << fixed << setw(10) << setprecision(0) << N << "\t";
+  mse << fixed << setw(10) << setprecision(0) << N << "\t";
+  for(int i=0; i<NUM_METHODS; i++) {
+    biassq << scientific << setprecision(6) << biassq_est[i] << "\t";
+    variance << scientific << setprecision(6) << variance_est[i] << "\t";
+    mse << scientific << setprecision(6) << mse_est[i] << "\t";
+  }
+  biassq << endl;
+  variance << endl;
+  mse << endl;
+
+  biassq.close();
+  variance.close();
+  mse.close();
+}
+
+void compute_kappa_errors(
+  int N, double kappa
 ) {
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
   std::vector<Vector> kappas_est;
   Vector biassq_est,variance_est,mse_est;
 
-  string biassq_file = errors_folder + "biassq_kappa1";
-  string variance_file = errors_folder + "variance_kappa1";
-  string mse_file = errors_folder + "mse_kappa1";
+  string biassq_file = errors_folder + common + "biassq_kappa";
+  string variance_file = errors_folder + common + "variance_kappa";
+  string mse_file = errors_folder + common + "mse_kappa";
   ofstream biassq(biassq_file.c_str(),ios::app);
   ofstream variance(variance_file.c_str(),ios::app);
   ofstream mse(mse_file.c_str(),ios::app);
 
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
+  string current_dir = n_str + "_prior" + prior_str + "/"
+                       + "k_" + kappa_str + "_e_" + ecc_str + "/";
 
-  string kappas_file = current_dir + "kappa1_est";
+  string kappas_file = current_dir + "kappa_est";
   kappas_est = load_table(kappas_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(kappas_est,kappa1);
-  variance_est = computeVariance(kappas_est,kappa1);
-  mse_est = computeMeanSquaredError(kappas_est,kappa1);
+  biassq_est = computeBiasSquared(kappas_est,kappa);
+  variance_est = computeVariance(kappas_est,kappa);
+  mse_est = computeMeanSquaredError(kappas_est,kappa);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -323,29 +359,30 @@ void compute_kappa1_errors(
   mse.close();
 }
 
-void compute_kappa2_errors(
-  int N, double kappa2
+void compute_beta_errors(
+  int N, double kappa, double ecc
 ) {
-  std::vector<Vector> kappas_est;
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  std::vector<Vector> betas_est;
   Vector biassq_est,variance_est,mse_est;
 
-  string biassq_file = errors_folder + "biassq_kappa2";
-  string variance_file = errors_folder + "variance_kappa2";
-  string mse_file = errors_folder + "mse_kappa2";
+  string biassq_file = errors_folder + common + "biassq_beta";
+  string variance_file = errors_folder + common + "variance_beta";
+  string mse_file = errors_folder + common + "mse_beta";
   ofstream biassq(biassq_file.c_str(),ios::app);
   ofstream variance(variance_file.c_str(),ios::app);
   ofstream mse(mse_file.c_str(),ios::app);
 
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
+  string current_dir = n_str + "_prior" + prior_str + "/"
+                       "k_" + kappa_str + "_e_" + ecc_str + "/";
 
-  string kappas_file = current_dir + "kappa2_est";
-  kappas_est = load_table(kappas_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(kappas_est,kappa2);
-  variance_est = computeVariance(kappas_est,kappa2);
-  mse_est = computeMeanSquaredError(kappas_est,kappa2);
+  double beta = 0.5 * ecc * kappa;
+
+  string betas_file = current_dir + "beta_est";
+  betas_est = load_table(betas_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(betas_est,beta);
+  variance_est = computeVariance(betas_est,beta);
+  mse_est = computeMeanSquaredError(betas_est,beta);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -364,72 +401,28 @@ void compute_kappa2_errors(
   mse.close();
 }
 
-void compute_lambda_errors(
-  int N, double kappa1, double kappa2, double rho
+void compute_ecc_errors(
+  int N, double kappa, double ecc
 ) {
-  double lambda = rho * sqrt(kappa1 * kappa2);
-
-  std::vector<Vector> lambda_est;
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  std::vector<Vector> ecc_est;
   Vector biassq_est,variance_est,mse_est;
 
-  string biassq_file = errors_folder + "biassq_lambda";
-  string variance_file = errors_folder + "variance_lambda";
-  string mse_file = errors_folder + "mse_lambda";
+  string biassq_file = errors_folder + common + "biassq_ecc";
+  string variance_file = errors_folder + common + "variance_ecc";
+  string mse_file = errors_folder + common + "mse_ecc";
   ofstream biassq(biassq_file.c_str(),ios::app);
   ofstream variance(variance_file.c_str(),ios::app);
   ofstream mse(mse_file.c_str(),ios::app);
 
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
+  string current_dir = n_str + "_prior" + prior_str + "/"
+                       "k_" + kappa_str + "_e_" + ecc_str + "/";
 
-  string kappas_file = current_dir + "lambda_est";
-  lambda_est = load_table(kappas_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(lambda_est,lambda);
-  variance_est = computeVariance(lambda_est,lambda);
-  mse_est = computeMeanSquaredError(lambda_est,lambda);
-
-  biassq << fixed << setw(10) << setprecision(0) << N << "\t";
-  variance << fixed << setw(10) << setprecision(0) << N << "\t";
-  mse << fixed << setw(10) << setprecision(0) << N << "\t";
-  for(int i=0; i<NUM_METHODS; i++) {
-    biassq << scientific << setprecision(6) << biassq_est[i] << "\t";
-    variance << scientific << setprecision(6) << variance_est[i] << "\t";
-    mse << scientific << setprecision(6) << mse_est[i] << "\t";
-  }
-  biassq << endl;
-  variance << endl;
-  mse << endl;
-
-  biassq.close();
-  variance.close();
-  mse.close();
-}
-
-void compute_rho_errors(
-  int N, double rho
-) {
-  std::vector<Vector> rho_est;
-  Vector biassq_est,variance_est,mse_est;
-
-  string biassq_file = errors_folder + "biassq_rho";
-  string variance_file = errors_folder + "variance_rho";
-  string mse_file = errors_folder + "mse_rho";
-  ofstream biassq(biassq_file.c_str(),ios::app);
-  ofstream variance(variance_file.c_str(),ios::app);
-  ofstream mse(mse_file.c_str(),ios::app);
-
-  string current_dir = n_str  
-                       + "k1_" + kappa1_str 
-                       + "_k2_" + kappa2_str 
-                       + "_r_" + rho_str + "/";
-
-  string rho_file = current_dir + "rho_est";
-  rho_est = load_table(rho_file,NUM_METHODS);
-  biassq_est = computeBiasSquared(rho_est,rho);
-  variance_est = computeVariance(rho_est,rho);
-  mse_est = computeMeanSquaredError(rho_est,rho);
+  string ecc_file = current_dir + "ecc_est";
+  ecc_est = load_table(ecc_file,NUM_METHODS);
+  biassq_est = computeBiasSquared(ecc_est,ecc);
+  variance_est = computeVariance(ecc_est,ecc);
+  mse_est = computeMeanSquaredError(ecc_est,ecc);
 
   biassq << fixed << setw(10) << setprecision(0) << N << "\t";
   variance << fixed << setw(10) << setprecision(0) << N << "\t";
@@ -457,10 +450,10 @@ void combine(std::vector<string> &files, string &output_file)
     all_tables.push_back(table);
   }
 
-  int num_sample_sizes = all_tables[0].size();
+  int num_kappas = all_tables[0].size();
   ofstream out(output_file.c_str());
 
-  for (int i=0; i<num_sample_sizes; i++) {
+  for (int i=0; i<num_kappas; i++) {
     Vector sum(NUM_METHODS,0);
     for (int j=0; j<all_tables.size(); j++) {
       for (int k=0; k<NUM_METHODS; k++) {
@@ -477,55 +470,56 @@ void combine(std::vector<string> &files, string &output_file)
   out.close();
 }
 
-void compute_all_errors() 
-{
+void compute_all_errors(
+  string &errors_folder
+) {
   std::vector<string> biassq_files,variance_files,mse_files;
   string biassq_file,variance_file,mse_file,output_file;
 
-  biassq_file = errors_folder + "biassq_mu1";
+  biassq_file = errors_folder + common + "biassq_psi";
   biassq_files.push_back(biassq_file);
-  biassq_file = errors_folder + "biassq_mu2";
+  biassq_file = errors_folder + common + "biassq_alpha";
   biassq_files.push_back(biassq_file);
-  biassq_file = errors_folder + "biassq_kappa1";
+  biassq_file = errors_folder + common + "biassq_eta";
   biassq_files.push_back(biassq_file);
-  biassq_file = errors_folder + "biassq_kappa2";
+  biassq_file = errors_folder + common + "biassq_kappa";
   biassq_files.push_back(biassq_file);
-  biassq_file = errors_folder + "biassq_lambda";
+  biassq_file = errors_folder + common + "biassq_beta";
   biassq_files.push_back(biassq_file);
-  output_file = errors_folder + "biassq_all";
+  output_file = errors_folder + common + "biassq_all";
   combine(biassq_files,output_file);
 
-  variance_file = errors_folder + "variance_mu1";
+  variance_file = errors_folder + common + "variance_psi";
   variance_files.push_back(variance_file);
-  variance_file = errors_folder + "variance_mu2";
+  variance_file = errors_folder + common + "variance_alpha";
   variance_files.push_back(variance_file);
-  variance_file = errors_folder + "variance_kappa1";
+  variance_file = errors_folder + common + "variance_eta";
   variance_files.push_back(variance_file);
-  variance_file = errors_folder + "variance_kappa2";
+  variance_file = errors_folder + common + "variance_kappa";
   variance_files.push_back(variance_file);
-  variance_file = errors_folder + "variance_lambda";
+  variance_file = errors_folder + common + "variance_beta";
   variance_files.push_back(variance_file);
-  output_file = errors_folder + "variance_all";
+  output_file = errors_folder + common + "variance_all";
   combine(variance_files,output_file);
 
-  mse_file = errors_folder + "mse_mu1";
+  mse_file = errors_folder + common + "mse_psi";
   mse_files.push_back(mse_file);
-  mse_file = errors_folder + "mse_mu2";
+  mse_file = errors_folder + common + "mse_alpha";
   mse_files.push_back(mse_file);
-  mse_file = errors_folder + "mse_kappa1";
+  mse_file = errors_folder + common + "mse_eta";
   mse_files.push_back(mse_file);
-  mse_file = errors_folder + "mse_kappa2";
+  mse_file = errors_folder + common + "mse_kappa";
   mse_files.push_back(mse_file);
-  mse_file = errors_folder + "mse_lambda";
+  mse_file = errors_folder + common + "mse_beta";
   mse_files.push_back(mse_file);
-  output_file = errors_folder + "mse_all";
+  output_file = errors_folder + common + "mse_all";
   combine(mse_files,output_file);
 }
 
 void computeWins(
   int map_index, ostream &out, std::vector<Vector> &values
 ) {
-  std::vector<int> wins(3,0);
+  std::vector<int> wins(4,0);
   int min_index;
 
   for (int i=0; i<values.size(); i++) {
@@ -542,51 +536,51 @@ void computeWins(
 
 void process_kldivs(int N)
 {
-  int num_maps = 3;
-  int map_index;
+  int num_maps,map_index;
+  if (NUM_METHODS == 5) {
+    num_maps = 2;
+  } else {
+    num_maps = 3;
+  }
 
-  //string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
+  string n_str = "./estimates/N_" + boost::lexical_cast<string>(N);
   for (int i=1; i<=num_maps; i++) {
-    if (i == 1) map_index = 1;
-    else if (i == 2) map_index = 2;
-    else if (i == 3) map_index = 4;
-    string wins_kldivs_file = errors_folder + "wins_kldivs_map"
+    if (i == 1) map_index = 2;
+    else if (i == 2) map_index = 4;
+    else if (i == 3) map_index = 5;
+    string wins_kldivs_file = errors_folder + common + "wins_kldivs_map"
                               + boost::lexical_cast<string>(i) + ".dat";
     ofstream out(wins_kldivs_file.c_str(),ios::app);
     out << fixed << setw(10) << setprecision(0) << N << "\t\t";
-    string kldivs_file = n_str  
-                         + "k1_" + kappa1_str 
-                         + "_k2_" + kappa2_str 
-                         + "_r_" + rho_str + "/kldivs";
+    string kldivs_file = n_str + "_prior" + prior_str + "/"
+                         "k_" + kappa_str + "_e_" + ecc_str + "/kldivs";
     std::vector<Vector> kldivs = load_table(kldivs_file,NUM_METHODS);
     computeWins(map_index,out,kldivs);
     out.close();
-  } // for()
+  }
 }
 
-void process_estimates(double kappa1, double kappa2, double rho)
+void process_estimates(double kappa, double ecc)
 {
-  for (int N=10; N<=50; N+=5) {
-    n_str = "./estimates/N_" + boost::lexical_cast<string>(N) + "/";
+  string n_str;
 
-    // mu1 errors
-    compute_mu1_errors(N);
-    // mu2 errors
-    compute_mu2_errors(N);
+  for (int N=10; N<=50; N+=5) {
+    // psi errors
+    compute_psi_errors(N);
+    // alpha errors
+    compute_alpha_errors(N);
+    // eta errors
+    compute_eta_errors(N);
 
     // kappa errors
-    compute_kappa1_errors(N,kappa1);
-    // kappa2 errors
-    compute_kappa2_errors(N,kappa2);
-
-    // lambda errors
-    compute_lambda_errors(N,kappa1,kappa2,rho);
-
-    // rho errors
-    compute_rho_errors(N,rho);
+    compute_kappa_errors(N,kappa);
+    // beta errors
+    compute_beta_errors(N,kappa,ecc);
+    // ecc errors
+    compute_ecc_errors(N,kappa,ecc);
 
     // combined errors
-    compute_all_errors();
+    compute_all_errors(errors_folder);
 
     // process kldivs
     process_kldivs(N);
@@ -611,203 +605,218 @@ void common_plot(
   out << "set xtics nomirror\n";
   out << "set ytics nomirror\n";
   out << "set border 2 back\n";
-  out << "plot \"" << data_file << "\" using 1:2 t \"MAP3 = MLE\" lc rgb \"red\", \\\n"
-      << "\"\" using 1:3 t \"MAP1\" lc rgb \"dark-green\", \\\n"
-      << "\"\" using 1:4 t \"MAP2\" lc rgb \"blue\", \\\n"
-      << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\"\n";
+  if (NUM_METHODS == 5) {
+    out << "plot \"" << data_file << "\" using 1:2 t \"MOMENT\" lc rgb \"red\", \\\n"
+        << "\"\" using 1:3 t \"MLE\" lc rgb \"blue\", \\\n"
+        << "\"\" using 1:4 t \"MAP1\" lc rgb \"dark-green\", \\\n"
+        << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\", \\\n"
+        << "\"\" using 1:6 t \"MAP2\" lc rgb \"black\"\n";
+  } else if (NUM_METHODS == 6) {
+    out << "plot \"" << data_file << "\" using 1:2 t \"MOMENT\" lc rgb \"red\", \\\n"
+        << "\"\" using 1:7 t \"MAP3 = MLE\" lc rgb \"blue\", \\\n"
+        << "\"\" using 1:4 t \"MAP1\" lc rgb \"dark-green\", \\\n"
+        << "\"\" using 1:5 t \"MML\" lc rgb \"dark-magenta\", \\\n"
+        << "\"\" using 1:6 t \"MAP2\" lc rgb \"black\"\n";
+  }
   out.close();
   string cmd = "gnuplot -persist " + script_file;
   if(system(cmd.c_str()));
 }
 
-void plot_mu1_errors() 
-{
+void plot_psi_errors(
+  string &kappa_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_mu1";
-  script_file = errors_folder + "biassq_mu1.p";
-  plot_file = errors_folder + "biassq_mu1.eps";
+  data_file = errors_folder + common + "biassq_psi";
+  script_file = errors_folder + common + "biassq_psi.p";
+  plot_file = errors_folder + common + "biassq_psi.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_mu1";
-  script_file = errors_folder + "variance_mu1.p";
-  plot_file = errors_folder + "variance_mu1.eps";
+  data_file = errors_folder + common + "variance_psi";
+  script_file = errors_folder + common + "variance_psi.p";
+  plot_file = errors_folder + common + "variance_psi.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_mu1";
-  script_file = errors_folder + "mse_mu1.p";
-  plot_file = errors_folder + "mse_mu1.eps";
+  data_file = errors_folder + common + "mse_psi";
+  script_file = errors_folder + common + "mse_psi.p";
+  plot_file = errors_folder + common + "mse_psi.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_mu2_errors() 
-{
+void plot_alpha_errors(
+  string &kappa_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_mu2";
-  script_file = errors_folder + "biassq_mu2.p";
-  plot_file = errors_folder + "biassq_mu2.eps";
+  data_file = errors_folder + common + "biassq_alpha";
+  script_file = errors_folder + common + "biassq_alpha.p";
+  plot_file = errors_folder + common + "biassq_alpha.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_mu2";
-  script_file = errors_folder + "variance_mu2.p";
-  plot_file = errors_folder + "variance_mu2.eps";
+  data_file = errors_folder + common + "variance_alpha";
+  script_file = errors_folder + common + "variance_alpha.p";
+  plot_file = errors_folder + common + "variance_alpha.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_mu2";
-  script_file = errors_folder + "mse_mu2.p";
-  plot_file = errors_folder + "mse_mu2.eps";
+  data_file = errors_folder + common + "mse_alpha";
+  script_file = errors_folder + common + "mse_alpha.p";
+  plot_file = errors_folder + common + "mse_alpha.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_kappa1_errors() 
-{
+void plot_eta_errors(
+  string &kappa_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_kappa1";
-  script_file = errors_folder + "biassq_kappa1.p";
-  plot_file = errors_folder + "biassq_kappa1.eps";
+  data_file = errors_folder + common + "biassq_eta";
+  script_file = errors_folder + common + "biassq_eta.p";
+  plot_file = errors_folder + common + "biassq_eta.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_kappa1";
-  script_file = errors_folder + "variance_kappa1.p";
-  plot_file = errors_folder + "variance_kappa1.eps";
+  data_file = errors_folder + common + "variance_eta";
+  script_file = errors_folder + common + "variance_eta.p";
+  plot_file = errors_folder + common + "variance_eta.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_kappa1";
-  script_file = errors_folder + "mse_kappa1.p";
-  plot_file = errors_folder + "mse_kappa1.eps";
+  data_file = errors_folder + common + "mse_eta";
+  script_file = errors_folder + common + "mse_eta.p";
+  plot_file = errors_folder + common + "mse_eta.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_kappa2_errors() 
-{
+void plot_kappa_errors(
+  string &kappa_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_kappa2";
-  script_file = errors_folder + "biassq_kappa2.p";
-  plot_file = errors_folder + "biassq_kappa2.eps";
+  data_file = errors_folder + common + "biassq_kappa";
+  script_file = errors_folder + common + "biassq_kappa.p";
+  plot_file = errors_folder + common + "biassq_kappa.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_kappa2";
-  script_file = errors_folder + "variance_kappa2.p";
-  plot_file = errors_folder + "variance_kappa2.eps";
+  data_file = errors_folder + common + "variance_kappa";
+  script_file = errors_folder + common + "variance_kappa.p";
+  plot_file = errors_folder + common + "variance_kappa.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_kappa2";
-  script_file = errors_folder + "mse_kappa2.p";
-  plot_file = errors_folder + "mse_kappa2.eps";
+  data_file = errors_folder + common + "mse_kappa";
+  script_file = errors_folder + common + "mse_kappa.p";
+  plot_file = errors_folder + common + "mse_kappa.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_lambda_errors() 
-{
+void plot_beta_errors(
+  string &beta_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_lambda";
-  script_file = errors_folder + "biassq_lambda.p";
-  plot_file = errors_folder + "biassq_lambda.eps";
+  data_file = errors_folder + common + "biassq_beta";
+  script_file = errors_folder + common + "biassq_beta.p";
+  plot_file = errors_folder + common + "biassq_beta.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_lambda";
-  script_file = errors_folder + "variance_lambda.p";
-  plot_file = errors_folder + "variance_lambda.eps";
+  data_file = errors_folder + common + "variance_beta";
+  script_file = errors_folder + common + "variance_beta.p";
+  plot_file = errors_folder + common + "variance_beta.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_lambda";
-  script_file = errors_folder + "mse_lambda.p";
-  plot_file = errors_folder + "mse_lambda.eps";
+  data_file = errors_folder + common + "mse_beta";
+  script_file = errors_folder + common + "mse_beta.p";
+  plot_file = errors_folder + common + "mse_beta.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_rho_errors() 
-{
+void plot_ecc_errors(
+  string &ecc_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_rho";
-  script_file = errors_folder + "biassq_rho.p";
-  plot_file = errors_folder + "biassq_rho.eps";
+  data_file = errors_folder + common + "biassq_ecc";
+  script_file = errors_folder + common + "biassq_ecc.p";
+  plot_file = errors_folder + common + "biassq_ecc.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_rho";
-  script_file = errors_folder + "variance_rho.p";
-  plot_file = errors_folder + "variance_rho.eps";
+  data_file = errors_folder + common + "variance_ecc";
+  script_file = errors_folder + common + "variance_ecc.p";
+  plot_file = errors_folder + common + "variance_ecc.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_rho";
-  script_file = errors_folder + "mse_rho.p";
-  plot_file = errors_folder + "mse_rho.eps";
+  data_file = errors_folder + common + "mse_ecc";
+  script_file = errors_folder + common + "mse_ecc.p";
+  plot_file = errors_folder + common + "mse_ecc.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
-void plot_all_errors()
-{
+void plot_all_errors(
+  string &all_str, string &errors_folder
+) {
   string data_file,script_file,plot_file,ylabel;
 
-  data_file = errors_folder + "biassq_all";
-  script_file = errors_folder + "biassq_all.p";
-  plot_file = errors_folder + "biassq_all.eps";
+  data_file = errors_folder + common + "biassq_all";
+  script_file = errors_folder + common + "biassq_all.p";
+  plot_file = errors_folder + common + "biassq_all.eps";
   ylabel = "Bias squared";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "variance_all";
-  script_file = errors_folder + "variance_all.p";
-  plot_file = errors_folder + "variance_all.eps";
+  data_file = errors_folder + common + "variance_all";
+  script_file = errors_folder + common + "variance_all.p";
+  plot_file = errors_folder + common + "variance_all.eps";
   ylabel = "Variance";
   common_plot(data_file,script_file,plot_file,ylabel);
 
-  data_file = errors_folder + "mse_all";
-  script_file = errors_folder + "mse_all.p";
-  plot_file = errors_folder + "mse_all.eps";
+  data_file = errors_folder + common + "mse_all";
+  script_file = errors_folder + common + "mse_all.p";
+  plot_file = errors_folder + common + "mse_all.eps";
   ylabel = "Mean squared error";
   common_plot(data_file,script_file,plot_file,ylabel);
 }
 
 void plot_errors()
 {
-  // mu1 errors
-  plot_mu1_errors();
-  // mu2 errors
-  plot_mu2_errors();
+  // psi errors
+  plot_psi_errors(kappa_str,errors_folder);
+  // alpha errors
+  plot_alpha_errors(kappa_str,errors_folder);
+  // eta errors
+  plot_eta_errors(kappa_str,errors_folder);
 
   // kappa errors
-  plot_kappa1_errors();
-  // kappa2 errors
-  plot_kappa2_errors();
-
-  // lambda errors
-  plot_lambda_errors();
-  // rho errors
-  plot_rho_errors();
+  plot_kappa_errors(kappa_str,errors_folder);
+  // beta errors
+  plot_beta_errors(kappa_str,errors_folder);
+  // ecc errors
+  plot_ecc_errors(kappa_str,errors_folder);
 
   // all errors
-  plot_all_errors();
+  plot_all_errors(kappa_str,errors_folder);
 }
 
-void plot_script_kldivs_wins(int num_map)
+void plot_script_kldivs_wins(string &kldivs_folder, int num_map)
 {
   string map = boost::lexical_cast<string>(num_map);
-  string wins_kldivs_file = errors_folder + "wins_kldivs_map" + map + ".dat";
-  string script_file = errors_folder + "wins_kldivs_map" + map + ".p";
-  string plot_file = errors_folder + "wins_kldivs_map" + map + ".eps";
+  string wins_kldivs_file = kldivs_folder + common + "wins_kldivs_map" + map + ".dat";
+  string script_file = kldivs_folder + common + "wins_kldivs_map" + map + ".p";
+  string plot_file = kldivs_folder + common + "wins_kldivs_map" + map + ".eps";
   ofstream out(script_file.c_str());
   out << "set terminal postscript eps enhanced color\n\n";
   out << "set output \"" << plot_file << "\"\n\n";
@@ -825,35 +834,33 @@ void plot_script_kldivs_wins(int num_map)
   out << "set ytics 10\n\n"; 
   out << "set xtics nomirror\n";
   out << "set border 2 back\n";
-  if (num_map == 1) {
-    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MLE\" lc rgb \"red\", \\\n"
-        << "\"\" using 3 t \"MAP1\" lc rgb \"dark-green\", \\\n"
-        << "\"\" using 4:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
-  } else if (num_map == 2) {
-    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MLE\" lc rgb \"red\", \\\n"
-        << "\"\" using 3 t \"MAP2\" lc rgb \"dark-green\", \\\n"
-        << "\"\" using 4:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
-  } else if (num_map == 3) {
-    out << "plot \"" << wins_kldivs_file << "\" using 3 t \"MAP3 = MLE\" lc rgb \"dark-green\", \\\n"
-        //<< "\"\" using 3 t \"MAP2\" lc rgb \"dark-green\", \\\n"
-        << "\"\" using 4:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
+  if (num_map != 3) {
+    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MOMENT\" lc rgb \"red\", \\\n"
+        << "\"\" using 3 t \"MLE\" lc rgb \"blue\", \\\n"
+        << "\"\" using 4 t \"MAP" << num_map << "\" lc rgb \"dark-green\", \\\n"
+        << "\"\" using 5:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
+  } else {
+    out << "plot \"" << wins_kldivs_file << "\" using 2 t \"MOMENT\" lc rgb \"red\", \\\n"
+        << "\"\" using 4 t \"MAP3 = MLE\" lc rgb \"dark-green\", \\\n"
+        << "\"\" using 5:xtic(1) t \"MML\" lc rgb \"dark-magenta\"";
   }
   out.close();
   string cmd = "gnuplot -persist " + script_file;
   if(system(cmd.c_str()));
 }
 
-void boxplot_test_stats(int option)
-{
+void boxplot_test_stats_fixed_kappa(
+  string &errors_folder, int option
+) {
   string stats_file,script_file,plot_file,ylabel;
 
   if (option == 1) {
     script_file = errors_folder + "boxplot_test_statistics.p";
-    plot_file = errors_folder + "boxplot_test_statistics.eps";
+    plot_file = errors_folder + common + "boxplot_test_statistics.eps";
     ylabel = "Test statistic";
   } else if (option == 2) {
     script_file = errors_folder + "boxplot_pvalues.p";
-    plot_file = errors_folder + "boxplot_pvalues.eps";
+    plot_file = errors_folder + common + "boxplot_pvalues.eps";
     ylabel = "p-values";
   }
 
@@ -886,29 +893,25 @@ void boxplot_test_stats(int option)
 
   int col = 1;
   for (int N=10; N<=50; N+=5) {
-    n_str = "./estimates/N_" + boost::lexical_cast<string>(N) + "/";
+    string n_str = boost::lexical_cast<string>(N);
     if (option == 1) {
-      stats_file = n_str 
-                   + "k1_" + kappa1_str 
-                   + "_k2_" + kappa2_str 
-                   + "_r_" + rho_str + "/chisq_stat";
+      stats_file = "./estimates/N_" + n_str + "_prior" + prior_str + "/k_" + kappa_str + "_e_" + ecc_str + "/chisq_stat";
     } else if (option == 2) {
-      stats_file = n_str 
-                   + "k1_" + kappa1_str 
-                   + "_k2_" + kappa2_str 
-                   + "_r_" + rho_str + "/pvalues";
+      stats_file = "./estimates/N_" + n_str + "_prior" + prior_str + "/k_" + kappa_str + "_e_" + ecc_str + "/pvalues";
     }
     if (col == 1) {
       out << "plot ";
     }
     if (col < 9) {
-      out << "\"" << stats_file << "\" using ((" << col << ")-2*d_width):2 notitle lt 1 lc rgb \"dark-green\", \\\n"
-          << "\"" << stats_file << "\" using (" << col << "):3 notitle lt 1 lc rgb \"blue\", \\\n"
-          << "\"" << stats_file << "\" using ((" << col << ")+2*d_width):4 notitle lt 1 lc rgb \"dark-magenta\", \\\n";
+      out << "\"" << stats_file << "\" using ((" << col << ")-3*d_width):1 notitle lt 1 lc rgb \"red\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")-d_width):3 notitle lt 1 lc rgb \"dark-green\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")+d_width):4 notitle lt 1 lc rgb \"dark-magenta\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")+3*d_width):5 notitle lt 1 lc rgb \"black\", \\\n";
     } else if (col == 9) {
-      out << "\"" << stats_file << "\" using ((" << col << ")-2*d_width):2 title \"MAP1\" lt 1 lc rgb \"dark-green\", \\\n"
-          << "\"" << stats_file << "\" using (" << col << "):3 title \"MAP2\" lt 1 lc rgb \"blue\", \\\n"
-          << "\"" << stats_file << "\" using ((" << col << ")+2*d_width):4 title \"MML\" lt 1 lc rgb \"dark-magenta\"\n";
+      out << "\"" << stats_file << "\" using ((" << col << ")-3*d_width):1 title \"MOMENT\" lt 1 lc rgb \"red\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")-d_width):3 title \"MAP1\" lt 1 lc rgb \"dark-green\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")+d_width):4 title \"MML\" lt 1 lc rgb \"dark-magenta\", \\\n"
+          << "\"" << stats_file << "\" using ((" << col << ")+3*d_width):5 title \"MAP2\" lt 1 lc rgb \"black\"\n";
     }
     col++;
   }
@@ -920,15 +923,19 @@ void boxplot_test_stats(int option)
 
 void plot_kldivs()
 {
-  int num_maps = 3;
-  int map_index;
-
-  for (int i=1; i<=num_maps; i++) {
-    plot_script_kldivs_wins(i);
+  int num_maps,map_index;
+  if (NUM_METHODS == 5) {
+    num_maps = 2;
+  } else {
+    num_maps = 3;
   }
 
-  boxplot_test_stats(1);
-  boxplot_test_stats(2);
+  for (int i=1; i<=num_maps; i++) {
+    plot_script_kldivs_wins(errors_folder,i);
+  }
+
+  boxplot_test_stats_fixed_kappa(errors_folder,1);
+  boxplot_test_stats_fixed_kappa(errors_folder,2);
 }
 
 /* E **********************************************************************************/ 
@@ -942,39 +949,37 @@ void check_and_create_directory(string &directory)
 }
 
 void create_required_folders(
-  double kappa1, double kappa2, double rho
+  double kappa, double ecc, int prior
 ) {
-  ostringstream ssk1;
-  ssk1 << fixed << setprecision(0);
-  ssk1 << kappa1;
-  kappa1_str = ssk1.str();
+  ostringstream ssk;
+  ssk << fixed << setprecision(0);
+  ssk << kappa;
+  kappa_str = ssk.str();
 
-  ostringstream ssk2;
-  ssk2 << fixed << setprecision(0);
-  ssk2 << kappa2;
-  kappa2_str = ssk2.str();
+  ostringstream sse;
+  sse << fixed << setprecision(1);
+  sse << ecc;
+  ecc_str = sse.str();
 
-  ostringstream ssr;
-  ssr << fixed << setprecision(1);
-  ssr << rho;
-  rho_str = ssr.str();
+  prior_str = boost::lexical_cast<string>(prior);
 
-  errors_folder = "./analysis/k1_" + kappa1_str + "_k2_" + kappa2_str 
-                  + "_r_" + rho_str + "/";
+  string all = "./estimates/varying_n_prior" + prior_str + "/";
+  check_and_create_directory(all);
+
+  errors_folder = all + "k_" + kappa_str + "_e_" + ecc_str + "/";
   check_and_create_directory(errors_folder);
 
-  /*for (int N=10; N<=50; N+=10) {
-    string n_str = "N_" + boost::lexical_cast<string>(N) + "/";
-    string n_dir = errors_folder + n_str;
-    check_and_create_directory(n_dir);
-  }*/
+  int ecc10 = 10 * ecc;
+  string ecc2_str = boost::lexical_cast<string>(ecc10);
+  common = "p" + prior_str + "_k" + kappa_str + "_e" + ecc2_str + "_";
 }
 
 /* E **********************************************************************************/
 
 struct Parameters
 {
-  double kappa1,kappa2,rho;
+  double kappa,ecc;
+  int prior;
 };
 
 struct Parameters parseCommandLineInput(int argc, char **argv)
@@ -983,9 +988,9 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
 
   options_description desc("Allowed options");
   desc.add_options()
-       ("k1",value<double>(&parameters.kappa1),"kappa1")
-       ("k2",value<double>(&parameters.kappa2),"kappa2")
-       ("rho",value<double>(&parameters.rho),"rho")
+       ("kappa",value<double>(&parameters.kappa),"kappa")
+       ("ecc",value<double>(&parameters.ecc),"ecc")
+       ("prior",value<int>(&parameters.prior),"vMF Kappa (2D/3D) prior")
   ;
   variables_map vm;
   store(command_line_parser(argc,argv).options(desc).run(),vm);
@@ -997,22 +1002,22 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
 int main(int argc, char **argv)
 {
   struct Parameters parameters = parseCommandLineInput(argc,argv);
-  double kappa1 = parameters.kappa1;
-  double kappa2 = parameters.kappa2;
-  double rho = parameters.rho;
+  double kappa = parameters.kappa;
+  double ecc = parameters.ecc;
+  int prior = parameters.prior;
 
-  //for (int kappa1=1; kappa1<=100; kappa1*=10) {
-    //for (int kappa2=1; kappa2<=100; kappa2*=10) {
-      //for (double rho=0; rho<1; rho+=0.1) {
-        create_required_folders(kappa1,kappa2,rho);
+  if (parameters.prior == 2) {
+    NUM_METHODS = 6;
+  } else if (parameters.prior == 3) {
+    NUM_METHODS = 5;
+  }
 
-        process_estimates(kappa1,kappa2,rho);
+  create_required_folders(kappa,ecc,prior);
 
-        plot_errors();
+  process_estimates(kappa,ecc);
 
-        plot_kldivs();
-      //} // rho()
-    //} // kappa2()
-  //} // kappa1()
+  plot_errors();
+
+  plot_kldivs();
 }
 
