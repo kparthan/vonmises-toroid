@@ -604,8 +604,10 @@ void common_plot(
   out << "set xlabel \"Sample size\\n\"\n";
   out << "set ylabel \"" << ylabel << "\"\n";
   out << "set xr [10:50]\n";
-  out << "set xlabel font \"Times-Roman, 25\"\n";
-  out << "set ylabel font \"Times-Roman, 25\"\n";
+  out << "set key font \",20\"\n";
+  out << "set key spacing 2.5\n";
+  out << "set xlabel font \"Times-Roman, 30\"\n";
+  out << "set ylabel font \"Times-Roman, 30\"\n";
   out << "set xtics font \"Times-Roman, 20\"\n";
   out << "set ytics font \"Times-Roman, 20\"\n";
   out << "set xtics nomirror\n";
@@ -815,13 +817,15 @@ void plot_script_kldivs_wins(int num_map)
   out << "set style data histograms\n";
   out << "set style fill solid 1.0 noborder\n";
   out << "set ytics 10 nomirror\n";
+  out << "set key font \",25\"\n";
+  out << "set key spacing 3.5\n";
   out << "set yrange [:100]\n";
-  out << "set xlabel font \"Times-Roman, 25\"\n";
-  out << "set ylabel font \"Times-Roman, 25\"\n";
-  out << "set xtics font \"Times-Roman, 20\"\n";
-  out << "set ytics font \"Times-Roman, 20\"\n";
+  out << "set xlabel font \"Times-Roman, 40\"\n";
+  out << "set ylabel font \"Times-Roman, 40\"\n";
+  out << "set xtics font \"Times-Roman, 30\"\n";
+  out << "set ytics font \"Times-Roman, 30\"\n";
   out << "set xlabel \"Sample size\\n\"\n";
-  out << "set ylabel \"\% of wins\"\n";
+  out << "set ylabel \"\% of wins\\n\"\n";
   out << "set ytics 10\n\n"; 
   out << "set xtics nomirror\n";
   out << "set border 2 back\n";
@@ -876,8 +880,10 @@ void boxplot_test_stats(int option)
   out << "set ytics nomirror\n";
   out << "set xlabel \"Sample size\\n\"\n";
   out << "set ylabel \"" << ylabel << "\"\n";
-  out << "set xlabel font \"Times-Roman, 25\"\n";
-  out << "set ylabel font \"Times-Roman, 25\"\n";
+  out << "set key font \",20\"\n";
+  out << "set key spacing 2.0\n";
+  out << "set xlabel font \"Times-Roman, 30\"\n";
+  out << "set ylabel font \"Times-Roman, 30\"\n";
   out << "set xtics font \"Times-Roman, 20\"\n";
   out << "set ytics font \"Times-Roman, 20\"\n";
   out << "set xtics (\"10\" 1, \"15\" 2, \"20\" 3, "
