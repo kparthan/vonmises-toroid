@@ -97,7 +97,8 @@ function [] = visualize_mixture_contours_cdf(K)
 %  plot(p2(1),p2(2),'ro');
 
   % plot the entire mixture density
-  data_file = strcat(bins_folder,'/example/mixture_density.dat');
+  data_file = strcat(bins_folder,'mixture_density.dat');
+  %data_file = strcat(bins_folder,'original_mixture_density.dat');
   M = load(data_file);
 
   density = M(:,3);
@@ -115,9 +116,9 @@ function [] = visualize_mixture_contours_cdf(K)
 
   %colorbar
   outfile = '';
-  output_fig = strcat('../figs/protein_modelling/',outfile,'.fig');
-  output_eps = strcat('../figs/protein_modelling/',outfile,'.eps');
-  output_pdf = strcat('../figs/protein_modelling/',outfile,'.pdf');
+  output_fig = strcat('../figs/mix_example/',outfile,'.fig');
+  output_eps = strcat('../figs/mix_example/',outfile,'.eps');
+  output_pdf = strcat('../figs/mix_example/',outfile,'.pdf');
 
   %saveas(gcf,output_fig);
   %print2eps(output_eps);

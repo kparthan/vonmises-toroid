@@ -174,7 +174,7 @@ void Experiments::traditional_search()
   mixture.estimateParameters();
 
   double msglen_best = mixture.getMinimumMessageLength();
-  mml_log << fixed << setw(10) << 1 << "\t\t";
+  mml_log << fixed << setw(10) << 3 << "\t\t";
   mml_log << fixed << scientific << mixture.first_part() << "\t\t";
   mml_log << fixed << scientific << mixture.second_part() << "\t\t";
   mml_log << fixed << scientific << msglen_best << endl;

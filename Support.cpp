@@ -272,7 +272,9 @@ void Usage(const char *exe, options_description &desc)
 bool checkFile(string &file_name)
 {
   ifstream file(file_name.c_str());
-  return file;
+  if (file.good()) return 1;
+  else return 0;
+  //return file;
 }
 
 /*!
