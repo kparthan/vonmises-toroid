@@ -8,8 +8,6 @@ class Test
   private:
 
   public:
-    void load_data();
-
     void bessel();
 
     void generate_vmc();

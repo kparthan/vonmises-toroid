@@ -719,8 +719,7 @@ std::vector<Vector> load_data_table(string &file_name, int dim)
       iss >> x;
       numbers[i++] = x;
     }
-    normalize(numbers,unit_vector);
-    sample.push_back(unit_vector);
+    sample.push_back(numbers);
   }
   file.close();
   return sample;
@@ -1689,7 +1688,7 @@ void TestFunctions(void)
 
   //test.bvm_sine_ml_estimation();
 
-  test.bvm_sine_all_estimation();
+  //test.bvm_sine_all_estimation();
 
   //test.testing_sample_empirical_distribution();
 
@@ -1708,7 +1707,9 @@ void RunExperiments(struct Parameters &parameters)
 
   //experiments.fisher_uncertainty();
 
-  experiments.simulate_sine(parameters);
+  //experiments.simulate_sine(parameters);
+
+  experiments.traditional_search();
 }
 
 /*!

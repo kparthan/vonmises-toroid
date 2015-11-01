@@ -152,3 +152,52 @@ void Experiments::simulate_sine(struct Parameters &parameters)
   //} // rho
 }
 
+/*void Experiments::traditional_search()
+{
+}
+*/
+
+void Experiments::traditional_search()
+{
+  string exp_folder = "./experiments/mixtures/";
+
+  string data_file = "mix_example.dat";
+  std::vector<Vector> data = load_data_table(data_file);
+
+  string all_inferred_mix = exp_folder + "mml_log";
+  ofstream mml_log(all_inferred_mix.c_str());
+
+  int K_MAX = 15; 
+
+  Vector data_weights(data.size(),1);
+  Mixture_Sine mixture(3,data,data_weights);
+  mixture.estimateParameters();
+
+  double msglen_best = mixture.getMinimumMessageLength();
+  mml_log << fixed << setw(10) << 1 << "\t\t";
+  mml_log << fixed << scientific << mixture.first_part() << "\t\t";
+  mml_log << fixed << scientific << mixture.second_part() << "\t\t";
+  mml_log << fixed << scientific << msglen_best << endl;
+  Mixture_Sine mml_best_mix = mixture;
+
+  for (int k=4; k<=K_MAX; k++) {
+    cout << "k: " << k << endl;
+    Mixture_Sine mixture(k,data,data_weights);
+    mixture.estimateParameters();
+    double msglen = mixture.getMinimumMessageLength();
+    mml_log << fixed << setw(10) << k << "\t\t";
+    mml_log << fixed << scientific << mixture.first_part() << "\t\t";
+    mml_log << fixed << scientific << mixture.second_part() << "\t\t";
+    mml_log << fixed << scientific << msglen << endl;
+    if (msglen < msglen_best) {
+      msglen_best = msglen;
+      mml_best_mix = mixture;
+    }
+  } // for()
+  mml_log.close();
+
+  /* save inferred mixtures */
+  string inferred_mix_file = exp_folder + "best_mml_mixture";
+  mml_best_mix.printParameters(inferred_mix_file);
+}
+

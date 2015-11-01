@@ -14,6 +14,8 @@ class Experiments
     void fisher_uncertainty();
 
     void simulate_sine(struct Parameters &);
+
+    void traditional_search();
 };
 
 #endif

@@ -10,15 +10,6 @@ extern int ENABLE_DATA_PARALLELISM;
 extern int NUM_THREADS;
 extern int ESTIMATION,CRITERION;
 
-void Test::load_data()
-{
-  string data_file = "random_sample.dat";
-  std::vector<Vector> data = load_data_table(data_file);
-  print(cout,data[10],3); cout << endl;
-  string output = "copy.dat";
-  writeToFile(output,data);
-}
-
 void Test::bessel()
 {
   double d,k,log_bessel;

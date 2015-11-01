@@ -7,19 +7,23 @@ function [] = visualize_mixture_contours_cdf(K)
   % figure properties
   fig = figure();
   caxis([0 1]); % colormap range
-  %axis equal
+  axis equal
   hold on;
   set(gcf, 'Color', 'w');
-  ylabel('\phi','fontsize',12);
-  xlabel('\theta','fontsize',12);
+  xlabel('\theta_1','fontsize',12);
+  ylabel('\theta_2','fontsize',12);
+  %xlabel('\theta','fontsize',12);
+  %ylabel('\phi','fontsize',12);
   xlabh = get(gca,'XLabel');
   ylabh = get(gca,'YLabel');
   set(xlabh,'interpreter','tex');
   set(ylabh,'interpreter','tex');
-  %set(gca,'Xlim',[0 360]);
-  %set(gca,'Ylim',[0 360]);
-  set(gca,'xtick',[0:45:360],'fontsize',10);
-  set(gca,'ytick',[0:45:360],'fontsize',10);
+  set(gca,'Xlim',[0 90]);
+  set(gca,'Ylim',[0 90]);
+  %set(gca,'xtick',[0:45:360],'fontsize',10);
+  %set(gca,'ytick',[0:45:360],'fontsize',10);
+  set(gca,'xtick',[0:30:90],'fontsize',10);
+  set(gca,'ytick',[0:30:90],'fontsize',10);
   %view ([0 0]);
 
   % plot the contours 
@@ -46,7 +50,7 @@ function [] = visualize_mixture_contours_cdf(K)
     range = max_val - min_val;
     cdf_bins = (cdf_bins - min_val) / range; % in [0,1]
 
-    level = 0.8;
+    level = 0.9;
     norm_level = (level - min_val) / range;
     contour_levels = [norm_level norm_level];
     [C,h] = contour(cdf_bins,contour_levels,'LineWidth',1.5,'LineColor','black');
@@ -93,7 +97,7 @@ function [] = visualize_mixture_contours_cdf(K)
 %  plot(p2(1),p2(2),'ro');
 
   % plot the entire mixture density
-  data_file = strcat(bins_folder,'mixture_density.dat');
+  data_file = strcat(bins_folder,'/example/mixture_density.dat');
   M = load(data_file);
 
   density = M(:,3);
