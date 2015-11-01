@@ -159,7 +159,7 @@ void Experiments::simulate_sine(struct Parameters &parameters)
 
 void Experiments::traditional_search()
 {
-  string exp_folder = "./experiments/mixtures/";
+  string exp_folder = "./experiments/mixture/";
 
   string data_file = "mix_example.dat";
   std::vector<Vector> data = load_data_table(data_file);
