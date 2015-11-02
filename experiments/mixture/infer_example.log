@@ -1,0 +1,435 @@
+Null model encoding: 25234.6 bits.	(25.2346 bits/point)
+
+Iteration #1
+Parent:
+	[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+	ID: 2
+	BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		Ik: 1.000
+		Iw: 0.000
+		It: 43.706 (43.706)
+		latt: -8.249
+		Il: 19599.634
+		part1 (Ik+Iw+It+latt): 36.457 + part2 (Il+d/(2*log(2))): 19603.241 = 19639.698 bits.
+
+	SPLIT component 1 ... 
+		Children:
+		[ 1]	   362.062	   0.36220	[mus]: (58.41809, 45.31592)	[kappas]: (44.016, 57.440)	[lambda]: 38.373
+		[ 2]	   637.938	   0.63780	[mus]: (37.69036, 53.48310)	[kappas]: (48.663, 56.334)	[lambda]: 29.403
+		ID: 6
+		BVM_Sine encoding: 19498.222 bits. (19.498 bits/point)
+
+		Before adjustment ...
+		[ 1]	   362.062	   0.36220	[mus]: (58.41809, 45.31592)	[kappas]: (44.016, 57.440)	[lambda]: 38.373
+		[ 2]	   637.938	   0.63780	[mus]: (37.69036, 53.48310)	[kappas]: (48.663, 56.334)	[lambda]: 29.403
+		ID: 7
+		BVM_Sine encoding: 19498.222 bits. (19.498 bits/point)
+
+		After adjustment ...
+		[ 1]	   350.038	   0.35019	[mus]: (58.99179, 45.39008)	[kappas]: (49.568, 60.733)	[lambda]: 43.001
+		[ 2]	   649.962	   0.64981	[mus]: (37.75422, 53.28993)	[kappas]: (48.866, 55.085)	[lambda]: 28.996
+		ID: 7
+		BVM_Sine encoding: 19492.309 bits. (19.492 bits/point)
+
+		Ik: 2.000
+		Iw: 6.051
+		It: 91.006 (44.801, 46.204)	
+		latt: -19.963
+		Il: 19405.281
+		part1 (Ik+Iw+It+latt): 79.094 + part2 (Il+d/(2*log(2))): 19413.216 = 19492.309 bits.
+
+	 ... IMPROVEMENT ... (+ 0.750 %) 		[ACCEPT]
+
+Iteration #2
+Parent:
+	[ 1]	   350.038	   0.35019	[mus]: (58.99179, 45.39008)	[kappas]: (49.568, 60.733)	[lambda]: 43.001
+	[ 2]	   649.962	   0.64981	[mus]: (37.75422, 53.28993)	[kappas]: (48.866, 55.085)	[lambda]: 28.996
+	ID: 7
+	BVM_Sine encoding: 19492.309 bits. (19.492 bits/point)
+
+		Ik: 2.000
+		Iw: 6.051
+		It: 91.006 (44.801, 46.204)	
+		latt: -19.963
+		Il: 19405.281
+		part1 (Ik+Iw+It+latt): 79.094 + part2 (Il+d/(2*log(2))): 19413.216 = 19492.309 bits.
+
+	SPLIT component 1 ... 
+		Children:
+		[ 1]	    28.274	   0.02875	[mus]: (72.51719, 58.26950)	[kappas]: (63.964, 63.034)	[lambda]: 31.863
+		[ 2]	   971.726	   0.97125	[mus]: (58.22307, 44.66048)	[kappas]: (51.306, 63.788)	[lambda]: 44.579
+		ID: 8
+		BVM_Sine encoding: 24617.018 bits. (24.617 bits/point)
+
+		Before adjustment ...
+		[ 1]	    18.846	   0.01007	[mus]: (72.51719, 58.26950)	[kappas]: (63.964, 63.034)	[lambda]: 31.863
+		[ 2]	   331.192	   0.34012	[mus]: (58.22307, 44.66048)	[kappas]: (51.306, 63.788)	[lambda]: 44.579
+		[ 3]	   649.962	   0.64981	[mus]: (37.75422, 53.28993)	[kappas]: (48.866, 55.085)	[lambda]: 28.996
+		ID: 9
+		BVM_Sine encoding: 19525.435 bits. (19.525 bits/point)
+
+		After adjustment ...
+		[ 1]	    11.910	   0.01239	[mus]: (70.77464, 56.56785)	[kappas]: (52.806, 56.190)	[lambda]: 24.649
+		[ 2]	   334.998	   0.33500	[mus]: (58.72453, 45.03241)	[kappas]: (50.481, 61.428)	[lambda]: 43.548
+		[ 3]	   653.091	   0.65261	[mus]: (37.78169, 53.23399)	[kappas]: (48.566, 54.459)	[lambda]: 28.526
+		ID: 9
+		BVM_Sine encoding: 19524.115 bits. (19.524 bits/point)
+
+		Ik: 3.000
+		Iw: 13.230
+		It: 122.699 (31.819, 44.705, 46.175)	
+		latt: -31.931
+		Il: 19404.854
+		part1 (Ik+Iw+It+latt): 106.998 + part2 (Il+d/(2*log(2))): 19417.117 = 19524.115 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	SPLIT component 2 ... 
+		Children:
+		[ 1]	   614.933	   0.61482	[mus]: (44.08526, 59.21999)	[kappas]: (73.995, 85.426)	[lambda]: 21.831
+		[ 2]	   385.067	   0.38518	[mus]: (29.38293, 45.44985)	[kappas]: (107.695, 113.344)	[lambda]: -47.883
+		ID: 10
+		BVM_Sine encoding: 21675.149 bits. (21.675 bits/point)
+
+		Before adjustment ...
+		[ 1]	   350.038	   0.35019	[mus]: (58.99179, 45.39008)	[kappas]: (49.568, 60.733)	[lambda]: 43.001
+		[ 2]	   369.236	   0.39952	[mus]: (44.08526, 59.21999)	[kappas]: (73.995, 85.426)	[lambda]: 21.831
+		[ 3]	   280.726	   0.25030	[mus]: (29.38293, 45.44985)	[kappas]: (107.695, 113.344)	[lambda]: -47.883
+		ID: 11
+		BVM_Sine encoding: 19374.761 bits. (19.375 bits/point)
+
+		After adjustment ...
+		[ 1]	   335.751	   0.33575	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   326.037	   0.32605	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+		[ 3]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		ID: 11
+		BVM_Sine encoding: 19337.147 bits. (19.337 bits/point)
+
+		Ik: 3.000
+		Iw: 11.343
+		It: 138.135 (44.887, 46.506, 46.742)	
+		latt: -31.931
+		Il: 19204.336
+		part1 (Ik+Iw+It+latt): 120.547 + part2 (Il+d/(2*log(2))): 19216.599 = 19337.147 bits.
+
+	 ... IMPROVEMENT ... (+ 0.796 %) 		[ACCEPT]
+
+	KILL component 1 ... 
+		Residual:
+		Before adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (37.75422, 53.28993)	[kappas]: (48.866, 55.085)	[lambda]: 28.996
+		ID: 12
+		BVM_Sine encoding: 21355.881 bits. (21.356 bits/point)
+
+		After adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 12
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		Ik: 1.000
+		Iw: 0.000
+		It: 43.706 (43.706)
+		latt: -8.249
+		Il: 19599.634
+		part1 (Ik+Iw+It+latt): 36.457 + part2 (Il+d/(2*log(2))): 19603.241 = 19639.698 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	KILL component 2 ... 
+		Residual:
+		Before adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (58.99179, 45.39008)	[kappas]: (49.568, 60.733)	[lambda]: 43.001
+		ID: 13
+		BVM_Sine encoding: 24373.285 bits. (24.373 bits/point)
+
+		After adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 13
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		Ik: 1.000
+		Iw: 0.000
+		It: 43.706 (43.706)
+		latt: -8.249
+		Il: 19599.634
+		part1 (Ik+Iw+It+latt): 36.457 + part2 (Il+d/(2*log(2))): 19603.241 = 19639.698 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	JOIN components 1 and 2 ... 
+		Resultant join:
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 14
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		Before adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 15
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		After adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 15
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	JOIN components 2 and 1 ... 
+		Resultant join:
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 16
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		Before adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 17
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+		After adjustment ...
+		[ 1]	  1000.000	   1.00000	[mus]: (45.11755, 50.52585)	[kappas]: (16.209, 31.039)	[lambda]: 4.676
+		ID: 17
+		BVM_Sine encoding: 19639.698 bits. (19.640 bits/point)
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+Iteration #3
+Parent:
+	[ 1]	   335.751	   0.33575	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+	[ 2]	   326.037	   0.32605	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+	[ 3]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+	ID: 11
+	BVM_Sine encoding: 19337.147 bits. (19.337 bits/point)
+
+		Ik: 3.000
+		Iw: 11.343
+		It: 138.135 (44.887, 46.506, 46.742)	
+		latt: -31.931
+		Il: 19204.336
+		part1 (Ik+Iw+It+latt): 120.547 + part2 (Il+d/(2*log(2))): 19216.599 = 19337.147 bits.
+
+	SPLIT component 1 ... 
+		Children:
+		[ 1]	    63.538	   0.06397	[mus]: (71.72948, 57.20586)	[kappas]: (58.434, 62.836)	[lambda]: 30.504
+		[ 2]	   936.462	   0.93603	[mus]: (58.98252, 44.95363)	[kappas]: (59.030, 63.872)	[lambda]: 47.373
+		ID: 18
+		BVM_Sine encoding: 25399.710 bits. (25.400 bits/point)
+
+		Before adjustment ...
+		[ 1]	    28.968	   0.02148	[mus]: (71.72948, 57.20586)	[kappas]: (58.434, 62.836)	[lambda]: 30.504
+		[ 2]	   306.782	   0.31427	[mus]: (58.98252, 44.95363)	[kappas]: (59.030, 63.872)	[lambda]: 47.373
+		[ 3]	   326.037	   0.32605	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+		[ 4]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		ID: 19
+		BVM_Sine encoding: 19370.128 bits. (19.370 bits/point)
+
+		After adjustment ...
+		[ 1]	    23.269	   0.02372	[mus]: (70.34600, 55.72690)	[kappas]: (65.492, 68.149)	[lambda]: 33.417
+		[ 2]	   310.588	   0.31047	[mus]: (59.42976, 45.32829)	[kappas]: (57.315, 61.318)	[lambda]: 45.944
+		[ 3]	   321.624	   0.32148	[mus]: (45.33438, 60.52175)	[kappas]: (110.308, 112.915)	[lambda]: 10.550
+		[ 4]	   344.519	   0.34433	[mus]: (30.43972, 45.46549)	[kappas]: (97.719, 93.679)	[lambda]: -41.679
+		ID: 19
+		BVM_Sine encoding: 19370.730 bits. (19.371 bits/point)
+
+		Ik: 4.000
+		Iw: 17.494
+		It: 172.829 (35.202, 44.693, 46.539, 46.395)	
+		latt: -43.996
+		Il: 19203.812
+		part1 (Ik+Iw+It+latt): 150.327 + part2 (Il+d/(2*log(2))): 19220.403 = 19370.730 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	SPLIT component 2 ... 
+		Children:
+		[ 1]	   719.487	   0.71927	[mus]: (45.44443, 60.99263)	[kappas]: (98.586, 101.198)	[lambda]: 21.794
+		[ 2]	   280.513	   0.28073	[mus]: (44.87527, 59.69384)	[kappas]: (122.676, 134.709)	[lambda]: -9.176
+		ID: 20
+		BVM_Sine encoding: 25392.960 bits. (25.393 bits/point)
+
+		Before adjustment ...
+		[ 1]	   335.751	   0.33575	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   183.396	   0.23452	[mus]: (45.44443, 60.99263)	[kappas]: (98.586, 101.198)	[lambda]: 21.794
+		[ 3]	   142.641	   0.09153	[mus]: (44.87527, 59.69384)	[kappas]: (122.676, 134.709)	[lambda]: -9.176
+		[ 4]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		ID: 21
+		BVM_Sine encoding: 19377.216 bits. (19.377 bits/point)
+
+		After adjustment ...
+		[ 1]	   334.050	   0.33388	[mus]: (60.16200, 46.04698)	[kappas]: (56.091, 60.099)	[lambda]: 45.121
+		[ 2]	   220.913	   0.22097	[mus]: (45.47180, 60.88654)	[kappas]: (106.177, 109.069)	[lambda]: 23.108
+		[ 3]	   100.628	   0.10093	[mus]: (45.02417, 59.72012)	[kappas]: (128.166, 140.375)	[lambda]: -28.555
+		[ 4]	   344.410	   0.34422	[mus]: (30.43833, 45.46206)	[kappas]: (97.606, 93.512)	[lambda]: -41.619
+		ID: 21
+		BVM_Sine encoding: 19375.631 bits. (19.376 bits/point)
+
+		Ik: 4.000
+		Iw: 16.668
+		It: 179.528 (44.868, 45.078, 43.199, 46.383)	
+		latt: -43.996
+		Il: 19202.841
+		part1 (Ik+Iw+It+latt): 156.200 + part2 (Il+d/(2*log(2))): 19219.432 = 19375.631 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	SPLIT component 3 ... 
+		Children:
+		[ 1]	   774.538	   0.77426	[mus]: (28.53404, 47.32801)	[kappas]: (104.371, 107.570)	[lambda]: -37.241
+		[ 2]	   225.462	   0.22574	[mus]: (34.23930, 41.07733)	[kappas]: (138.128, 124.030)	[lambda]: -48.240
+		ID: 22
+		BVM_Sine encoding: 31058.208 bits. (31.058 bits/point)
+
+		Before adjustment ...
+		[ 1]	   335.751	   0.33575	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   326.037	   0.32605	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+		[ 3]	   233.157	   0.26186	[mus]: (28.53404, 47.32801)	[kappas]: (104.371, 107.570)	[lambda]: -37.241
+		[ 4]	   105.056	   0.07635	[mus]: (34.23930, 41.07733)	[kappas]: (138.128, 124.030)	[lambda]: -48.240
+		ID: 23
+		BVM_Sine encoding: 19379.167 bits. (19.379 bits/point)
+
+		After adjustment ...
+		[ 1]	   338.633	   0.33846	[mus]: (59.95937, 45.91356)	[kappas]: (55.536, 60.123)	[lambda]: 44.936
+		[ 2]	   322.163	   0.32202	[mus]: (45.28542, 60.50365)	[kappas]: (109.955, 112.834)	[lambda]: 11.692
+		[ 3]	   252.136	   0.25213	[mus]: (28.91379, 47.04240)	[kappas]: (101.044, 102.909)	[lambda]: -37.775
+		[ 4]	    87.069	   0.08739	[mus]: (34.09715, 41.22695)	[kappas]: (161.753, 121.091)	[lambda]: -39.214
+		ID: 23
+		BVM_Sine encoding: 19376.199 bits. (19.376 bits/point)
+
+		Ik: 4.000
+		Iw: 16.715
+		It: 179.803 (44.898, 46.539, 45.458, 42.908)	
+		latt: -43.996
+		Il: 19203.087
+		part1 (Ik+Iw+It+latt): 156.522 + part2 (Il+d/(2*log(2))): 19219.678 = 19376.199 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	KILL component 1 ... 
+		Residual:
+		Before adjustment ...
+		[ 1]	   481.317	   0.49085	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+		[ 2]	   518.683	   0.50915	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		ID: 24
+		BVM_Sine encoding: 22269.912 bits. (22.270 bits/point)
+
+		After adjustment ...
+		[ 1]	   616.395	   0.61628	[mus]: (52.35690, 55.62441)	[kappas]: (20.673, 46.549)	[lambda]: -5.088
+		[ 2]	   383.605	   0.38372	[mus]: (33.56725, 42.29651)	[kappas]: (61.103, 74.922)	[lambda]: -40.278
+		ID: 24
+		BVM_Sine encoding: 19561.747 bits. (19.562 bits/point)
+
+		Ik: 2.000
+		Iw: 6.023
+		It: 88.897 (43.352, 45.546)	
+		latt: -19.963
+		Il: 19476.854
+		part1 (Ik+Iw+It+latt): 76.958 + part2 (Il+d/(2*log(2))): 19484.789 = 19561.747 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	KILL component 2 ... 
+		Residual:
+		Before adjustment ...
+		[ 1]	   499.896	   0.49818	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   500.104	   0.50182	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		ID: 25
+		BVM_Sine encoding: 21560.419 bits. (21.560 bits/point)
+
+		After adjustment ...
+		[ 1]	   365.996	   0.36613	[mus]: (58.22551, 45.28462)	[kappas]: (43.525, 57.903)	[lambda]: 38.327
+		[ 2]	   634.004	   0.63387	[mus]: (37.67103, 53.55830)	[kappas]: (49.452, 57.583)	[lambda]: 30.443
+		ID: 25
+		BVM_Sine encoding: 19498.496 bits. (19.498 bits/point)
+
+		Ik: 2.000
+		Iw: 6.037
+		It: 90.747 (44.489, 46.259)	
+		latt: -19.963
+		Il: 19411.740
+		part1 (Ik+Iw+It+latt): 78.821 + part2 (Il+d/(2*log(2))): 19419.675 = 19498.496 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	KILL component 3 ... 
+		Residual:
+		Before adjustment ...
+		[ 1]	   509.511	   0.50733	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   490.489	   0.49267	[mus]: (45.19764, 60.42314)	[kappas]: (106.940, 111.674)	[lambda]: 13.536
+		ID: 26
+		BVM_Sine encoding: 21262.335 bits. (21.262 bits/point)
+
+		After adjustment ...
+		[ 1]	   351.711	   0.35186	[mus]: (58.91608, 45.37024)	[kappas]: (49.255, 60.874)	[lambda]: 42.930
+		[ 2]	   648.289	   0.64814	[mus]: (37.74503, 53.31281)	[kappas]: (49.032, 55.519)	[lambda]: 29.288
+		ID: 26
+		BVM_Sine encoding: 19492.440 bits. (19.492 bits/point)
+
+		Ik: 2.000
+		Iw: 6.049
+		It: 91.039 (44.815, 46.224)	
+		latt: -19.963
+		Il: 19405.380
+		part1 (Ik+Iw+It+latt): 79.126 + part2 (Il+d/(2*log(2))): 19413.315 = 19492.440 bits.
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	JOIN components 1 and 2 ... 
+		Resultant join:
+		[ 1]	  1000.000	   1.00000	[mus]: (52.71517, 53.18265)	[kappas]: (24.380, 26.169)	[lambda]: -0.370
+		ID: 27
+		BVM_Sine encoding: 20110.615 bits. (20.111 bits/point)
+
+		Before adjustment ...
+		[ 1]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		[ 2]	   661.787	   0.66179	[mus]: (52.71517, 53.18265)	[kappas]: (24.380, 26.169)	[lambda]: -0.370
+		ID: 28
+		BVM_Sine encoding: 19597.648 bits. (19.598 bits/point)
+
+		After adjustment ...
+		[ 1]	   323.252	   0.32343	[mus]: (32.53409, 42.34971)	[kappas]: (77.254, 80.234)	[lambda]: -49.417
+		[ 2]	   676.748	   0.67657	[mus]: (51.18784, 54.40212)	[kappas]: (19.165, 37.780)	[lambda]: -1.234
+		ID: 28
+		BVM_Sine encoding: 19560.130 bits. (19.560 bits/point)
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	JOIN components 2 and 1 ... 
+		Resultant join:
+		[ 1]	  1000.000	   1.00000	[mus]: (52.71517, 53.18265)	[kappas]: (24.380, 26.169)	[lambda]: -0.370
+		ID: 29
+		BVM_Sine encoding: 20110.615 bits. (20.111 bits/point)
+
+		Before adjustment ...
+		[ 1]	   338.213	   0.33821	[mus]: (30.30453, 45.38280)	[kappas]: (105.855, 101.695)	[lambda]: -49.666
+		[ 2]	   661.787	   0.66179	[mus]: (52.71517, 53.18265)	[kappas]: (24.380, 26.169)	[lambda]: -0.370
+		ID: 30
+		BVM_Sine encoding: 19597.648 bits. (19.598 bits/point)
+
+		After adjustment ...
+		[ 1]	   323.252	   0.32343	[mus]: (32.53409, 42.34971)	[kappas]: (77.254, 80.234)	[lambda]: -49.417
+		[ 2]	   676.748	   0.67657	[mus]: (51.18784, 54.40212)	[kappas]: (19.165, 37.780)	[lambda]: -1.234
+		ID: 30
+		BVM_Sine encoding: 19560.130 bits. (19.560 bits/point)
+
+	 ... NO IMPROVEMENT			[REJECT]
+
+	JOIN components 3 and 2 ... 
+		Resultant join:
+		[ 1]	  1000.000	   1.00000	[mus]: (37.64539, 52.79936)	[kappas]: (48.750, 48.040)	[lambda]: 25.297
+		ID: 31
+		BVM_Sine encoding: 21200.505 bits. (21.201 bits/point)
+
+		Before adjustment ...
+		[ 1]	   335.751	   0.33575	[mus]: (60.06886, 45.99970)	[kappas]: (55.791, 60.283)	[lambda]: 45.078
+		[ 2]	   664.249	   0.66425	[mus]: (37.64539, 52.79936)	[kappas]: (48.750, 48.040)	[lambda]: 25.297
+		ID: 32
+		BVM_Sine encoding: 19493.086 bits. (19.493 bits/point)
+
+		After adjustment ...
+		[ 1]	   342.252	   0.34241	[mus]: (59.32508, 45.41625)	[kappas]: (50.720, 59.841)	[lambda]: 43.140
+		[ 2]	   657.748	   0.65759	[mus]: (37.81639, 53.16712)	[kappas]: (48.176, 53.647)	[lambda]: 27.955
+		ID: 32
+		BVM_Sine encoding: 19492.275 bits. (19.492 bits/point)
+
+	 ... NO IMPROVEMENT			[REJECT]
+
