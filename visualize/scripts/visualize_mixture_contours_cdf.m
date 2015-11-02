@@ -10,20 +10,20 @@ function [] = visualize_mixture_contours_cdf(K)
   axis equal
   hold on;
   set(gcf, 'Color', 'w');
-  xlabel('\theta_1','fontsize',12);
-  ylabel('\theta_2','fontsize',12);
+  xlabel('\theta_1','fontsize',15);
+  ylabel('\theta_2','fontsize',15);
   %xlabel('\theta','fontsize',12);
   %ylabel('\phi','fontsize',12);
   xlabh = get(gca,'XLabel');
   ylabh = get(gca,'YLabel');
   set(xlabh,'interpreter','tex');
   set(ylabh,'interpreter','tex');
-  set(gca,'Xlim',[0 90]);
-  set(gca,'Ylim',[0 90]);
-  %set(gca,'xtick',[0:45:360],'fontsize',10);
-  %set(gca,'ytick',[0:45:360],'fontsize',10);
-  set(gca,'xtick',[0:30:90],'fontsize',10);
-  set(gca,'ytick',[0:30:90],'fontsize',10);
+  set(gca,'Xlim',[0 360]);
+  set(gca,'Ylim',[0 360]);
+  set(gca,'xtick',[0:60:360],'fontsize',10);
+  set(gca,'ytick',[0:60:360],'fontsize',10);
+  %set(gca,'xtick',[0:30:90],'fontsize',15);
+  %set(gca,'ytick',[0:30:90],'fontsize',15);
   %view ([0 0]);
 
   % plot the contours 
@@ -50,7 +50,7 @@ function [] = visualize_mixture_contours_cdf(K)
     range = max_val - min_val;
     cdf_bins = (cdf_bins - min_val) / range; % in [0,1]
 
-    level = 0.9;
+    level = 0.8;
     norm_level = (level - min_val) / range;
     contour_levels = [norm_level norm_level];
     [C,h] = contour(cdf_bins,contour_levels,'LineWidth',1.5,'LineColor','black');
@@ -77,11 +77,7 @@ function [] = visualize_mixture_contours_cdf(K)
     [row col] = ind2sub(size(prob_bins),max_index);
     cx = phi(col);
     cy = theta(row);
-    ht = text(cx,cy,num2str(k),'Color','red');
- %   [cx,cy,index] = number_component(isvmf,k);
- %   if (index > 0)
- %     ht = text(cx,cy,num2str(index),'Color','red','fontsize',8);
- %   end
+    %ht = text(cx,cy,num2str(k),'Color','red');
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -91,14 +87,14 @@ function [] = visualize_mixture_contours_cdf(K)
 %    end
   end  
 
-%  p1 = [108.911, 90.2626];
-%  p2 = [72.9007, 90.4396];
-%  plot(p1(1),p1(2),'ro');
-%  plot(p2(1),p2(2),'ro');
+%  mus = [45.11755, 50.52585];
+%  child1 = [58.41809, 45.31592];
+%  child2 = [37.69036, 53.48310];
+%  plot_init(mus,child1,child2);
 
   % plot the entire mixture density
+  %data_file = strcat(bins_folder,'mixture_density.dat');
   data_file = strcat(bins_folder,'mixture_density.dat');
-  %data_file = strcat(bins_folder,'original_mixture_density.dat');
   M = load(data_file);
 
   density = M(:,3);
@@ -108,22 +104,36 @@ function [] = visualize_mixture_contours_cdf(K)
   norm_density = (density - min1) / range1; % in [0,1]
 
   n = size(M,1);
-  angles = zeros(n,2);
+  angles = zeros(n,2);  % in radians
   angles(:,1) = M(:,1) .* 180/pi;
   angles(:,2) = M(:,2) .* 180/pi;
 
   hs = scatter3(angles(:,1),angles(:,2),norm_density,0.1,'cdata',norm_density);
 
   %colorbar
-  outfile = '';
-  output_fig = strcat('../figs/mix_example/',outfile,'.fig');
-  output_eps = strcat('../figs/mix_example/',outfile,'.eps');
-  output_pdf = strcat('../figs/mix_example/',outfile,'.pdf');
+  %outfile = 'original_mix';
+  %outfile = 'iter1_parent';
+  %outfile = 'iter1_init_c1';
+  outfile = 'class_b';
+  output_fig = strcat('../figs/',outfile,'.fig');
+  output_eps = strcat('../figs/',outfile,'.eps');
+  output_pdf = strcat('../figs/',outfile,'.pdf');
 
   %saveas(gcf,output_fig);
+  export_fig(output_pdf,'-pdf');
   %print2eps(output_eps);
-  %eps2pdf(output_eps,output_pdf,1);
-  %export_fig(output_pdf,'-pdf');
+  %eps2pdf(output_eps,output_pdf);
 
+end
+
+function [] = plot_init(mus,child1,child2)
+
+  plot(mus(1),mus(2),'r.','Markersize',35);
+  plot(child1(1),child1(2),'k.','Markersize',35);
+  plot(child2(1),child2(2),'k.','Markersize',35);
+
+%  plot(mus(1),mus(2),'k.');
+%  plot(child1(1),child1(2),'r.');
+%  plot(child2(1),child2(2),'r.');
 end
 
