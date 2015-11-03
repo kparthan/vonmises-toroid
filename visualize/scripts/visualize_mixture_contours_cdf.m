@@ -10,33 +10,40 @@ function [] = visualize_mixture_contours_cdf(K)
   axis equal
   hold on;
   set(gcf, 'Color', 'w');
-  xlabel('\theta_1','fontsize',15);
-  ylabel('\theta_2','fontsize',15);
-  %xlabel('\theta','fontsize',12);
-  %ylabel('\phi','fontsize',12);
+  %xlabel('\psi_1','fontsize',15);
+  %ylabel('\psi_2','fontsize',15);
+  xlabel('\phi','fontsize',15);
+  ylabel('\psi','fontsize',15);
   xlabh = get(gca,'XLabel');
   ylabh = get(gca,'YLabel');
   set(xlabh,'interpreter','tex');
   set(ylabh,'interpreter','tex');
-  set(gca,'Xlim',[0 360]);
-  set(gca,'Ylim',[0 360]);
-  set(gca,'xtick',[0:60:360],'fontsize',10);
-  set(gca,'ytick',[0:60:360],'fontsize',10);
-  %set(gca,'xtick',[0:30:90],'fontsize',15);
-  %set(gca,'ytick',[0:30:90],'fontsize',15);
-  %view ([0 0]);
+
+ % set(gca,'Xlim',[0 360]);
+ % set(gca,'Ylim',[0 360]);
+ % set(gca,'xtick',[0:60:360],'fontsize',10);
+ % set(gca,'ytick',[0:60:360],'fontsize',10);
+ % phi = 0:1:359.9;  % meshgrid columns (X-axis)
+ % psi = 0:1:359.9;  % meshgrid rows (Y-axis)
+
+  set(gca,'Xlim',[-180 180]);
+  set(gca,'Ylim',[-180 180]);
+  set(gca,'xtick',[-180:60:180],'fontsize',10);
+  set(gca,'ytick',[-180:60:180],'fontsize',10);
+  phi = -180:1:179.9;  % meshgrid columns (X-axis)
+  psi = -180:1:179.9;  % meshgrid rows (Y-axis)
 
   % plot the contours 
-  phi = 0:1:359.9;  % meshgrid columns
-  theta = 0:1:359.9;  % meshgrid rows 
-%  min_val = 0;
-%  max_val = 0;
   for k = 1:K
     %k
     data_file = strcat(bins_folder,'comp',num2str(k),'_prob_bins2D.dat');
-
     Mt = load(data_file);
-    prob_bins = Mt';
+    Mt_trans = Mt';
+    prob_bins = Mt_trans;
+
+    %Mt_rearranged = rearrange(Mt);  % [-180 ... 180]
+    %prob_bins = Mt_rearranged';
+
     [max_val_bins max_index] = max(prob_bins(:));
     prob_bins = prob_bins / sum(sum(prob_bins));
     [sorted_prob_bins, indexes] = sort(prob_bins(:),1,'descend');
@@ -53,7 +60,7 @@ function [] = visualize_mixture_contours_cdf(K)
     level = 0.8;
     norm_level = (level - min_val) / range;
     contour_levels = [norm_level norm_level];
-    [C,h] = contour(cdf_bins,contour_levels,'LineWidth',1.5,'LineColor','black');
+    [C,h] = contour(phi,psi,cdf_bins,contour_levels,'LineWidth',1.5,'LineColor','black');
     %[C,h] = contour(cdf_bins,1,'LineWidth',2,'LineColor','black');
     %clabel(C,h);
 
@@ -76,8 +83,8 @@ function [] = visualize_mixture_contours_cdf(K)
 
     [row col] = ind2sub(size(prob_bins),max_index);
     cx = phi(col);
-    cy = theta(row);
-    %ht = text(cx,cy,num2str(k),'Color','red');
+    cy = psi(row);
+%    ht = text(cx,cy,num2str(k),'Color','red');
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -93,7 +100,6 @@ function [] = visualize_mixture_contours_cdf(K)
 %  plot_init(mus,child1,child2);
 
   % plot the entire mixture density
-  %data_file = strcat(bins_folder,'mixture_density.dat');
   data_file = strcat(bins_folder,'mixture_density.dat');
   M = load(data_file);
 
@@ -107,6 +113,14 @@ function [] = visualize_mixture_contours_cdf(K)
   angles = zeros(n,2);  % in radians
   angles(:,1) = M(:,1) .* 180/pi;
   angles(:,2) = M(:,2) .* 180/pi;
+  for i = 1:n
+    if angles(i,1) > 180
+      angles(i,1) = angles(i,1) - 360;
+    end
+    if angles(i,2) > 180
+      angles(i,2) = angles(i,2) - 360;
+    end
+  end
 
   hs = scatter3(angles(:,1),angles(:,2),norm_density,0.1,'cdata',norm_density);
 
@@ -119,12 +133,24 @@ function [] = visualize_mixture_contours_cdf(K)
   output_eps = strcat('../figs/',outfile,'.eps');
   output_pdf = strcat('../figs/',outfile,'.pdf');
 
-  %saveas(gcf,output_fig);
+  saveas(gcf,output_fig);
   export_fig(output_pdf,'-pdf');
-  %print2eps(output_eps);
+  print2eps(output_eps);
   %eps2pdf(output_eps,output_pdf);
 
 end
+
+%function [M] = rearrange(m)
+%
+%  m1 = m(1:180,1:180);
+%  m2 = m(181:360,1:180);
+%  m3 = m(181:360,181:360);
+%  m4 = m(1:180,181:360);
+%
+%  %M = [m2 m1; m3 m4];
+%  M = [m3 m4; m2 m1];
+%
+%end
 
 function [] = plot_init(mus,child1,child2)
 
