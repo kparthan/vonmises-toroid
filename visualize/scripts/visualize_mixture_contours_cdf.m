@@ -64,27 +64,14 @@ function [] = visualize_mixture_contours_cdf(K)
     %[C,h] = contour(cdf_bins,1,'LineWidth',2,'LineColor','black');
     %clabel(C,h);
 
-%    [c1,h1] = contour(cdf_bins,contour_levels,'LineWidth',2,'LineColor','black');
-%    % Take all the info from the contourline output argument:
-%    i0 = 1;
-%    i2 = 1;       
-%    while i0 <  length(c1)
-%        i1 = i0+[1:c1(2,i0)];
-%        zLevel(i2) = c1(1,i0);
-%        hold on
-%        % And plot it with dashed lines:
-%        %ph(i2) = plot(c1(1,i1),c1(2,i1),'k--','linewidth',2); 
-%        ph(i2) = dashline(c1(1,i1),c1(2,i1),1.5,3,1.5,3,'Color','black','linewidth',2); 
-%        i0 = i1(end)+1;
-%        i2 = i2+1;
-%    end
-%    % Scrap the contourlines:
-%    delete(h1);
-
     [row col] = ind2sub(size(prob_bins),max_index);
     cx = phi(col);
     cy = psi(row);
 %    ht = text(cx,cy,num2str(k),'Color','red');
+    [cx,cy,index] = number_component(k);
+    if (index > 0)
+      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10,'fontweight','bold');
+    end
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -128,7 +115,7 @@ function [] = visualize_mixture_contours_cdf(K)
   %outfile = 'original_mix';
   %outfile = 'iter1_parent';
   %outfile = 'iter1_init_c1';
-  outfile = 'class_b';
+  outfile = 'class_b_numbered_select';
   output_fig = strcat('../figs/',outfile,'.fig');
   output_eps = strcat('../figs/',outfile,'.eps');
   output_pdf = strcat('../figs/',outfile,'.pdf');
@@ -140,18 +127,6 @@ function [] = visualize_mixture_contours_cdf(K)
 
 end
 
-%function [M] = rearrange(m)
-%
-%  m1 = m(1:180,1:180);
-%  m2 = m(181:360,1:180);
-%  m3 = m(181:360,181:360);
-%  m4 = m(1:180,181:360);
-%
-%  %M = [m2 m1; m3 m4];
-%  M = [m3 m4; m2 m1];
-%
-%end
-
 function [] = plot_init(mus,child1,child2)
 
   plot(mus(1),mus(2),'r.','Markersize',35);
@@ -161,5 +136,45 @@ function [] = plot_init(mus,child1,child2)
 %  plot(mus(1),mus(2),'k.');
 %  plot(child1(1),child1(2),'r.');
 %  plot(child2(1),child2(2),'r.');
+end
+
+function [cx,cy,index] = number_component(k)
+
+  cx = 1; cy = 1; index = -1;
+
+  if (k == 16)
+    cx = -175; cy = 135; index = 1;
+  elseif (k == 15)
+    cx = -145; cy = 105; index = 2;
+  elseif (k == 21)
+    cx = -120; cy = 97; index = 3;
+  elseif (k == 13)
+    cx = -45; cy = 150; index = 4;
+  elseif (k == 14)
+    cx = -52; cy = 170; index = 5;
+  elseif (k == 5)
+    cx = -155; cy = 55; index = 6;
+  elseif (k == 7)
+    cx = -65; cy = 85; index = 7;
+  elseif (k == 6)
+    cx = -20; cy = 100; index = 8;
+  elseif (k == 2)
+    cx = -145; cy = 0; index = 9;
+  elseif (k == 1)
+    cx = -125; cy = 15; index = 10;
+  elseif (k == 20)
+    cx = -90; cy = -75; index = 11;
+  elseif (k == 4)
+    cx = -90; cy = -50; index = 12;
+  elseif (k == 3)
+    cx = -55; cy = -10; index = 13;
+  elseif (k == 12)
+    cx = 10; cy = 50; index = 14;
+  elseif (k == 8)
+    cx = 30; cy = 70; index = 15;
+  elseif (k == 9)
+    cx = 110; cy = -15; index = 16;
+  end
+
 end
 
