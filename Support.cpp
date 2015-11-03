@@ -1232,7 +1232,7 @@ std::vector<Vector> sample_empirical_distribution(
   int N, double res, std::vector<std::vector<int> > &true_bins
 ) {
   struct Parameters parameters;
-  parameters.profile_file = "./data/dihedral_angles.dat";
+  parameters.profile_file = "./data/dihedral_angles.dat"; // full data distribution
 
   std::vector<Vector> data;
   gatherData(parameters,data);

@@ -1317,10 +1317,11 @@ void Mixture_Sine::generateHeatmapData(double res)
   ofstream fbins2D(data_fbins2D.c_str());
   ofstream fbins3D(data_fbins3D.c_str());
   Vector angle_pair(2,0);
-  Vector cartesian(3,0);
-  for (double theta=0; theta<360; theta+=res) {
+  //for (double theta=0; theta<360; theta+=res) {
+  for (double theta=-180; theta<180; theta+=res) {
     angle_pair[0] = theta * PI/180;
-    for (double phi=0; phi<360; phi+=res) {
+    //for (double phi=0; phi<360; phi+=res) {
+    for (double phi=-180; phi<180; phi+=res) {
       angle_pair[1] = phi * PI/180;
       double pr = exp(log_probability(angle_pair));
       // 2D bins
@@ -1341,9 +1342,11 @@ void Mixture_Sine::generateHeatmapData(double res)
                    + "_prob_bins2D.dat";
     ofstream out(fbins.c_str());
     Vector angle_pair(2,0);
-    for (double theta=0; theta<360; theta+=res) {
+    //for (double theta=0; theta<360; theta+=res) {
+    for (double theta=-180; theta<180; theta+=res) {
       angle_pair[0] = theta * PI/180;
-      for (double phi=0; phi<360; phi+=res) {
+      //for (double phi=0; phi<360; phi+=res) {
+      for (double phi=-180; phi<180; phi+=res) {
         angle_pair[1] = phi * PI/180;
         double pr = exp(components[i].log_density(angle_pair));
         out << scientific << setprecision(6) << pr << "\t";
