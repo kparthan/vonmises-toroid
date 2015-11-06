@@ -12,12 +12,14 @@ OBJECTS = main.o \
   Normal.o  \
   vMC.o \
   Mixture_vMC.o \
+  BVM_Ind.o \
   BVM_Sine.o \
   MarginalDensitySine.o \
   BVM_Cosine.o \
   MarginalDensityCosine.o \
   KappaSolver.o \
   OptimizeSine.o \
+  OptimizeInd.o \
   OptimizeCosine.o \
   Mixture_Sine.o \
   Test.o \
@@ -46,6 +48,9 @@ vMC.o: vMC.cpp vMC.h Header.h
 Mixture_vMC.o: Mixture_vMC.cpp Mixture_vMC.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
+BVM_Ind.o: BVM_Ind.cpp BVM_Ind.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
 BVM_Sine.o: BVM_Sine.cpp BVM_Sine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
@@ -59,6 +64,9 @@ MarginalDensityCosine.o: MarginalDensityCosine.cpp MarginalDensityCosine.h Heade
 	g++ $(CFLAGS) $< -o $@
 
 KappaSolver.o: KappaSolver.cpp KappaSolver.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+OptimizeInd.o: OptimizeInd.cpp OptimizeInd.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 OptimizeSine.o: OptimizeSine.cpp OptimizeSine.h Header.h

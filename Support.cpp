@@ -681,6 +681,17 @@ double computeLogModifiedBesselFirstKind(double alpha, double z)
 //  return log(cyl_bessel_i(alpha,z));
 }
 
+//  A'_d = 1 - A_d^2 - ((d-1)/kappa) A_d  ... Mardia (2000) book pg. 350
+//  for d = 2 ...
+double computeDerivativeOfRatioBessel(double kappa, double A)
+{
+  double ans = 1 - (A * A);
+  double tmp = A / kappa;
+  ans -= tmp;
+  assert(ans > 0);
+  return ans;
+}
+
 // A_d(k) = I_{d/2}(k) / I_{d/2-1}(k)
 double computeLogRatioBessel(double d, double kappa)
 {
@@ -2064,6 +2075,176 @@ double banerjee_approx(double &rbar)
   double denom = 1 - rbarsq;
   double num = rbar * (denom + 1);
   return num/denom;
+}
+
+/* Sufficient statistics for the Independent model */
+// data = angle_pairs
+void computeSufficientStatisticsIndNotParallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsInd &suff_stats
+) {
+  suff_stats.N = data.size();
+
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += cost1;
+    suff_stats.cost2 += cost2;
+    suff_stats.sint1 += sint1;
+    suff_stats.sint2 += sint2;
+  } // for()
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsInd(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsInd &suff_stats
+) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsIndNotParallel(data,suff_stats);
+  }
+
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+
+  std::vector<struct SufficientStatisticsInd> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += 1;
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += cost1;
+      suff_stats_vector[tid].cost2 += cost2;
+      suff_stats_vector[tid].sint1 += sint1;
+      suff_stats_vector[tid].sint2 += sint2;
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsIndNotParallel(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsInd &suff_stats,
+  Vector &weights
+) {
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+
+  for (int i=0; i<data.size(); i++) {
+    suff_stats.N += weights[i];
+
+    double t1 = data[i][0];
+    double cost1 = cos(t1) ;
+    double sint1 = sin(t1) ;
+    double t2 = data[i][1];
+    double cost2 = cos(t2) ;
+    double sint2 = sin(t2) ;
+ 
+    suff_stats.cost1 += (weights[i] * cost1);
+    suff_stats.cost2 += (weights[i] * cost2);
+    suff_stats.sint1 += (weights[i] * sint1);
+    suff_stats.sint2 += (weights[i] * sint2);
+  } // for()
+
+  //print(suff_stats);
+}
+
+// data = angle_pairs
+void computeSufficientStatisticsInd(
+  std::vector<Vector> &data,
+  struct SufficientStatisticsInd &suff_stats,
+  Vector &weights
+) {
+
+  if (NUM_THREADS == 1) {
+    return computeSufficientStatisticsIndNotParallel(data,suff_stats,weights);
+  }
+
+  // empty the existing sufficient stats
+  suff_stats.N = 0;
+  suff_stats.cost1 = 0; suff_stats.cost2 = 0;
+  suff_stats.sint1 = 0; suff_stats.sint2 = 0;
+
+  std::vector<struct SufficientStatisticsInd> suff_stats_vector(NUM_THREADS);
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats_vector[i] = suff_stats;
+  } // for (i)
+
+  int tid;
+  #pragma omp parallel if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(tid) 
+  {
+    tid = omp_get_thread_num();
+    #pragma omp for
+    for (int i=0; i<data.size(); i++) {
+      suff_stats_vector[tid].N += weights[i];
+
+      double t1 = data[i][0];
+      double cost1 = cos(t1) ;
+      double sint1 = sin(t1) ;
+      double t2 = data[i][1];
+      double cost2 = cos(t2) ;
+      double sint2 = sin(t2) ;
+
+      suff_stats_vector[tid].cost1 += (weights[i] * cost1);
+      suff_stats_vector[tid].cost2 += (weights[i] * cost2);
+      suff_stats_vector[tid].sint1 += (weights[i] * sint1);
+      suff_stats_vector[tid].sint2 += (weights[i] * sint2);
+    } // for (i)
+  } // pragma omp parallel
+
+  for (int i=0; i<NUM_THREADS; i++) {
+    suff_stats.N += suff_stats_vector[i].N;
+
+    suff_stats.cost1 += suff_stats_vector[i].cost1;
+    suff_stats.cost2 += suff_stats_vector[i].cost2;
+    suff_stats.sint1 += suff_stats_vector[i].sint1;
+    suff_stats.sint2 += suff_stats_vector[i].sint2;
+
+    //cout << "suff_stats[" << i << "]:\n"; print(suff_stats_vector[i]);
+  } // for (i)
+
+  //print(suff_stats);
 }
 
 /* Sufficient statistics for the Sine model */

@@ -1,6 +1,8 @@
 #include "vMC.h"
 #include "Support.h"
 
+extern int ESTIMATION;
+
 /*!
  *  \brief This is a constructor module
  */

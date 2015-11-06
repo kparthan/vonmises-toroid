@@ -42,6 +42,19 @@ struct TerminationCondition  {
   }
 };
 
+struct EstimatesInd
+{
+  double mu1,mu2;
+  double kappa1,kappa2;
+  double msglen,negloglike,kldiv;
+};
+
+struct SufficientStatisticsInd
+{
+  double N;
+  double cost1,sint1,cost2,sint2;
+};
+
 struct EstimatesSine
 {
   double mu1,mu2;
@@ -98,6 +111,7 @@ double computeSum(Vector &);
 double computeLogSurfaceAreaSphere(int);
 double uniform_random();
 double computeLogModifiedBesselFirstKind(double, double);
+double computeDerivativeOfRatioBessel(double, double);
 double computeLogRatioBessel(double, double);
 double computeRatioBessel(double);
 
@@ -174,6 +188,19 @@ double accept_reject_fval_bimodal_marginal_cosine(
 );
 
 double banerjee_approx(double &);
+void computeSufficientStatisticsIndNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsInd &
+);
+void computeSufficientStatisticsInd(
+  std::vector<Vector> &, struct SufficientStatisticsInd &
+);
+void computeSufficientStatisticsIndNotParallel(
+  std::vector<Vector> &, struct SufficientStatisticsInd &, Vector &
+);
+void computeSufficientStatisticsInd(
+  std::vector<Vector> &, struct SufficientStatisticsInd &, Vector &
+);
+
 void computeSufficientStatisticsSineNotParallel(
   std::vector<Vector> &, struct SufficientStatisticsSine &
 );
