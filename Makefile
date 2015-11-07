@@ -21,6 +21,7 @@ OBJECTS = main.o \
   OptimizeSine.o \
   OptimizeInd.o \
   OptimizeCosine.o \
+  Mixture_Ind.o \
   Mixture_Sine.o \
   Test.o \
   Experiments.o
@@ -73,6 +74,9 @@ OptimizeSine.o: OptimizeSine.cpp OptimizeSine.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 OptimizeCosine.o: OptimizeCosine.cpp OptimizeCosine.h Header.h
+	g++ $(CFLAGS) $< -o $@
+
+Mixture_Ind.o: Mixture_Ind.cpp Mixture_Ind.h Header.h
 	g++ $(CFLAGS) $< -o $@
 
 Mixture_Sine.o: Mixture_Sine.cpp Mixture_Sine.h Header.h
