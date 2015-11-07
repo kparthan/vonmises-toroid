@@ -73,8 +73,9 @@ typedef boost::numeric::ublas::zero_matrix<double> ZeroMatrix;
 #define SET 1 
 #define UNSET 0
 
-#define SINE 0
-#define COSINE 1
+#define INDEPENDENT 0
+#define SINE 1
+#define COSINE 2
 
 #define NUM_METHODS 4 
 #define MLE 0 

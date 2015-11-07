@@ -2,6 +2,7 @@
 #include "Mixture_vMC.h"
 #include "Test.h"
 #include "Structure.h"
+#include "BVM_Ind.h"
 #include "BVM_Sine.h"
 #include "UniformRandomNumberGenerator.h"
 #include "Experiments.h"
@@ -132,7 +133,9 @@ struct Parameters parseCommandLineInput(int argc, char **argv)
   }
 
   if (vm.count("pdf")) {
-    if (pdf.compare("sine") == 0) {
+    if (pdf.compare("ind") == 0) {
+      DISTRIBUTION = INDEPENDENT;
+    } else if (pdf.compare("sine") == 0) {
       DISTRIBUTION = SINE;
     } else if (pdf.compare("cosine") == 0) {
       DISTRIBUTION = COSINE;
@@ -1408,7 +1411,11 @@ void modelOneComponent(struct Parameters &parameters, std::vector<Vector> &angle
 {
   cout << "Sample size: " << angle_pairs.size() << endl;
   Vector weights(angle_pairs.size(),1);
-  if (DISTRIBUTION == SINE) {
+  if (DISTRIBUTION == INDEPENDENT) {
+    BVM_Ind bvm_ind;
+    std::vector<struct EstimatesInd> all_estimates;
+    bvm_ind.computeAllEstimators(angle_pairs,all_estimates,1,0);
+  } else if (DISTRIBUTION == SINE) {
     BVM_Sine bvm_sine;
     std::vector<struct EstimatesSine> all_estimates;
     bvm_sine.computeAllEstimators(angle_pairs,all_estimates,1,0);
@@ -1420,7 +1427,26 @@ void modelMixture(struct Parameters &parameters, std::vector<Vector> &data)
 {
   Vector data_weights(data.size(),1);
   // if the optimal number of components need to be determined
-  if (DISTRIBUTION == SINE) {
+  if (DISTRIBUTION == INDEPENDENT) {
+    if (parameters.infer_num_components == SET) {
+      Mixture_Ind mixture;
+      if (parameters.continue_inference == UNSET) {
+        Mixture_Ind m(parameters.start_from,data,data_weights);
+        mixture = m;
+        mixture.estimateParameters();
+      } else if (parameters.continue_inference == SET) {
+        mixture.load(parameters.mixture_file,data,data_weights);
+      } // continue_inference
+      ofstream log(parameters.infer_log.c_str());
+      Mixture_Ind stable = inferComponents(mixture,data.size(),log);
+      log.close();
+    } else if (parameters.infer_num_components == UNSET) {
+      // for a given value of number of components
+      // do the mixture modelling
+      Mixture_Ind mixture(parameters.fit_num_components,data,data_weights);
+      mixture.estimateParameters();
+    }
+  } else if (DISTRIBUTION == SINE) {
     if (parameters.infer_num_components == SET) {
       Mixture_Sine mixture;
       if (parameters.continue_inference == UNSET) {
@@ -1446,7 +1472,58 @@ void modelMixture(struct Parameters &parameters, std::vector<Vector> &data)
 void simulateMixtureModel(struct Parameters &parameters)
 {
   std::vector<Vector> data;
-  if (DISTRIBUTION == SINE) {
+  if (DISTRIBUTION == INDEPENDENT) {
+    if (parameters.load_mixture == SET) {
+      Mixture_Ind original;
+      original.load(parameters.mixture_file);
+      bool save = 1;
+      if (parameters.read_profiles == SET) {
+        bool success = gatherData(parameters,data);
+        if (!success) {
+          cout << "Error in reading data...\n";
+          exit(1);
+        }
+      } else if (parameters.read_profiles == UNSET) {
+        data = original.generate(parameters.sample_size,save);
+      }
+      double msglen = original.compress(data);
+      if (parameters.heat_map == SET) {
+        original.generateHeatmapData(parameters.res);
+        std::vector<std::vector<int> > bins = updateBins(data,parameters.res);
+        outputBins(bins,parameters.res);
+        /* save mixture_density if not already done */
+        if (parameters.read_profiles == SET) {
+          string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
+          ofstream mix(mix_density_file.c_str());
+          double mix_density;
+          for (int i=0; i<data.size(); i++) {
+            mix_density = exp(original.log_probability(data[i]));
+            for (int j=0; j<data[i].size(); j++) {
+              mix << scientific << setprecision(6) << data[i][j] << "\t\t";
+            } // j
+            mix << scientific << setprecision(6) << mix_density << endl;
+          } // i
+          mix.close();
+        } // if (parameters.read_profiles == SET) {
+      } // if (parameters.heat_map == SET)
+    } else if (parameters.load_mixture == UNSET) {
+      int k = parameters.simulated_components;
+      //srand(time(NULL));
+      Vector weights = generateFromSimplex(k);
+      std::vector<BVM_Ind> components = generateRandomComponentsInd(k);
+      Mixture_Ind original(k,components,weights);
+      bool save = 1;
+      data = original.generate(parameters.sample_size,save);
+      // save the simulated mixture
+      ofstream file("./simulation/simulated_mixture_bvm_ind");
+      for (int i=0; i<k; i++) {
+        file << fixed << setw(10) << setprecision(5) << weights[i];
+        file << "\t";
+        components[i].printParameters(file);
+      }
+      file.close();
+    } // if (parameters.load_mixture == SET) {
+  } else if (DISTRIBUTION == SINE) {
     if (parameters.load_mixture == SET) {
       Mixture_Sine original;
       original.load(parameters.mixture_file);
@@ -1484,19 +1561,19 @@ void simulateMixtureModel(struct Parameters &parameters)
       int k = parameters.simulated_components;
       //srand(time(NULL));
       Vector weights = generateFromSimplex(k);
-      std::vector<BVM_Sine> components = generateRandomComponents(k);
+      std::vector<BVM_Sine> components = generateRandomComponentsSine(k);
       Mixture_Sine original(k,components,weights);
       bool save = 1;
       data = original.generate(parameters.sample_size,save);
       // save the simulated mixture
-      ofstream file("./simulation/simulated_mixture");
+      ofstream file("./simulation/simulated_mixture_bvm_sine");
       for (int i=0; i<k; i++) {
         file << fixed << setw(10) << setprecision(5) << weights[i];
         file << "\t";
         components[i].printParameters(file);
       }
       file.close();
-    }
+    } // if (parameters.load_mixture == SET) {
   } else if (DISTRIBUTION == COSINE) {
   }
 
@@ -1528,7 +1605,21 @@ Vector generateFromSimplex(int K)
   return values;
 }
 
-std::vector<BVM_Sine> generateRandomComponents(int num_components)
+std::vector<BVM_Ind> generateRandomComponentsInd(int num_components)
+{
+  std::vector<BVM_Ind> components;
+  for (int i=0; i<num_components; i++) {
+    double mu1 = uniform_random() * 2 * PI;
+    double mu2 = uniform_random() * 2 * PI;
+    double kappa1 = uniform_random() * MAX_KAPPA;
+    double kappa2 = uniform_random() * MAX_KAPPA;
+    BVM_Ind bvm_ind(mu1,mu2,kappa1,kappa2);
+    components.push_back(bvm_ind);
+  }
+  return components;
+}
+
+std::vector<BVM_Sine> generateRandomComponentsSine(int num_components)
 {
   std::vector<BVM_Sine> components;
   for (int i=0; i<num_components; i++) {
@@ -1536,31 +1627,31 @@ std::vector<BVM_Sine> generateRandomComponents(int num_components)
     double mu2 = uniform_random() * 2 * PI;
     double kappa1 = uniform_random() * MAX_KAPPA;
     double kappa2 = uniform_random() * MAX_KAPPA;
-    double pho = (uniform_random() * 2 - 1);
-    double lambda = pho * sqrt(kappa1 * kappa2);
+    double rho = (uniform_random() * 2 - 1);
+    double lambda = rho * sqrt(kappa1 * kappa2);
     BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
     components.push_back(bvm_sine);
   }
   return components;
 }
 
-Mixture_Sine inferComponents(std::vector<Vector> &data, string &log_file)
+Mixture_Ind inferComponentsInd(std::vector<Vector> &data, string &log_file)
 {
   Vector data_weights(data.size(),1.0);
-  Mixture_Sine m(1,data,data_weights);
-  Mixture_Sine mixture = m;
+  Mixture_Ind m(1,data,data_weights);
+  Mixture_Ind mixture = m;
   mixture.estimateParameters();
   ofstream log(log_file.c_str());
-  Mixture_Sine inferred = inferComponents(mixture,data.size(),log);
+  Mixture_Ind inferred = inferComponents(mixture,data.size(),log);
   log.close();
   return inferred;
 }
 
-Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
+Mixture_Ind inferComponents(Mixture_Ind &mixture, int N, ostream &log)
 {
   int K,iter = 0;
-  std::vector<BVM_Sine> components;
-  Mixture_Sine modified,improved,parent;
+  std::vector<BVM_Ind> components;
+  Mixture_Ind modified,improved,parent;
   Vector sample_size;
 
   double null_msglen = mixture.computeNullModelMessageLength();
@@ -1569,10 +1660,17 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
 
   improved = mixture;
 
+  ofstream summary("bvm_ind_summary");
+
   while (1) {
     parent = improved;
     iter++;
     log << "Iteration #" << iter << endl;
+    summary << setw(10) << iter << "\t";
+    summary << setw(10) << parent.getNumberOfComponents() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.first_part() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.second_part() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.getMinimumMessageLength() << endl;
     log << "Parent:\n";
     parent.printParameters(log,1);
     parent.printIndividualMsgLengths(log);
@@ -1610,18 +1708,143 @@ Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
   } // if (improved == parent || iter%2 == 0) loop
 
   finish:
-  string inferred_mixture_file = "./simulation/inferred_mixture";
+  summary.close();
+  string inferred_mixture_file = "inferred_mixture_bvm_ind";
   parent.printParameters(inferred_mixture_file);
   return parent;
 }
 
-/*!
- *  \brief Updates the inference
- *  \param modified a reference to a Mixture_Sine
- *  \param current a reference to a Mixture_Sine
- *  \param log a reference to a ostream
- *  \param operation an integer
- */
+void updateInference(
+  Mixture_Ind &modified, 
+  Mixture_Ind &current, 
+  int N, 
+  ostream &log, 
+  int operation
+) {
+  double improvement_rate;
+  double modified_value = modified.getMinimumMessageLength();
+  double current_value = current.getMinimumMessageLength();
+
+  if (current_value > modified_value) {
+    improvement_rate = (current_value - modified_value) / fabs(current_value);
+    //if (operation == KILL || operation == JOIN || operation == SPLIT) {
+    if (operation == KILL || operation == JOIN) {
+      log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+          << 100 * improvement_rate << " %) ";
+      log << "\t\t[ACCEPT]\n\n";
+      current = modified;
+    } // kill | join 
+    if (operation == SPLIT) {
+      if (improvement_rate >= IMPROVEMENT_RATE) {
+        log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+            << 100 * improvement_rate << " %) ";
+        log << "\t\t[ACCEPT]\n\n";
+        current = modified;
+      } else {
+        log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+            << 100 * improvement_rate << " %) < (" 
+            << 100 * IMPROVEMENT_RATE << " %)" ;
+        log << "\t\t[REJECT]\n\n";
+      } // if-else() 
+    } // split
+  } else {
+    log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
+  } // if (current > modified)
+
+/*
+  if (operation == KILL || operation == JOIN || operation == SPLIT) {
+    if (current_value > modified_value) {
+      improvement_rate = (current_value - modified_value) / fabs(current_value);
+      log << "\t ... IMPROVEMENT ... (+ " << fixed << setprecision(3) 
+          << 100 * improvement_rate << " %) ";
+      log << "\t\t[ACCEPT]\n\n";
+      current = modified;
+    } else {
+      log << "\t ... NO IMPROVEMENT\t\t\t[REJECT]\n\n";
+    } // if (current_value > modified_value)
+  } // if (operation)
+*/
+}
+
+Mixture_Sine inferComponentsSine(std::vector<Vector> &data, string &log_file)
+{
+  Vector data_weights(data.size(),1.0);
+  Mixture_Sine m(1,data,data_weights);
+  Mixture_Sine mixture = m;
+  mixture.estimateParameters();
+  ofstream log(log_file.c_str());
+  Mixture_Sine inferred = inferComponents(mixture,data.size(),log);
+  log.close();
+  return inferred;
+}
+
+Mixture_Sine inferComponents(Mixture_Sine &mixture, int N, ostream &log)
+{
+  int K,iter = 0;
+  std::vector<BVM_Sine> components;
+  Mixture_Sine modified,improved,parent;
+  Vector sample_size;
+
+  double null_msglen = mixture.computeNullModelMessageLength();
+  log << "Null model encoding: " << null_msglen << " bits."
+      << "\t(" << null_msglen/N << " bits/point)\n\n";
+
+  improved = mixture;
+
+  ofstream summary("bvm_sine_summary");
+
+  while (1) {
+    parent = improved;
+    iter++;
+    log << "Iteration #" << iter << endl;
+    summary << setw(10) << iter << "\t";
+    summary << setw(10) << parent.getNumberOfComponents() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.first_part() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.second_part() << "\t";
+    summary << fixed << scientific << setprecision(6) << parent.getMinimumMessageLength() << endl;
+    log << "Parent:\n";
+    parent.printParameters(log,1);
+    parent.printIndividualMsgLengths(log);
+    components = parent.getComponents();
+    sample_size = parent.getSampleSize();
+    K = components.size();
+    for (int i=0; i<K; i++) { // split() ...
+      if (sample_size[i] > MIN_N) {
+        IGNORE_SPLIT = 0;
+        cout << "Splitting component " << i+1 << " ...\n";
+        modified = parent.split(i,log);
+        if (IGNORE_SPLIT == 0) {
+          updateInference(modified,improved,N,log,SPLIT);
+        } else {
+          log << "\t\tIGNORING SPLIT ... \n\n";
+        }
+      }
+    } // split() ends ... 
+    if (K >= 2) {  // kill() ...
+      for (int i=0; i<K; i++) {
+        cout << "Deleting component " << i+1 << " ...\n";
+        modified = parent.kill(i,log);
+        updateInference(modified,improved,N,log,KILL);
+      } // killing each component
+    } // if (K > 2) loop
+    if (K > 1) {  // join() ...
+      for (int i=0; i<K; i++) {
+        int j = parent.getNearestComponent(i); // closest component
+        cout << "Merging components " << i+1 << " and " << j+1 << " ...\n";
+        modified = parent.join(i,j,log);
+        updateInference(modified,improved,N,log,JOIN);
+      } // join() ing nearest components
+    } // if (K > 1) loop
+    if (improved == parent) goto finish;
+  } // if (improved == parent || iter%2 == 0) loop
+
+  finish:
+  summary.close();
+  string inferred_mixture_file = "inferred_mixture_bvm_sine";
+  parent.printParameters(inferred_mixture_file);
+  return parent;
+}
+
 void updateInference(
   Mixture_Sine &modified, 
   Mixture_Sine &current, 
@@ -1629,32 +1852,9 @@ void updateInference(
   ostream &log, 
   int operation
 ) {
-  double modified_value,current_value,improvement_rate;
-
-  /*switch(CRITERION) {
-    case AIC:
-      modified_value = modified.getAIC();
-      current_value = current.getAIC();
-      break;
-
-    case BIC:
-      modified_value = modified.getBIC();
-      current_value = current.getBIC();
-      break;
-
-    case ICL:
-      modified_value = modified.getICL();
-      current_value = current.getICL();
-      break;
-
-    case MMLC:
-      modified_value = modified.getMinimumMessageLength();
-      current_value = current.getMinimumMessageLength();
-      break;
-  }*/
-
-  modified_value = modified.getMinimumMessageLength();
-  current_value = current.getMinimumMessageLength();
+  double improvement_rate;
+  double modified_value = modified.getMinimumMessageLength();
+  double current_value = current.getMinimumMessageLength();
 
   if (current_value > modified_value) {
     improvement_rate = (current_value - modified_value) / fabs(current_value);

@@ -2,6 +2,7 @@
 #define SUPPORT_H
 
 #include "Header.h"
+#include "Mixture_Ind.h"
 #include "Mixture_Sine.h"
 #include "vMC.h"
 
@@ -168,8 +169,14 @@ void modelOneComponent(struct Parameters &, std::vector<Vector> &);
 void modelMixture(struct Parameters &, std::vector<Vector> &);
 void simulateMixtureModel(struct Parameters &);
 Vector generateFromSimplex(int);
-std::vector<BVM_Sine> generateRandomComponents(int);
-Mixture_Sine inferComponents(std::vector<Vector> &, string &);
+
+std::vector<BVM_Ind> generateRandomComponentsInd(int);
+Mixture_Ind inferComponentsInd(std::vector<Vector> &, string &);
+Mixture_Ind inferComponents(Mixture_Ind &, int, ostream &);
+void updateInference(Mixture_Ind &, Mixture_Ind &, int, ostream &, int);
+
+std::vector<BVM_Sine> generateRandomComponentsSine(int);
+Mixture_Sine inferComponentsSine(std::vector<Vector> &, string &);
 Mixture_Sine inferComponents(Mixture_Sine &, int, ostream &);
 void updateInference(Mixture_Sine &, Mixture_Sine &, int, ostream &, int);
 
