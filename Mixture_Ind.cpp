@@ -1,6 +1,6 @@
-#include "Mixture_Sine.h"
+#include "Mixture_Ind.h"
 #include "Support.h"
-#include "OptimizeSine.h"
+#include "OptimizeInd.h"
 
 extern int MIXTURE_ID;
 extern int MIXTURE_SIMULATION;
@@ -18,19 +18,19 @@ extern string EM_LOG_FOLDER;
 /*!
  *  \brief Null constructor module
  */
-Mixture_Sine::Mixture_Sine()
+Mixture_Ind::Mixture_Ind()
 {
   id = MIXTURE_ID++;
 }
 
 /*!
- *  \brief This is a constructor function which instantiates a Mixture_Sine
+ *  \brief This is a constructor function which instantiates a Mixture_Ind
  *  \param K an integer
- *  \param components a reference to a std::vector<BVM_Sine>
+ *  \param components a reference to a std::vector<BVM_Ind>
  *  \param weights a reference to a Vector 
  */
-Mixture_Sine::Mixture_Sine(
-  int K, std::vector<BVM_Sine> &components, Vector &weights
+Mixture_Ind::Mixture_Ind(
+  int K, std::vector<BVM_Ind> &components, Vector &weights
 ) : K(K), components(components), weights(weights)
 {
   assert(components.size() == K);
@@ -47,7 +47,7 @@ Mixture_Sine::Mixture_Sine(
  *  \param data a reference to a std::vector<Vector>
  *  \param data_weights a reference to a Vector
  */
-Mixture_Sine::Mixture_Sine(
+Mixture_Ind::Mixture_Ind(
   int K, std::vector<Vector> &data, Vector &data_weights
 ) : K(K), data(data), data_weights(data_weights)
 {
@@ -62,16 +62,16 @@ Mixture_Sine::Mixture_Sine(
 /*!
  *  \brief This is a constructor function.
  *  \param K an integer
- *  \param components a reference to a std::vector<BVM_Sine>
+ *  \param components a reference to a std::vector<BVM_Ind>
  *  \param weights a reference to a Vector
  *  \param sample_size a reference to a Vector
  *  \param responsibility a reference to a std::vector<Vector>
  *  \param data a reference to a std::vector<Vector>
  *  \param data_weights a reference to a Vector
  */
-Mixture_Sine::Mixture_Sine(
+Mixture_Ind::Mixture_Ind(
   int K, 
-  std::vector<BVM_Sine> &components, 
+  std::vector<BVM_Ind> &components, 
   Vector &weights,
   Vector &sample_size, 
   std::vector<Vector> &responsibility,
@@ -93,10 +93,10 @@ Mixture_Sine::Mixture_Sine(
 }
 
 /*!
- *  \brief This function assigns a source Mixture_Sine distribution.
- *  \param source a reference to a Mixture_Sine
+ *  \brief This function assigns a source Mixture_Ind distribution.
+ *  \param source a reference to a Mixture_Ind
  */
-Mixture_Sine Mixture_Sine::operator=(const Mixture_Sine &source)
+Mixture_Ind Mixture_Ind::operator=(const Mixture_Ind &source)
 {
   if (this != &source) {
     id = source.id;
@@ -128,11 +128,11 @@ Mixture_Sine Mixture_Sine::operator=(const Mixture_Sine &source)
 }
 
 /*!
- *  \brief This function checks whether the two Mixture_Sine objects are the same.
- *  \param other a reference to a Mixture_Sine
+ *  \brief This function checks whether the two Mixture_Ind objects are the same.
+ *  \param other a reference to a Mixture_Ind
  *  \return whether they are the same object or not
  */
-bool Mixture_Sine::operator==(const Mixture_Sine &other)
+bool Mixture_Ind::operator==(const Mixture_Ind &other)
 {
   if (id == other.id) {
     return 1;
@@ -145,7 +145,7 @@ bool Mixture_Sine::operator==(const Mixture_Sine &other)
  *  \brief This function returns the list of all weights.
  *  \return the list of weights
  */
-Vector Mixture_Sine::getWeights()
+Vector Mixture_Ind::getWeights()
 {
   return weights;
 }
@@ -154,7 +154,7 @@ Vector Mixture_Sine::getWeights()
  *  \brief This function returns the list of components.
  *  \return the components
  */
-std::vector<BVM_Sine> Mixture_Sine::getComponents()
+std::vector<BVM_Ind> Mixture_Ind::getComponents()
 {
   return components;
 }
@@ -162,7 +162,7 @@ std::vector<BVM_Sine> Mixture_Sine::getComponents()
 /*!
  *  \brief Gets the number of components
  */
-int Mixture_Sine::getNumberOfComponents()
+int Mixture_Ind::getNumberOfComponents()
 {
   return components.size();
 }
@@ -170,7 +170,7 @@ int Mixture_Sine::getNumberOfComponents()
 /*!
  *  \brief This function returns the responsibility matrix.
  */
-std::vector<Vector> Mixture_Sine::getResponsibilityMatrix()
+std::vector<Vector> Mixture_Ind::getResponsibilityMatrix()
 {
   return responsibility;
 }
@@ -179,13 +179,13 @@ std::vector<Vector> Mixture_Sine::getResponsibilityMatrix()
  *  \brief This function returns the sample size of the mixture.
  *  \return the sample size
  */
-Vector Mixture_Sine::getSampleSize()
+Vector Mixture_Ind::getSampleSize()
 {
   return sample_size;
 }
 
 // random assignment
-void Mixture_Sine::initialize()
+void Mixture_Ind::initialize()
 {
   N = data.size();
   //cout << "Sample size: " << N << endl;
@@ -213,11 +213,11 @@ void Mixture_Sine::initialize()
   }
 
   // initialize parameters of each component
-  components = std::vector<BVM_Sine>(K);
+  components = std::vector<BVM_Ind>(K);
   updateComponents();
 }
 
-void Mixture_Sine::initialize_children()
+void Mixture_Ind::initialize_children()
 {
   assert(K == 2);
   Vector mean;
@@ -243,8 +243,8 @@ void Mixture_Sine::initialize_children()
     add = sqrt(eigen_values[max_eig]) * projection_axis[i];
     init_means[0][i] = mean[i] + add; 
     init_means[1][i] = mean[i] - add;
-    if (init_means[0][i] > 2*PI)  init_means[0][i] -= 2*PI;
-    if (init_means[1][i] < 0)  init_means[1][i] += 2*PI;
+    if (init_means[0][i] > 2*PI) init_means[0][i] -= 2*PI;
+    if (init_means[1][i] < 0) init_means[1][i] += 2*PI;
   }
   //cout << "projection_axis: "; print(cout,projection_axis,3); cout << endl;
   //cout << "init_means[0]: "; print(cout,init_means[0],3); cout << endl;
@@ -286,22 +286,22 @@ void Mixture_Sine::initialize_children()
 
   // initialize parameters of each component
   for (int i=0; i<K; i++) {
-    struct SufficientStatisticsSine suff_stats;
-    computeSufficientStatisticsSine(data,suff_stats,responsibility[i]);
+    struct SufficientStatisticsInd suff_stats;
+    computeSufficientStatisticsInd(data,suff_stats,responsibility[i]);
 
-    BVM_Sine bvm_sine_tmp;
-    struct EstimatesSine initial_est = bvm_sine_tmp.computeInitialEstimates(suff_stats);
-    BVM_Sine bvm_sine(
-      init_means[i][0],init_means[i][1],initial_est.kappa1,initial_est.kappa2,initial_est.lambda
+    BVM_Ind bvm_ind_tmp;
+    struct EstimatesInd initial_est = bvm_ind_tmp.computeInitialEstimates(suff_stats);
+    BVM_Ind bvm_ind(
+      init_means[i][0],init_means[i][1],initial_est.kappa1,initial_est.kappa2
     );
-    components.push_back(bvm_sine);
+    components.push_back(bvm_ind);
   } // for(i)
 }
 
 /*!
  *  \brief This function updates the effective sample size of each component.
  */
-void Mixture_Sine::updateEffectiveSampleSize()
+void Mixture_Ind::updateEffectiveSampleSize()
 {
   for (int i=0; i<K; i++) {
     double count = 0;
@@ -316,7 +316,7 @@ void Mixture_Sine::updateEffectiveSampleSize()
 /*!
  *  \brief This function is used to update the weights of the components.
  */
-void Mixture_Sine::updateWeights()
+void Mixture_Ind::updateWeights()
 {
   double normalization_constant = N + (K/2.0);
   for (int i=0; i<K; i++) {
@@ -324,7 +324,7 @@ void Mixture_Sine::updateWeights()
   }
 }
 
-void Mixture_Sine::updateWeights_ML()
+void Mixture_Ind::updateWeights_ML()
 {
   double normalization_constant = N;
   for (int i=0; i<K; i++) {
@@ -335,7 +335,7 @@ void Mixture_Sine::updateWeights_ML()
 /*!
  *  \brief This function is used to update the components.
  */
-void Mixture_Sine::updateComponents()
+void Mixture_Ind::updateComponents()
 {
   Vector comp_data_wts(N,0);
   for (int i=0; i<K; i++) {
@@ -350,7 +350,7 @@ void Mixture_Sine::updateComponents()
 /*!
  *  \brief This function updates the terms in the responsibility matrix.
  */
-void Mixture_Sine::updateResponsibilityMatrix()
+void Mixture_Ind::updateResponsibilityMatrix()
 {
   #pragma omp parallel for if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) //private(j)
   for (int i=0; i<N; i++) {
@@ -387,7 +387,7 @@ void Mixture_Sine::updateResponsibilityMatrix()
 /*!
  *  \brief This function updates the terms in the responsibility matrix.
  */
-void Mixture_Sine::computeResponsibilityMatrix(
+void Mixture_Ind::computeResponsibilityMatrix(
   std::vector<Vector> &sample, string &output_file
 ) {
   int sample_size = sample.size();
@@ -434,7 +434,7 @@ void Mixture_Sine::computeResponsibilityMatrix(
 /*!
  *
  */
-double Mixture_Sine::log_probability(Vector &x)
+double Mixture_Ind::log_probability(Vector &x)
 {
   Vector log_densities(K,0);
   for (int j=0; j<K; j++) {
@@ -459,7 +459,7 @@ double Mixture_Sine::log_probability(Vector &x)
  *  \param a reference to a std::vector<array<double,2> >
  *  \return the negative log likelihood (base e)
  */
-double Mixture_Sine::computeNegativeLogLikelihood(std::vector<Vector> &sample)
+double Mixture_Ind::computeNegativeLogLikelihood(std::vector<Vector> &sample)
 {
   double value=0,log_density;
   #pragma omp parallel for if(ENABLE_DATA_PARALLELISM) num_threads(NUM_THREADS) private(log_density) reduction(-:value)
@@ -475,14 +475,14 @@ double Mixture_Sine::computeNegativeLogLikelihood(std::vector<Vector> &sample)
   return negloglike;
 }
 
-double Mixture_Sine::computeNegativeLogLikelihood(int verbose)
+double Mixture_Ind::computeNegativeLogLikelihood(int verbose)
 {
   //return computeNegativeLogLikelihood(data);
   double neglog = computeNegativeLogLikelihood(data);
   return neglog - (2 * N * log(AOM));
 }
 
-double Mixture_Sine::compress(std::vector<Vector> &d)
+double Mixture_Ind::compress(std::vector<Vector> &d)
 {
   data = d;
   N = data.size();
@@ -511,7 +511,7 @@ double Mixture_Sine::compress(std::vector<Vector> &d)
  *  model parameters.
  *  \return the minimum message length
  */
-double Mixture_Sine::computeMinimumMessageLength(int verbose /* default = 0 (don't print) */)
+double Mixture_Ind::computeMinimumMessageLength(int verbose /* default = 0 (don't print) */)
 {
   MSGLEN_FAIL = 0;
   part1 = 0;
@@ -555,7 +555,7 @@ double Mixture_Sine::computeMinimumMessageLength(int verbose /* default = 0 (don
 
   // the constant term
   //int D = data[0].size();
-  int num_free_params = (5 * K) + (K - 1);
+  int num_free_params = (4 * K) + (K - 1);
   double log_lattice_constant = logLatticeConstant(num_free_params);
   kd_term = 0.5 * num_free_params * log_lattice_constant;
   kd_term /= log(2);
@@ -595,7 +595,7 @@ double Mixture_Sine::computeMinimumMessageLength(int verbose /* default = 0 (don
   return minimum_msglen;
 }
 
-void Mixture_Sine::printIndividualMsgLengths(ostream &log_file)
+void Mixture_Ind::printIndividualMsgLengths(ostream &log_file)
 {
   log_file << "\t\tIk: " << Ik << endl;
   log_file << "\t\tIw: " << Iw << endl;
@@ -610,7 +610,7 @@ void Mixture_Sine::printIndividualMsgLengths(ostream &log_file)
 /*!
  *  \brief Prepares the appropriate log file
  */
-string Mixture_Sine::getLogFile()
+string Mixture_Ind::getLogFile()
 {
   string file_name;
   if (INFER_COMPONENTS == UNSET) {
@@ -633,7 +633,7 @@ string Mixture_Sine::getLogFile()
  *  an EM algorithm.
  *  \return the stable message length
  */
-double Mixture_Sine::estimateParameters()
+double Mixture_Ind::estimateParameters()
 {
   if (SPLITTING == 1) {
     initialize_children();
@@ -652,7 +652,7 @@ double Mixture_Sine::estimateParameters()
 /*!
  *  \brief This function runs the EM method.
  */
-void Mixture_Sine::EM()
+void Mixture_Ind::EM()
 {
   /* prepare log file */
   string log_file = getLogFile();
@@ -667,14 +667,14 @@ void Mixture_Sine::EM()
   if (ESTIMATION == MML) {
     EM(
       log,
-      &Mixture_Sine::updateWeights,
-      &Mixture_Sine::computeMinimumMessageLength
+      &Mixture_Ind::updateWeights,
+      &Mixture_Ind::computeMinimumMessageLength
     );
   } else {
     EM(
       log,
-      &Mixture_Sine::updateWeights_ML,
-      &Mixture_Sine::computeNegativeLogLikelihood
+      &Mixture_Ind::updateWeights_ML,
+      &Mixture_Ind::computeNegativeLogLikelihood
     );
   }
 
@@ -698,10 +698,10 @@ void Mixture_Sine::EM()
   //log.close();
 }
 
-void Mixture_Sine::EM(
+void Mixture_Ind::EM(
   ostream &log,
-  void (Mixture_Sine::*update_weights)(),
-  double (Mixture_Sine::*objective_function)(int)
+  void (Mixture_Ind::*update_weights)(),
+  double (Mixture_Ind::*objective_function)(int)
 ) {
   double prev=0,current;
   int iter = 1;
@@ -739,7 +739,7 @@ void Mixture_Sine::EM(
         stop:
         current = computeMinimumMessageLength(1);  // 1 = verbose
         /*log << "\nSample size: " << N << endl;
-        log << "BVM_Sine encoding rate: " << current << " bits.";
+        log << "BVM_Ind encoding rate: " << current << " bits.";
         log << "\t(" << current/N << " bits/point)" << endl;
         log << "Null model encoding: " << null_msglen << " bits.";
         log << "\t(" << null_msglen/N << " bits/point)" << endl;*/
@@ -755,7 +755,7 @@ void Mixture_Sine::EM(
  *  \brief This function computes the null model message length.
  *  \return the null model message length
  */
-double Mixture_Sine::computeNullModelMessageLength()
+double Mixture_Ind::computeNullModelMessageLength()
 {
   // compute logarithm of surface area of 3d-torus (R, r = 1)
   double log_area = 2*log(2*PI);
@@ -768,7 +768,7 @@ double Mixture_Sine::computeNullModelMessageLength()
  *  \brief This function returns the minimum message length of this mixture
  *  model.
  */
-double Mixture_Sine::getMinimumMessageLength()
+double Mixture_Ind::getMinimumMessageLength()
 {
   return minimum_msglen;
 }
@@ -776,7 +776,7 @@ double Mixture_Sine::getMinimumMessageLength()
 /*!
  *  \brief Returns the first part of the msg.
  */
-double Mixture_Sine::first_part()
+double Mixture_Ind::first_part()
 {
   return part1;
 }
@@ -784,27 +784,27 @@ double Mixture_Sine::first_part()
 /*!
  *  \brief Returns the second part of the msg.
  */
-double Mixture_Sine::second_part()
+double Mixture_Ind::second_part()
 {
   return part2;
 }
 
-double Mixture_Sine::getNegativeLogLikelihood()
+double Mixture_Ind::getNegativeLogLikelihood()
 {
   return negloglike;
 }
 
-double Mixture_Sine::getAIC()
+double Mixture_Ind::getAIC()
 {
   return aic;
 }
 
-double Mixture_Sine::getBIC()
+double Mixture_Ind::getBIC()
 {
   return bic;
 }
 
-double Mixture_Sine::getICL()
+double Mixture_Ind::getICL()
 {
   return icl;
 }
@@ -815,7 +815,7 @@ double Mixture_Sine::getICL()
  *  \param iter an integer
  *  \param msglen a double
  */
-void Mixture_Sine::printParameters(ostream &os, int iter, double value)
+void Mixture_Ind::printParameters(ostream &os, int iter, double value)
 {
   os << "Iteration #: " << iter << endl;
   for (int k=0; k<K; k++) {
@@ -836,7 +836,7 @@ void Mixture_Sine::printParameters(ostream &os, int iter, double value)
  *  \brief This function prints the parameters to a log file.
  *  \param os a reference to a ostream
  */
-void Mixture_Sine::printParameters(ostream &os, int num_tabs)
+void Mixture_Ind::printParameters(ostream &os, int num_tabs)
 {
   string tabs = "\t";
   if (num_tabs == 2) {
@@ -852,7 +852,7 @@ void Mixture_Sine::printParameters(ostream &os, int num_tabs)
     components[k].printParameters(os);
   }
   os << tabs << "ID: " << id << endl;
-  os << tabs << "BVM_Sine encoding: " << minimum_msglen << " bits. "
+  os << tabs << "BVM_Ind encoding: " << minimum_msglen << " bits. "
      << "(" << minimum_msglen/N << " bits/point)" << endl;
 
   /*switch(CRITERION) {
@@ -877,7 +877,7 @@ void Mixture_Sine::printParameters(ostream &os, int num_tabs)
   os << endl;
 }
 
-void Mixture_Sine::printParameters(string &file)
+void Mixture_Ind::printParameters(string &file)
 {
   ofstream out(file.c_str());
   printParameters(out);
@@ -887,7 +887,7 @@ void Mixture_Sine::printParameters(string &file)
 /*!
  *  \brief Outputs the mixture weights and component parameters to a file.
  */
-void Mixture_Sine::printParameters(ostream &os)
+void Mixture_Ind::printParameters(ostream &os)
 {
   for (int k=0; k<K; k++) {
     os << "\t" << fixed << setw(10) << setprecision(5) << weights[k];
@@ -902,7 +902,7 @@ void Mixture_Sine::printParameters(ostream &os)
  *  \param file_name a reference to a string
  *  \param D an integer
  */
-void Mixture_Sine::load(string &file_name)
+void Mixture_Ind::load(string &file_name)
 {
   sample_size.clear();
   weights.clear();
@@ -931,13 +931,12 @@ void Mixture_Sine::load(string &file_name)
     double mu2 = numbers[2] * PI/180; // convert to radians
     double kappa1 = numbers[3];
     double kappa2 = numbers[4];
-    double lambda = numbers[5];
   
-    BVM_Sine bvm_sine(mu1,mu2,kappa1,kappa2,lambda);
-    bvm_sine.computeExpectation();
-    components.push_back(bvm_sine);
+    BVM_Ind bvm_ind(mu1,mu2,kappa1,kappa2);
+    bvm_ind.computeExpectation();
+    components.push_back(bvm_ind);
     numbers.clear();
-    bvm_sine.printParameters(cout);
+    bvm_ind.printParameters(cout);
   } // while()
   file.close();
   for (int i=0; i<K; i++) {
@@ -953,7 +952,7 @@ void Mixture_Sine::load(string &file_name)
  *  \param d a reference to a std::vector<Vector>
  *  \param dw a reference to a Vector
  */
-void Mixture_Sine::load(string &file_name, std::vector<Vector> &d, Vector &dw)
+void Mixture_Ind::load(string &file_name, std::vector<Vector> &d, Vector &dw)
 {
   load(file_name);
   data = d;
@@ -975,7 +974,7 @@ void Mixture_Sine::load(string &file_name, std::vector<Vector> &d, Vector &dw)
  *  \brief This function is used to randomly choose a component.
  *  \return the component index
  */
-int Mixture_Sine::randomComponent()
+int Mixture_Ind::randomComponent()
 {
   double random = uniform_random();
   double previous = 0;
@@ -992,7 +991,7 @@ int Mixture_Sine::randomComponent()
  *  \param index an integer
  *  \param data a reference to a std::vector<Vector>
  */
-void Mixture_Sine::saveComponentData(int index, std::vector<Vector> &data)
+void Mixture_Ind::saveComponentData(int index, std::vector<Vector> &data)
 {
   string data_file = "./visualize/sampled_data/comp";
   data_file += boost::lexical_cast<string>(index+1) + ".dat";
@@ -1006,7 +1005,7 @@ void Mixture_Sine::saveComponentData(int index, std::vector<Vector> &data)
  *  \param save_data a boolean variable
  *  \return the random sample
  */
-std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data)
+std::vector<Vector> Mixture_Ind::generate(int num_samples, bool save_data)
 {
   sample_size = Vector(K,0);
   for (int i=0; i<num_samples; i++) {
@@ -1057,15 +1056,15 @@ std::vector<Vector> Mixture_Sine::generate(int num_samples, bool save_data)
  *  \brief This function splits a component into two.
  *  \return c an integer
  *  \param log a reference to a ostream
- *  \return the modified Mixture_Sine
+ *  \return the modified Mixture_Ind
  */
-Mixture_Sine Mixture_Sine::split(int c, ostream &log)
+Mixture_Ind Mixture_Ind::split(int c, ostream &log)
 {
   SPLITTING = 1;
   log << "\tSPLIT component " << c + 1 << " ... " << endl;
 
   int num_children = 2; 
-  Mixture_Sine m(num_children,data,responsibility[c]);
+  Mixture_Ind m(num_children,data,responsibility[c]);
   m.estimateParameters();
   log << "\t\tChildren:\n";
   m.printParameters(log,2); // print the child mixture
@@ -1099,13 +1098,13 @@ Mixture_Sine Mixture_Sine::split(int c, ostream &log)
   }
 
   // child components
-  std::vector<BVM_Sine> components_c = m.getComponents();
+  std::vector<BVM_Ind> components_c = m.getComponents();
 
   // merge with the remaining components
   int K_m = K + 1;
   std::vector<Vector> responsibility_m(K_m);
   Vector weights_m(K_m,0),sample_size_m(K_m,0);
-  std::vector<BVM_Sine> components_m(K_m);
+  std::vector<BVM_Ind> components_m(K_m);
   int index = 0;
   for (int i=0; i<K; i++) {
     if (i != c) {
@@ -1126,7 +1125,7 @@ Mixture_Sine Mixture_Sine::split(int c, ostream &log)
   }
 
   Vector data_weights_m(N,1);
-  Mixture_Sine merged(K_m,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
+  Mixture_Ind merged(K_m,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
   log << "\t\tBefore adjustment ...\n";
   merged.computeMinimumMessageLength();
   merged.printParameters(log,2);
@@ -1143,9 +1142,9 @@ Mixture_Sine Mixture_Sine::split(int c, ostream &log)
  *  \brief This function deletes a component.
  *  \return c an integer
  *  \param log a reference to a ostream
- *  \return the modified Mixture_Sine
+ *  \return the modified Mixture_Ind
  */
-Mixture_Sine Mixture_Sine::kill(int c, ostream &log)
+Mixture_Ind Mixture_Ind::kill(int c, ostream &log)
 {
   log << "\tKILL component " << c + 1 << " ... " << endl;
 
@@ -1207,7 +1206,7 @@ Mixture_Sine Mixture_Sine::kill(int c, ostream &log)
   }
 
   // child components
-  std::vector<BVM_Sine> components_m(K_m);
+  std::vector<BVM_Ind> components_m(K_m);
   index = 0;
   for (int i=0; i<K; i++) {
     if (i != c) {
@@ -1217,7 +1216,7 @@ Mixture_Sine Mixture_Sine::kill(int c, ostream &log)
 
   log << "\t\tResidual:\n";
   Vector data_weights_m(N,1);
-  Mixture_Sine modified(K_m,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
+  Mixture_Ind modified(K_m,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
   log << "\t\tBefore adjustment ...\n";
   modified.computeMinimumMessageLength();
   modified.printParameters(log,2);
@@ -1234,9 +1233,9 @@ Mixture_Sine Mixture_Sine::kill(int c, ostream &log)
  *  \return c1 an integer
  *  \return c2 an integer
  *  \param log a reference to a ostream
- *  \return the modified Mixture_Sine
+ *  \return the modified Mixture_Ind
  */
-Mixture_Sine Mixture_Sine::join(int c1, int c2, ostream &log)
+Mixture_Ind Mixture_Ind::join(int c1, int c2, ostream &log)
 {
   log << "\tJOIN components " << c1+1 << " and " << c2+1 << " ... " << endl;
 
@@ -1277,22 +1276,22 @@ Mixture_Sine Mixture_Sine::join(int c1, int c2, ostream &log)
   sample_size_m[index] = sample_size[c1] + sample_size[c2];
 
   // child components
-  std::vector<BVM_Sine> components_m(K_m);
+  std::vector<BVM_Ind> components_m(K_m);
   index = 0;
   for (int i=0; i<K; i++) {
     if (i != c1 && i != c2) {
       components_m[index++] = components[i];
     }
   }
-  Mixture_Sine joined(1,data,resp);
+  Mixture_Ind joined(1,data,resp);
   joined.estimateParameters();
   log << "\t\tResultant join:\n";
   joined.printParameters(log,2); // print the joined pair mixture
 
-  std::vector<BVM_Sine> joined_comp = joined.getComponents();
+  std::vector<BVM_Ind> joined_comp = joined.getComponents();
   components_m[index++] = joined_comp[0];
   Vector data_weights_m(N,1);
-  Mixture_Sine modified(K-1,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
+  Mixture_Ind modified(K-1,components_m,weights_m,sample_size_m,responsibility_m,data,data_weights_m);
   log << "\t\tBefore adjustment ...\n";
   modified.computeMinimumMessageLength();
   modified.printParameters(log,2);
@@ -1306,7 +1305,7 @@ Mixture_Sine Mixture_Sine::join(int c1, int c2, ostream &log)
  *  \brief This function generates data to visualize the 2D/3D heat maps.
  *  \param res a double
  */
-void Mixture_Sine::generateHeatmapData(double res)
+void Mixture_Ind::generateHeatmapData(double res)
 {
   string comp_bins = "./visualize/sampled_data/";
   check_and_create_directory(comp_bins);
@@ -1362,7 +1361,7 @@ void Mixture_Sine::generateHeatmapData(double res)
  *  \param c an integer
  *  \return the index of the closest component
  */
-int Mixture_Sine::getNearestComponent(int c)
+int Mixture_Ind::getNearestComponent(int c)
 {
   double current,dist = LARGE_NUMBER;
   int nearest;
@@ -1379,14 +1378,14 @@ int Mixture_Sine::getNearestComponent(int c)
   return nearest;
 }
 
-double Mixture_Sine::computeKLDivergence(Mixture_Sine &other)
+double Mixture_Ind::computeKLDivergence(Mixture_Ind &other)
 {
   return computeKLDivergence(other,data);
 }
 
 // Monte Carlo
-double Mixture_Sine::computeKLDivergence(
-  Mixture_Sine &other, std::vector<Vector> &sample
+double Mixture_Ind::computeKLDivergence(
+  Mixture_Ind &other, std::vector<Vector> &sample
 ) {
   double kldiv = 0,log_fx,log_gx;
   for (int i=0; i<sample.size(); i++) {
@@ -1401,9 +1400,9 @@ double Mixture_Sine::computeKLDivergence(
  *  \brief This function computes the Akaike information criteria (AIC)
  *  \return the AIC value (natural log -- nits)
  */
-double Mixture_Sine::computeAIC()
+double Mixture_Ind::computeAIC()
 {
-  int k = 6 * K - 1;
+  int k = 5 * K - 1;
   negloglike = computeNegativeLogLikelihood(data);
   return compute_aic(k,N,negloglike);
 }
@@ -1412,14 +1411,14 @@ double Mixture_Sine::computeAIC()
  *  \brief This function computes the Bayesian information criteria (AIC)
  *  \return the BIC value (natural log -- nits)
  */
-double Mixture_Sine::computeBIC()
+double Mixture_Ind::computeBIC()
 {
-  int k = 6 * K - 1;
+  int k = 5 * K - 1;
   negloglike = computeNegativeLogLikelihood(data);
   return compute_bic(k,N,negloglike);
 }
 
-std::vector<std::vector<int> > Mixture_Sine::compute_cluster_indicators()
+std::vector<std::vector<int> > Mixture_Ind::compute_cluster_indicators()
 {
   std::vector<int> emptyvec(N,0);
   std::vector<std::vector<int> > z(K,emptyvec);
@@ -1432,7 +1431,7 @@ std::vector<std::vector<int> > Mixture_Sine::compute_cluster_indicators()
   return z;
 }
 
-double Mixture_Sine::computeICL()
+double Mixture_Ind::computeICL()
 {
   negloglike = computeNegativeLogLikelihood(data);
   std::vector<std::vector<int> > indicators = compute_cluster_indicators();
@@ -1449,7 +1448,7 @@ double Mixture_Sine::computeICL()
       ec -= term;
     } // for (j)
   } // for (i)
-  int k = 6 * K - 1;
+  int k = 5 * K - 1;
   double bic = compute_bic(k,N,negloglike); // in log_2
   return bic + (ec / log(2));
 }

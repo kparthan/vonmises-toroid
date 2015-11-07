@@ -15,9 +15,13 @@ class BVM_Ind
 
     double kappa1,kappa2;
                                   
-    double log_c;
+    struct Constants {
+      double log_c;
+      double log_ad_k1,log_ad_k2;
+      double log_ad_k1_der,log_ad_k2_der;
+    } constants;
 
-    int computed;
+    int computed,computed_lognorm;
 
   public:
 		//! Constructor
@@ -27,7 +31,7 @@ class BVM_Ind
 		BVM_Ind(double, double);
 
 		//! Constructor that sets value of parameters
-		BVM_Ind(double, double, double, double, double);
+		BVM_Ind(double, double, double, double);
 
     //! Assignment of an existing BVM_Ind distribution
     BVM_Ind operator=(const BVM_Ind &);
@@ -43,6 +47,12 @@ class BVM_Ind
     //! Generate a random sample of 3D coordinates on the 2D-torus 
     std::vector<Vector> generate_cartesian(int);
     std::vector<Vector> generate_cartesian(std::vector<Vector> &);
+
+    struct Constants getConstants();
+
+    void computeExpectation();
+
+    void computeConstants();
 
     double getLogNormalizationConstant();
     double computeLogNormalizationConstant();

@@ -10,12 +10,14 @@ BVM_Ind::BVM_Ind()
   mu1 = 0; mu2 = 0;
   kappa1 = 1; kappa2 = 1;
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Ind::BVM_Ind(double kappa1, double kappa2) : kappa1(kappa1), kappa2(kappa2)
 {
   mu1 = 0; mu2 = 0;
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Ind::BVM_Ind(
@@ -23,6 +25,7 @@ BVM_Ind::BVM_Ind(
 ) : mu1(mu1), mu2(mu2), kappa1(kappa1), kappa2(kappa2)
 {
   computed = UNSET;
+  computed_lognorm = UNSET;
 }
 
 BVM_Ind BVM_Ind::operator=(const BVM_Ind &source)
@@ -32,8 +35,9 @@ BVM_Ind BVM_Ind::operator=(const BVM_Ind &source)
     mu2 = source.mu2;
     kappa1 = source.kappa1;
     kappa2 = source.kappa2;
-    log_c = source.log_c;
+    constants = source.constants;
     computed = source.computed;
+    computed_lognorm = source.computed_lognorm;
   }
   return *this;
 }
@@ -103,12 +107,44 @@ std::vector<Vector> BVM_Ind::generate_cartesian(
   return random_sample;
 }
 
+BVM_Ind::Constants BVM_Ind::getConstants()
+{
+  if (computed != SET) {
+    computeExpectation();
+  }
+  return constants;
+}
+
+void BVM_Ind::computeExpectation()
+{
+  computeConstants();
+
+  computed = SET;
+}
+
+void BVM_Ind::computeConstants()
+{
+  constants.log_c = computeLogNormalizationConstant();  // > 0
+
+  double log_adk = computeLogRatioBessel(2,kappa1);
+  double adk = exp(log_adk);
+  double adk_der = computeDerivativeOfRatioBessel(kappa1,adk);
+  constants.log_ad_k1 = log_adk;
+  constants.log_ad_k1_der = log(adk_der);
+
+  log_adk = computeLogRatioBessel(2,kappa2);
+  adk = exp(log_adk);
+  adk_der = computeDerivativeOfRatioBessel(kappa2,adk);
+  constants.log_ad_k2 = log_adk;
+  constants.log_ad_k2_der = log(adk_der);
+}
+
 double BVM_Ind::getLogNormalizationConstant()
 {
-  if (computed == UNSET) {
-    log_c = computeLogNormalizationConstant();  
+  if (computed_lognorm == UNSET) {
+    constants.log_c = computeLogNormalizationConstant();  
   }
-  return log_c;
+  return constants.log_c;
 }
 
 /*!
@@ -118,8 +154,8 @@ double BVM_Ind::computeLogNormalizationConstant()
 {
   double log_bessel1 = computeLogModifiedBesselFirstKind(0,kappa1);
   double log_bessel2 = computeLogModifiedBesselFirstKind(0,kappa2);
-  log_c = 2 * log(2*PI) + log_bessel1 + log_bessel2;
-  computed = SET;
+  double log_c = 2 * log(2*PI) + log_bessel1 + log_bessel2;
+  computed_lognorm = SET;
   return log_c;
 }
 
@@ -155,15 +191,12 @@ double BVM_Ind::computeLogFisherInformation(double N)
 
 double BVM_Ind::computeLogFisherInformation_Single()
 {
-  double log_a2k = computeLogRatioBessel(2,kappa1);
-  double a2k = exp(log_a2k);
-  double a2k_der = computeDerivativeOfRatioBessel(kappa1,a2k);
-  double log_f1 = log(kappa1) + log_a2k + log(a2k_der)
+  if (computed == UNSET) {
+    computeExpectation();
+  }
+  double log_f1 = log(kappa1) + constants.log_ad_k1 + constants.log_ad_k1_der;
 
-  log_a2k = computeLogRatioBessel(2,kappa2);
-  a2k = exp(log_a2k);
-  a2k_der = computeDerivativeOfRatioBessel(kappa2,a2k);
-  double log_f2 = log(kappa2) + log_a2k + log(a2k_der)
+  double log_f2 = log(kappa2) + constants.log_ad_k2 + constants.log_ad_k2_der;
  
   double log_f = log_f1 + log_f2;
   return log_f;
@@ -179,7 +212,7 @@ double BVM_Ind::log_density(Vector &angle_pair)
 double BVM_Ind::log_density(double &theta1, double &theta2)
 {
   if (computed != SET) {
-    computeLogNormalizationConstant();
+    computeExpectation();
   }
   double ans = 0;
   ans -= constants.log_c;
@@ -458,7 +491,7 @@ void BVM_Ind::updateParameters(struct EstimatesInd &estimates)
   assert(!boost::math::isnan(mu2));
   assert(!boost::math::isnan(kappa1));
   assert(!boost::math::isnan(kappa2));
-  computeLogNormalizationConstant();
+  computeExpectation();
 }
 
 void BVM_Ind::printParameters(ostream &os)
@@ -471,7 +504,7 @@ void BVM_Ind::printParameters(ostream &os)
 double BVM_Ind::computeKLDivergence(BVM_Ind &other)
 {
   if (computed != SET) {
-    computeLogNormalizationConstant();
+    computeExpectation();
   }
 
   double log_norm_b = other.getLogNormalizationConstant();
@@ -479,16 +512,15 @@ double BVM_Ind::computeKLDivergence(BVM_Ind &other)
 
   double mu1b = other.Mean1();
   double mu1_diff = mu1 - mu1b;
+  double kappa1b = other.Kappa1();
+  double kappa1_diff = kappa1 - kappa1b * cos(mu1_diff);
+  ans += (kappa1_diff * exp(constants.log_ad_k1));
+
   double mu2b = other.Mean2();
   double mu2_diff = mu2 - mu2b;
-
-  double kappa1b = other.Kappa1();
   double kappa2b = other.Kappa2();
-
-  double kappa1_diff = kappa1 - kappa1b * cos(mu1_diff);
-  ans += (kappa1_diff * constants.ck1_c);
   double kappa2_diff = kappa2 - kappa2b * cos(mu2_diff);
-  ans += (kappa2_diff * constants.ck2_c);
+  ans += (kappa2_diff * exp(constants.log_ad_k2));
 
   assert(ans >= 0);
   return ans/log(2);  // KL divergence (in bits)

@@ -13,6 +13,8 @@ class Test
     void generate_vmc();
     void generate_mix_vmc();
 
+    void bvm_ind_all_estimation();
+
     /* sine model related */
     void generate_bvm_sine();
 

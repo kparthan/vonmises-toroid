@@ -378,6 +378,28 @@ void print(ostream &os, const Vector &v, int precision)
   }
 }
 
+void print(string &type, struct EstimatesInd &estimates)
+{
+  cout << "\nTYPE: " << type << endl;
+  cout << "m1_est: " << estimates.mu1 
+       << " (" << estimates.mu1 * 180/PI << " degrees); ";
+  cout << "m2_est: " << estimates.mu2 
+       << " (" << estimates.mu2 * 180/PI << " degrees); ";
+  //cout << "m1_est: " << estimates.mu1 * 180/PI << "; ";
+  cout << "k1_est: " << estimates.kappa1 << "; ";
+  cout << "k2_est: " << estimates.kappa2 << "\n";
+}
+
+void print(struct SufficientStatisticsInd &suff_stats)
+{
+  cout << "sufficient stats sine:\n";
+  cout << "N: " << suff_stats.N << endl;
+  cout << "cost1: " << suff_stats.cost1 << endl;
+  cout << "sint1: " << suff_stats.sint1 << endl;
+  cout << "cost2: " << suff_stats.cost2 << endl;
+  cout << "sint2: " << suff_stats.sint2 << endl;
+}
+
 void print(string &type, struct EstimatesSine &estimates)
 {
   cout << "\nTYPE: " << type << endl;
@@ -1684,6 +1706,8 @@ void TestFunctions(void)
   //test.generate_vmc();
 
   //test.generate_mix_vmc();
+
+  test.bvm_ind_all_estimation();
 
   //test.generate_bvm_sine();
 

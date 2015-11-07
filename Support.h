@@ -91,6 +91,8 @@ void writeToFile(string &file_name, std::vector<Vector> &);
 void writeToFile(string &file_name, std::vector<std::vector<int> > &);
 string extractName(string &);
 void print(ostream &, const Vector &, int);
+void print(string &, struct EstimatesInd &);
+void print(struct SufficientStatisticsInd &);
 void print(string &, struct EstimatesSine &);
 void print(struct SufficientStatisticsSine &);
 void print(string &, struct EstimatesCosine &);

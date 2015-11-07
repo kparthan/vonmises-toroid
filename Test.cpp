@@ -3,6 +3,7 @@
 #include "Normal.h"
 #include "vMC.h"
 #include "Mixture_vMC.h"
+#include "BVM_Ind.h"
 #include "BVM_Sine.h"
 #include "BVM_Cosine.h"
 
@@ -64,6 +65,26 @@ void Test::generate_mix_vmc()
   std::vector<Vector> random_sample = mix.generate_cartesian(N);
 
   writeToFile("mix_vmc.dat",random_sample);
+}
+
+void Test::bvm_ind_all_estimation()
+{
+  double mu1,mu2,kappa1,kappa2;
+  int N = 1000;
+
+  mu1 = 90; mu2 = 90; kappa1 = 10; kappa2 = 10;
+
+  mu1 *= PI/180; mu2 *= PI/180;
+  BVM_Ind bvm_ind(mu1,mu2,kappa1,kappa2);
+  //cout << "log_norm: " << bvm_ind.computeLogNormalizationConstant() << endl;
+
+  std::vector<Vector> angle_pairs = bvm_ind.generate(N);
+  writeToFile("angle_pairs.dat",angle_pairs);
+  std::vector<struct EstimatesInd> all_estimates;
+  bvm_ind.computeAllEstimators(angle_pairs,all_estimates,1,1);
+
+  std::vector<Vector> random_sample = bvm_ind.generate_cartesian(angle_pairs);
+  writeToFile("bvm_ind.dat",random_sample);
 }
 
 /* sine model related */
