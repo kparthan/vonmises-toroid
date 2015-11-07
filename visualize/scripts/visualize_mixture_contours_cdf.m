@@ -68,10 +68,10 @@ function [] = visualize_mixture_contours_cdf(K)
     cx = phi(col);
     cy = psi(row);
 %    ht = text(cx,cy,num2str(k),'Color','red');
-    [cx,cy,index] = number_component(k);
-    if (index > 0)
-      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10,'fontweight','bold');
-    end
+%    [cx,cy,index] = number_component(k);
+%    if (index > 0)
+%      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10,'fontweight','bold');
+%    end
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -120,9 +120,9 @@ function [] = visualize_mixture_contours_cdf(K)
   output_eps = strcat('../figs/',outfile,'.eps');
   output_pdf = strcat('../figs/',outfile,'.pdf');
 
-  saveas(gcf,output_fig);
-  export_fig(output_pdf,'-pdf');
-  print2eps(output_eps);
+  %saveas(gcf,output_fig);
+  %export_fig(output_pdf,'-pdf');
+  %print2eps(output_eps);
   %eps2pdf(output_eps,output_pdf);
 
 end
