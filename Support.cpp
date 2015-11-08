@@ -2471,6 +2471,21 @@ void computeSufficientStatisticsInd(
   //print(suff_stats);
 }
 
+double ConstraintInd(const Vector &x, std::vector<double> &grad, void *data)
+{
+  double k1 = x[2];
+  double log_adk = computeLogRatioBessel(2,k1);
+  double adk = exp(log_adk);
+  double adk_der1 = computeDerivativeOfRatioBessel(k1,adk);
+
+  double k2 = x[3];
+  log_adk = computeLogRatioBessel(2,k2);
+  adk = exp(log_adk);
+  double adk_der2 = computeDerivativeOfRatioBessel(k2,adk);
+
+  return -(adk_der1 * adk_der2);
+}
+
 /* Sufficient statistics for the Sine model */
 // data = angle_pairs
 void computeSufficientStatisticsSineNotParallel(
@@ -2681,11 +2696,11 @@ void computeSufficientStatisticsSine(
 
 double ConstraintSine(const Vector &x, std::vector<double> &grad, void *data)
 {
-    double k1 = x[2];
-    double k2 = x[3];
-    double lam = x[4];
-    return (lam*lam - k1*k2);
-    //return (2 * x[1] - x[0]);
+  double k1 = x[2];
+  double k2 = x[3];
+  double lam = x[4];
+  return (lam*lam - k1*k2);
+  //return (2 * x[1] - x[0]);
 }
 
 // g(theta2|theta1)

@@ -55,6 +55,7 @@ struct EstimatesInd OptimizeInd::minimize(
   opt.set_lower_bounds(lb);
   opt.set_upper_bounds(ub);
   opt.set_xtol_rel(LIMIT);
+  opt.add_inequality_constraint(ConstraintInd, NULL, TOLERANCE);
 
   switch(ESTIMATION) {
     case MLE:

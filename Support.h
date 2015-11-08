@@ -209,6 +209,7 @@ void computeSufficientStatisticsIndNotParallel(
 void computeSufficientStatisticsInd(
   std::vector<Vector> &, struct SufficientStatisticsInd &, Vector &
 );
+double ConstraintInd(const Vector &, std::vector<double> &, void *);
 
 void computeSufficientStatisticsSineNotParallel(
   std::vector<Vector> &, struct SufficientStatisticsSine &

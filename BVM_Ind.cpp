@@ -130,13 +130,13 @@ void BVM_Ind::computeConstants()
   double adk = exp(log_adk);
   double adk_der = computeDerivativeOfRatioBessel(kappa1,adk);
   constants.log_ad_k1 = log_adk;
-  constants.log_ad_k1_der = log(adk_der);
+  constants.log_ad_k1_der = log(fabs(adk_der));
 
   log_adk = computeLogRatioBessel(2,kappa2);
   adk = exp(log_adk);
   adk_der = computeDerivativeOfRatioBessel(kappa2,adk);
   constants.log_ad_k2 = log_adk;
-  constants.log_ad_k2_der = log(adk_der);
+  constants.log_ad_k2_der = log(fabs(adk_der));
 }
 
 double BVM_Ind::getLogNormalizationConstant()
