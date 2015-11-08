@@ -993,7 +993,7 @@ int Mixture_Ind::randomComponent()
  */
 void Mixture_Ind::saveComponentData(int index, std::vector<Vector> &data)
 {
-  string data_file = "./visualize/sampled_data/comp";
+  string data_file = "./visualize/sampled_data/bins_ind/comp";
   data_file += boost::lexical_cast<string>(index+1) + ".dat";
   writeToFile(data_file,data);
 }
@@ -1034,7 +1034,7 @@ std::vector<Vector> Mixture_Ind::generate(int num_samples, bool save_data)
   if (save_data) {
     string data_file = "random_sample_mix.dat";
     writeToFile(data_file,sample);
-    string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
+    string mix_density_file = "./visualize/sampled_data/bins_ind/mixture_density.dat";
     ofstream mix(mix_density_file.c_str());
     double comp_density,mix_density;
     for (int i=0; i<K; i++) {
@@ -1307,12 +1307,12 @@ Mixture_Ind Mixture_Ind::join(int c1, int c2, ostream &log)
  */
 void Mixture_Ind::generateHeatmapData(double res)
 {
-  string comp_bins = "./visualize/sampled_data/";
+  string comp_bins = "./visualize/sampled_data/bins_ind/";
   check_and_create_directory(comp_bins);
 
   /* for the entire mixture */
-  string data_fbins2D = "./visualize/sampled_data/prob_bins2D.dat";
-  string data_fbins3D = "./visualize/sampled_data/prob_bins3D.dat";
+  string data_fbins2D = "./visualize/sampled_data/bins_ind/prob_bins2D.dat";
+  string data_fbins3D = "./visualize/sampled_data/bins_ind/prob_bins3D.dat";
   ofstream fbins2D(data_fbins2D.c_str());
   ofstream fbins3D(data_fbins3D.c_str());
   Vector angle_pair(2,0);

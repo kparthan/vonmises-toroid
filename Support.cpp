@@ -1493,7 +1493,7 @@ void simulateMixtureModel(struct Parameters &parameters)
         outputBins(bins,parameters.res);
         /* save mixture_density if not already done */
         if (parameters.read_profiles == SET) {
-          string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
+          string mix_density_file = "./visualize/sampled_data/bins_ind/mixture_density.dat";
           ofstream mix(mix_density_file.c_str());
           double mix_density;
           for (int i=0; i<data.size(); i++) {
@@ -1544,7 +1544,7 @@ void simulateMixtureModel(struct Parameters &parameters)
         outputBins(bins,parameters.res);
         /* save mixture_density if not already done */
         if (parameters.read_profiles == SET) {
-          string mix_density_file = "./visualize/sampled_data/mixture_density.dat";
+          string mix_density_file = "./visualize/sampled_data/bins_sine/mixture_density.dat";
           ofstream mix(mix_density_file.c_str());
           double mix_density;
           for (int i=0; i<data.size(); i++) {

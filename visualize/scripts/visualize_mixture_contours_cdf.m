@@ -1,8 +1,31 @@
-function [] = visualize_mixture_contours_cdf(K)
+function [] = visualize_mixture_contours_cdf(K,pdf)
 
   addpath('export_fig');
 
-  bins_folder = '../sampled_data/';
+  bins_folder = '';
+  outfile = '';
+  % IND    -- 0
+  % SINE   -- 1
+  % COSINE -- 2
+  pdf_type = -1;   
+  if (strcmp(pdf,'ind') == 1)
+    pdf_type = 0;
+    bins_folder = '../sampled_data/bins_ind/';
+    outfile = 'bvm_ind_class_b';
+%    outfile = 'bvm_ind_class_b_actual';
+  elseif (strcmp(pdf,'sine') == 1)
+    pdf_type = 1;
+    bins_folder = '../sampled_data/bins_sine/';
+    outfile = 'bvm_sine_class_b';
+%    outfile = 'bvm_sine_class_b_actual';
+  elseif (strcmp(pdf,'cosine') == 1)
+    pdf_type = 2;
+    bins_folder = '../sampled_data/bins_cosine/';
+    outfile = 'bvm_cosine_class_b';
+%    outfile = 'bvm_cosine_class_b_actual';
+  end
+  %disp(strcat('bins_folder: ',{' '},bins_folder)); 
+  %disp(strcat('pdf type: ',num2str(pdf_type)));
  
   % figure properties
   fig = figure();
@@ -60,18 +83,23 @@ function [] = visualize_mixture_contours_cdf(K)
     level = 0.8;
     norm_level = (level - min_val) / range;
     contour_levels = [norm_level norm_level];
-    [C,h] = contour(phi,psi,cdf_bins,contour_levels,'LineWidth',1.5,'LineColor','black');
+    line_width = 1.0;
+    if (k==14 || k == 15 || k==18 || k==19 || k==20 || k==23 || k==24 || k==28)  % IND
+    %if (k==3 || k==4)  % SINE
+      line_width = 1.5;
+    end 
+    [C,h] = contour(phi,psi,cdf_bins,contour_levels,'LineWidth',line_width,'LineColor','black');
     %[C,h] = contour(cdf_bins,1,'LineWidth',2,'LineColor','black');
     %clabel(C,h);
 
-    [row col] = ind2sub(size(prob_bins),max_index);
-    cx = phi(col);
-    cy = psi(row);
+%    [row col] = ind2sub(size(prob_bins),max_index);
+%    cx = phi(col);
+%    cy = psi(row);
 %    ht = text(cx,cy,num2str(k),'Color','red');
-%    [cx,cy,index] = number_component(k);
-%    if (index > 0)
-%      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10,'fontweight','bold');
-%    end
+    [cx,cy,index] = number_component(k,pdf_type);
+    if (index > 0)
+      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10);
+    end
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -80,11 +108,6 @@ function [] = visualize_mixture_contours_cdf(K)
 %      set(hcl(i),'String',new_label);
 %    end
   end  
-
-%  mus = [45.11755, 50.52585];
-%  child1 = [58.41809, 45.31592];
-%  child2 = [37.69036, 53.48310];
-%  plot_init(mus,child1,child2);
 
   % plot the entire mixture density
   data_file = strcat(bins_folder,'mixture_density.dat');
@@ -112,13 +135,9 @@ function [] = visualize_mixture_contours_cdf(K)
   hs = scatter3(angles(:,1),angles(:,2),norm_density,0.1,'cdata',norm_density);
 
   %colorbar
-  %outfile = 'original_mix';
-  %outfile = 'iter1_parent';
-  %outfile = 'iter1_init_c1';
-  outfile = 'class_b_numbered_select';
-  output_fig = strcat('../figs/',outfile,'.fig');
-  output_eps = strcat('../figs/',outfile,'.eps');
-  output_pdf = strcat('../figs/',outfile,'.pdf');
+  output_fig = strcat('../figs/protein_modelling/',outfile,'.fig');
+  output_eps = strcat('../figs/protein_modelling/',outfile,'.eps');
+  output_pdf = strcat('../figs/protein_modelling/',outfile,'.pdf');
 
   %saveas(gcf,output_fig);
   %export_fig(output_pdf,'-pdf');
@@ -127,53 +146,98 @@ function [] = visualize_mixture_contours_cdf(K)
 
 end
 
-function [] = plot_init(mus,child1,child2)
-
-  plot(mus(1),mus(2),'r.','Markersize',35);
-  plot(child1(1),child1(2),'k.','Markersize',35);
-  plot(child2(1),child2(2),'k.','Markersize',35);
-
-%  plot(mus(1),mus(2),'k.');
-%  plot(child1(1),child1(2),'r.');
-%  plot(child2(1),child2(2),'r.');
-end
-
-function [cx,cy,index] = number_component(k)
+function [cx,cy,index] = number_component(k,pdf_type)
 
   cx = 1; cy = 1; index = -1;
 
-  if (k == 16)
-    cx = -175; cy = 135; index = 1;
-  elseif (k == 15)
-    cx = -145; cy = 105; index = 2;
-  elseif (k == 21)
-    cx = -120; cy = 97; index = 3;
-  elseif (k == 13)
-    cx = -45; cy = 150; index = 4;
-  elseif (k == 14)
-    cx = -52; cy = 170; index = 5;
-  elseif (k == 5)
-    cx = -155; cy = 55; index = 6;
-  elseif (k == 7)
-    cx = -65; cy = 85; index = 7;
-  elseif (k == 6)
-    cx = -20; cy = 100; index = 8;
-  elseif (k == 2)
-    cx = -145; cy = 0; index = 9;
-  elseif (k == 1)
-    cx = -125; cy = 15; index = 10;
-  elseif (k == 20)
-    cx = -90; cy = -75; index = 11;
-  elseif (k == 4)
-    cx = -90; cy = -50; index = 12;
-  elseif (k == 3)
-    cx = -55; cy = -10; index = 13;
-  elseif (k == 12)
-    cx = 10; cy = 50; index = 14;
-  elseif (k == 8)
-    cx = 30; cy = 70; index = 15;
-  elseif (k == 9)
-    cx = 110; cy = -15; index = 16;
+  if (pdf_type == 0)  % IND
+    if (k == 27)
+      cx = -179; cy = 145; index = 1;
+    elseif (k == 26)
+      cx = -152; cy = 125; index = 2;
+    elseif (k == 25)
+      cx = -148; cy = 110; index = 3;
+    elseif (k == 24)
+      cx = -40; cy = 145; index = 4;
+    elseif (k == 23)
+      cx = -50; cy = 158; index = 5;
+    elseif (k == 21)
+      cx = -65; cy = 178; index = 6;
+    elseif (k == 28)
+      cx = -110; cy = 178; index = 7;
+    elseif (k == 12)
+      cx = -163; cy = 60; index = 8;
+    elseif (k == 9)
+      cx = -130; cy = 75; index = 9;
+    elseif (k == 22)
+      cx = -70; cy = 60; index = 10;
+    elseif (k == 10)
+      cx = -23; cy = 103; index = 11;
+    elseif (k == 13)
+      cx = -150; cy = 28; index = 12;
+    elseif (k == 14)
+      cx = -83; cy = 15; index = 13;
+    elseif (k == 15)
+      cx = -66; cy = 5; index = 14;
+    elseif (k == 19)
+      cx = -55; cy = -10; index = 15;
+    elseif (k == 18)
+      cx = -50; cy = -25; index = 16;
+    elseif (k == 20)
+      cx = -50; cy = -50; index = 17;
+    elseif (k == 16)
+      cx = -50; cy = -73; index = 18;
+    elseif (k == 17)
+      cx = -100; cy = -68; index = 19;
+    elseif (k == 11)
+      cx = 12; cy = 65; index = 20;
+    elseif (k == 4)
+      cx = 30; cy = 53; index = 21;
+    elseif (k == 2)
+      cx = 73; cy = 35; index = 22;
+    elseif (k == 3)
+      cx = 50; cy = -3; index = 23;
+    elseif (k == 5)
+      cx = 65; cy = -20; index = 24;
+    elseif (k == 6)
+      cx = 120; cy = -50; index = 25;
+    end
+  elseif (pdf_type == 1)  % SINE
+    if (k == 16)
+      cx = -175; cy = 135; index = 1;
+    elseif (k == 15)
+      cx = -145; cy = 105; index = 2;
+    elseif (k == 21)
+      cx = -120; cy = 97; index = 3;
+    elseif (k == 13)
+      cx = -45; cy = 150; index = 4;
+    elseif (k == 14)
+      cx = -52; cy = 170; index = 5;
+    elseif (k == 5)
+      cx = -155; cy = 55; index = 6;
+    elseif (k == 7)
+      cx = -65; cy = 85; index = 7;
+    elseif (k == 6)
+      cx = -20; cy = 100; index = 8;
+    elseif (k == 2)
+      cx = -145; cy = 0; index = 9;
+    elseif (k == 1)
+      cx = -125; cy = 15; index = 10;
+    elseif (k == 20)
+      cx = -90; cy = -75; index = 11;
+    elseif (k == 4)
+      cx = -90; cy = -50; index = 12;
+    elseif (k == 3)
+      cx = -55; cy = -10; index = 13;
+    elseif (k == 12)
+      cx = 10; cy = 50; index = 14;
+    elseif (k == 8)
+      cx = 30; cy = 70; index = 15;
+    elseif (k == 9)
+      cx = 110; cy = -15; index = 16;
+    end
+  elseif (pdf_type == 2)  % COSINE
+    cx = 1; cy = 1; index = -1;
   end
 
 end
