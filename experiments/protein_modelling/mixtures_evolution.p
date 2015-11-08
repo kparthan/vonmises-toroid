@@ -17,7 +17,7 @@ set y2label font "Times-Roman, 25"
 
 set key at 45,15 font ",20" spacing 1.5 
 
-set output "mixtures_evolution.eps"
+set output "bvm_ind/mixtures_evolution.eps"
 
-plot "bvm_sine_mml" using 1:2 title "BVM Sine" lc rgb "blue"
+plot "bvm_ind/bvm_ind_summary" using 1:2 notitle lc rgb "blue"
      

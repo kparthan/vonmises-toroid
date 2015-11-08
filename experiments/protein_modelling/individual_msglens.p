@@ -24,8 +24,14 @@ set key width 3
 set format y '%.2f '
 set format y2 '%.2f '
 
-set xrange [1:29]
-set output "bvm_sine_individual_msglens.eps"
-plot "bvm_sine_mml" using 1:($3/1000) title "first part" lc rgb "red" axes x1y2, \
-     "bvm_sine_mml" using 1:($4/1000) title "second part" lc rgb "blue" axes x1y1, \
-     "bvm_sine_mml" using 1:($5/1000) title "total" lc rgb "dark-green" axes x1y1
+#set xrange [1:29]
+#set output "bvm_sine/bvm_sine_individual_msglens.eps"
+#plot "bvm_sine/bvm_sine_summary" using 1:($3/1000) title "first part" lc rgb "red" axes x1y2, \
+#     "bvm_sine/bvm_sine_summary" using 1:($4/1000) title "second part" lc rgb "blue" axes x1y1, \
+#     "bvm_sine/bvm_sine_summary" using 1:($5/1000) title "total" lc rgb "dark-green" axes x1y1
+
+set xrange [1:42]
+set output "bvm_ind/bvm_ind_individual_msglens.eps"
+plot "bvm_ind/bvm_ind_summary" using 1:($3/1000) title "first part" lc rgb "red" axes x1y2, \
+     "bvm_ind/bvm_ind_summary" using 1:($4/1000) title "second part" lc rgb "blue" axes x1y1, \
+     "bvm_ind/bvm_ind_summary" using 1:($5/1000) title "total" lc rgb "dark-green" axes x1y1
