@@ -33,28 +33,32 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
   axis equal
   hold on;
   set(gcf, 'Color', 'w');
-  %xlabel('\psi_1','fontsize',15);
-  %ylabel('\psi_2','fontsize',15);
-  xlabel('\phi','fontsize',15);
-  ylabel('\psi','fontsize',15);
+  xlabel('\theta_1','fontsize',15);
+  ylabel('\theta_2','fontsize',15);
+ % xlabel('\phi','fontsize',15);
+ % ylabel('\psi','fontsize',15);
   xlabh = get(gca,'XLabel');
   ylabh = get(gca,'YLabel');
   set(xlabh,'interpreter','tex');
   set(ylabh,'interpreter','tex');
 
- % set(gca,'Xlim',[0 360]);
- % set(gca,'Ylim',[0 360]);
- % set(gca,'xtick',[0:60:360],'fontsize',10);
- % set(gca,'ytick',[0:60:360],'fontsize',10);
- % phi = 0:1:359.9;  % meshgrid columns (X-axis)
- % psi = 0:1:359.9;  % meshgrid rows (Y-axis)
+  set(gca,'Xlim',[0 90]);
+  set(gca,'Ylim',[0 90]);
+  set(gca,'xtick',[0:30:90],'fontsize',10);
+  set(gca,'ytick',[0:30:90],'fontsize',10);
+%  set(gca,'Xlim',[0 360]);
+%  set(gca,'Ylim',[0 360]);
+%  set(gca,'xtick',[0:60:360],'fontsize',10);
+%  set(gca,'ytick',[0:60:360],'fontsize',10);
+  phi = 0:1:359.9;  % meshgrid columns (X-axis)
+  psi = 0:1:359.9;  % meshgrid rows (Y-axis)
 
-  set(gca,'Xlim',[-180 180]);
-  set(gca,'Ylim',[-180 180]);
-  set(gca,'xtick',[-180:60:180],'fontsize',10);
-  set(gca,'ytick',[-180:60:180],'fontsize',10);
-  phi = -180:1:179.9;  % meshgrid columns (X-axis)
-  psi = -180:1:179.9;  % meshgrid rows (Y-axis)
+ % set(gca,'Xlim',[-180 180]);
+ % set(gca,'Ylim',[-180 180]);
+ % set(gca,'xtick',[-180:60:180],'fontsize',10);
+ % set(gca,'ytick',[-180:60:180],'fontsize',10);
+ % phi = -180:1:179.9;  % meshgrid columns (X-axis)
+ % psi = -180:1:179.9;  % meshgrid rows (Y-axis)
 
   % plot the contours 
   for k = 1:K
@@ -84,10 +88,10 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
     norm_level = (level - min_val) / range;
     contour_levels = [norm_level norm_level];
     line_width = 1.0;
-    if (k==14 || k == 15 || k==18 || k==19 || k==20 || k==23 || k==24 || k==28)  % IND
+%    if (k==14 || k == 15 || k==18 || k==19 || k==20 || k==23 || k==24 || k==28)  % IND
     %if (k==3 || k==4)  % SINE
-      line_width = 1.5;
-    end 
+%      line_width = 1.5;
+%    end 
     [C,h] = contour(phi,psi,cdf_bins,contour_levels,'LineWidth',line_width,'LineColor','black');
     %[C,h] = contour(cdf_bins,1,'LineWidth',2,'LineColor','black');
     %clabel(C,h);
@@ -96,10 +100,10 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
 %    cx = phi(col);
 %    cy = psi(row);
 %    ht = text(cx,cy,num2str(k),'Color','red');
-    [cx,cy,index] = number_component(k,pdf_type);
-    if (index > 0)
-      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10);
-    end
+%    [cx,cy,index] = number_component(k,pdf_type);
+%    if (index > 0)
+%      ht = text(cx,cy,num2str(index),'Color','red','fontsize',10);
+%    end
 
 %    hcl = clabel(C,'Color','red');
 %    for i=2:2:length(hcl)
@@ -123,16 +127,24 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
   angles = zeros(n,2);  % in radians
   angles(:,1) = M(:,1) .* 180/pi;
   angles(:,2) = M(:,2) .* 180/pi;
-  for i = 1:n
-    if angles(i,1) > 180
-      angles(i,1) = angles(i,1) - 360;
-    end
-    if angles(i,2) > 180
-      angles(i,2) = angles(i,2) - 360;
-    end
-  end
+%  for i = 1:n
+%    if angles(i,1) > 180
+%      angles(i,1) = angles(i,1) - 360;
+%    end
+%    if angles(i,2) > 180
+%      angles(i,2) = angles(i,2) - 360;
+%    end
+%  end
 
   hs = scatter3(angles(:,1),angles(:,2),norm_density,0.1,'cdata',norm_density);
+
+  %% plot children means %%
+  p = [44.95737, 60.01113];
+%  c1 = [50.7759, 65.7542];
+%  c2 = [39.1351, 54.2678];
+c1 = [47.80030, 63.64447];
+c2 = [42.14262, 56.41734];
+%  plot_children(p,c1,c2);
 
   %colorbar
   output_fig = strcat('../figs/protein_modelling/',outfile,'.fig');
@@ -143,6 +155,14 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
   %export_fig(output_pdf,'-pdf');
   %print2eps(output_eps);
   %eps2pdf(output_eps,output_pdf);
+
+end
+
+function [] = plot_children(parent, child1, child2)
+
+  plot(parent(1),parent(2),'k.','linewidth',2);
+  plot(child1(1),child1(2),'r.','linewidth',2);
+  plot(child2(1),child2(2),'r.','linewidth',2);
 
 end
 

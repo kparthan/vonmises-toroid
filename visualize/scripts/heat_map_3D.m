@@ -30,7 +30,21 @@ function [] = heat_map_3D(file_name)
   max_density = max(density);
   caxis([0 max_density]); % colormap range
 
-  h=scatter3(x,y,z,1,'cdata',density);
+  h=scatter3(x,y,z,2,'cdata',density);
+
+  %% plot children means %%
+  p = [44.95737, 60.01113];
+  plot_point_on_torus(p,'k');
+
+  c1 = [50.7759, 65.7542];
+  c2 = [39.1351, 54.2678];
+  plot_point_on_torus(c1,'r');
+  plot_point_on_torus(c2,'r');
+
+  c1 = [47.80030, 63.64447];
+  c2 = [42.14262, 56.41734];
+  plot_point_on_torus(c1,'g');
+  plot_point_on_torus(c2,'g');
 
   %set(gca, 'visible', 'off');
   %view ([-139 40]);
@@ -54,3 +68,21 @@ function [] = heat_map_3D(file_name)
   %export_fig(output_pdf,'-pdf');
 
 end
+
+% point in degrees
+function [] = plot_point_on_torus(point, color)
+
+  r1 = 2;
+  r2 = 1;
+
+  theta1 = point(1); theta2 = point(2);
+
+  x = (r1 + r2*cosd(theta2))*cosd(theta1);
+  y = (r1 + r2*cosd(theta2))*sind(theta1);
+  z = r2*sind(theta2);
+
+  format = strcat(color,'.');
+  plot3(x,y,z,format,'markersize',10);
+
+end
+

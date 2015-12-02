@@ -12,10 +12,16 @@ function [] = heat_map_2D(file_name, bins)
   set(gcf, 'Color', 'w');
   xlabel('\phi','fontsize',12);
   ylabel('\theta','fontsize',12);
-  set(gca,'Xlim',[0 360]);
-  set(gca,'Ylim',[0 360]);
-  set(gca,'XTick',[0:45:360]);
-  set(gca,'YTick',[0:45:360]);
+
+ % set(gca,'Xlim',[0 360]);
+ % set(gca,'Ylim',[0 360]);
+ % set(gca,'XTick',[0:45:360]);
+ % set(gca,'YTick',[0:45:360]);
+  set(gca,'Xlim',[0 120]);
+  set(gca,'Ylim',[0 120]);
+  set(gca,'XTick',[0:30:120]);
+  set(gca,'YTick',[0:30:120]);
+
   %view ([0 90]);
 
   M = load(file_name);

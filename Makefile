@@ -4,7 +4,8 @@
 
 CFLAGS=-std=c++0x -c -O3 -fopenmp
 #CFLAGS=-std=c++0x -pg -c -fopenmp
-LDFLAGS=-pg -fopenmp -lnlopt -lm -lboost_program_options -lboost_system -lboost_filesystem -lgsl -lgslcblas 
+#LDFLAGS=-pg -fopenmp -lnlopt -lm -lboost_program_options -lboost_system -lboost_filesystem -lgsl -lgslcblas 
+LDFLAGS=-fopenmp -lnlopt -lm -lboost_program_options -lboost_system -lboost_filesystem -lgsl -lgslcblas 
 
 OBJECTS = main.o \
   Support.o \
