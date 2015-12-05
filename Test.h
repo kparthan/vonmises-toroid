@@ -31,6 +31,8 @@ class Test
     void bvm_sine_ml_estimation();
     void bvm_sine_all_estimation();
 
+    void bvm_sine_component_splitting();
+
     void testing_sample_empirical_distribution();
 
     /* cosine model related */

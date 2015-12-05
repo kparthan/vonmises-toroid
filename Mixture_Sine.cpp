@@ -342,7 +342,7 @@ void Mixture_Sine::initialize_children_2()
   int nearest;
   for (int i=0; i<N; i++) {
     for (int j=0; j<K; j++) {
-      distances[j] = data_weights[i] * computeSquaredEuclideanDistance(init_means[j],data[i]);
+      distances[j] = data_weights[i] * computeDotProduct(init_means[j],data[i]);
     } // for j()
     nearest = minimumIndex(distances);
     responsibility[nearest][i] = 1;
@@ -1145,6 +1145,7 @@ Mixture_Sine Mixture_Sine::split(int c, ostream &log)
   SPLITTING = 1;
   log << "\tSPLIT component " << c + 1 << " ... " << endl;
 
+  //Vector init_means = getInitialMeans(components[c],data,responsibility[c]);
   int num_children = 2; 
   Mixture_Sine m(num_children,data,responsibility[c]);
   m.estimateParameters();

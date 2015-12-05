@@ -1,3 +1,5 @@
+% file_name = "mixture_density.dat" (N X 3) [t1, t2, density] 
+
 function [] = heat_map_3D(file_name)
 
   addpath('export_fig');
@@ -32,19 +34,24 @@ function [] = heat_map_3D(file_name)
 
   h=scatter3(x,y,z,2,'cdata',density);
 
-  %% plot children means %%
-  p = [44.95737, 60.01113];
-  plot_point_on_torus(p,'k');
+  % plot children means %
 
-  c1 = [50.7759, 65.7542];
-  c2 = [39.1351, 54.2678];
-  plot_point_on_torus(c1,'r');
-  plot_point_on_torus(c2,'r');
+  p1 = [45, 60]; 
+  p2 = [30, 45]; 
+  p3 = [50, 45];
+  plot_point_on_torus(p1,'k');
+  plot_point_on_torus(p2,'k');
+  plot_point_on_torus(p3,'k');
 
-  c1 = [47.80030, 63.64447];
-  c2 = [42.14262, 56.41734];
-  plot_point_on_torus(c1,'g');
-  plot_point_on_torus(c2,'g');
+c11 = [58.501, 60.136]; c12 = [31.499, 59.864]; 
+c21 = [73.150, 41.870]; c22 = [346.850, 48.130];  
+c31 = [56.822, 67.105]; c32 = [43.178, 22.895];
+
+  plot_point_on_torus(c11,'r'); plot_point_on_torus(c12,'r');
+  plot_point_on_torus(c21,'r'); plot_point_on_torus(c22,'r');
+  plot_point_on_torus(c31,'r'); plot_point_on_torus(c32,'r');
+
+  % plot children means %
 
   %set(gca, 'visible', 'off');
   %view ([-139 40]);

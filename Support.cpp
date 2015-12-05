@@ -962,6 +962,17 @@ Matrix computeNormalizedDispersionMatrix(std::vector<Vector> &sample)
   return dispersion/sample.size();
 }
 
+// anti-clockwise rotation about +Z
+Matrix rotate_about_zaxis(double theta)
+{
+  Matrix r = ZeroMatrix(2,2);
+  r(0,0) = cos(theta);
+  r(0,1) = -sin(theta);
+  r(1,0) = -r(0,1); // sin(theta)
+  r(1,1) = r(0,0);  // cos(theta)
+  return r;
+}
+
 void computeMeanAndCovariance(
   std::vector<Vector> &data, 
   Vector &weights,
@@ -991,6 +1002,17 @@ void computeMeanAndCovariance(
   } else {
     cov = S / Neff;
   }
+}
+
+std::vector<Vector> transform(
+  std::vector<Vector> &x, 
+  Matrix &T
+) {
+  std::vector<Vector> y(x.size());
+  for (int i=0; i<x.size(); i++) {
+    y[i] = prod(T,x[i]);
+  }
+  return y;
 }
 
 /*!
@@ -1619,6 +1641,94 @@ std::vector<BVM_Ind> generateRandomComponentsInd(int num_components)
   return components;
 }
 
+// for initialize_children_2() in Mixture_Sine::split()
+std::vector<Vector> getInitialMeans(BVM_Sine &component,std::vector<Vector> &data, Vector &weights)
+{
+  double theta_abs;
+  
+  double kappa1 = component.Kappa1();
+  double kappa2 = component.Kappa2();
+  double lambda = component.Lambda();
+  if (kappa1 == kappa2) {
+    theta_abs = PI/4;
+  } else {
+    double tmp = (2 * lambda) / (kappa2 - kappa1);
+    theta_abs = 0.5 * atan(fabs(tmp));  // [0,pi/2)
+  }
+  double theta;
+  if (kappa1 == kappa2) {
+    if (lambda > 0) theta = theta_abs;
+    else theta = -theta_abs;
+  } else {
+    if (lambda > 0 && kappa2 > kappa1) {
+      theta = theta_abs;
+    } else if (lambda < 0 && kappa2 > kappa1) {
+      theta = -theta_abs;
+    } else if (lambda > 0 && kappa2 < kappa1) {
+      theta = -theta_abs;
+    } else if (lambda < 0 && kappa2 < kappa1) {
+      theta = theta_abs;
+    }
+  }
+  Matrix R = rotate_about_zaxis(theta);
+  Matrix Rt = trans(R);
+
+  double mu1 = component.Mean1();
+  double mu2 = component.Mean2();
+  std::vector<Vector> translated_data = data;
+  for (int i=0; i<translated_data.size(); i++) {
+    translated_data[i][0] -= mu1;
+    //if (translated_data[i][0] < 0) translated_data[i][0] += (2*PI);
+    translated_data[i][1] -= mu2;
+    //if (translated_data[i][1] < 0) translated_data[i][1] += (2*PI);
+  }
+  std::vector<Vector> transformed_data = transform(translated_data,Rt);
+
+  struct SufficientStatisticsSine suff_stats;
+  computeSufficientStatisticsSine(transformed_data,suff_stats,weights);
+
+  double cos_sum,sin_sum;
+  if (kappa2 >= kappa1) { // horizontal ellipse
+    cos_sum = suff_stats.cost1;
+    sin_sum = suff_stats.sint1;
+  } else {  // vertical ellipse
+    cos_sum = suff_stats.cost2;
+    sin_sum = suff_stats.sint2;
+  }
+  double rbar = (sqrt(cos_sum * cos_sum + sin_sum * sin_sum))/suff_stats.N;
+  double var = 1 - rbar;
+  double sigma = sqrt(var);
+  double t = asin(sigma); // [0,pi/2)
+
+  Vector m1(2,0),m2(2,0);
+  if (kappa2 >= kappa1) { // horizontal ellipse
+    m1[0] = sigma;
+    m2[0] = -sigma;
+  } else {  // vertical ellipse
+    m1[1] = sigma;
+    m2[1] = -sigma;
+  }
+
+  std::vector<Vector> init_means(2);
+  init_means[0] = prod(R,m1);
+  init_means[1] = prod(R,m2);
+  for (int i=0; i<2; i++) {
+    init_means[i][0] += mu1;
+    init_means[i][1] += mu2;
+    if (init_means[i][0] > 2*PI) {
+      init_means[i][0] -= (2*PI);
+    } else if (init_means[i][0] < 0) {
+      init_means[i][0] += (2*PI);
+    }
+    if (init_means[i][1] > 2*PI) {
+      init_means[i][1] -= (2*PI);
+    } else if (init_means[i][1] < 0) {
+      init_means[i][1] += (2*PI);
+    }
+  }
+  return init_means;
+}
+
 std::vector<BVM_Sine> generateRandomComponentsSine(int num_components)
 {
   std::vector<BVM_Sine> components;
@@ -1907,7 +2017,7 @@ void TestFunctions(void)
 
   //test.generate_mix_vmc();
 
-  test.bvm_ind_all_estimation();
+  //test.bvm_ind_all_estimation();
 
   //test.generate_bvm_sine();
 
@@ -1926,6 +2036,8 @@ void TestFunctions(void)
   //test.bvm_sine_ml_estimation();
 
   //test.bvm_sine_all_estimation();
+
+  test.bvm_sine_component_splitting();
 
   //test.testing_sample_empirical_distribution();
 

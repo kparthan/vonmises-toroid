@@ -131,7 +131,9 @@ Vector computeNormalizedVectorSum(std::vector<Vector> &);
 Matrix computeDispersionMatrix(std::vector<Vector> &);
 Matrix computeDispersionMatrix(std::vector<Vector> &, Vector &);
 Matrix computeNormalizedDispersionMatrix(std::vector<Vector> &);
+Matrix rotate_about_zaxis(double);
 void computeMeanAndCovariance(std::vector<Vector> &, Vector &, Vector &, Matrix &);
+std::vector<Vector> transform(std::vector<Vector> &, Matrix &);
 bool invertMatrix(const Matrix &, Matrix &);
 void eigenDecomposition(Matrix, Vector &, Matrix &);
 void jacobiRotateMatrix(Matrix &, Matrix &, int, int);
@@ -175,6 +177,7 @@ Mixture_Ind inferComponentsInd(std::vector<Vector> &, string &);
 Mixture_Ind inferComponents(Mixture_Ind &, int, ostream &);
 void updateInference(Mixture_Ind &, Mixture_Ind &, int, ostream &, int);
 
+std::vector<Vector> getInitialMeans(BVM_Sine &,std::vector<Vector> &, Vector &);
 std::vector<BVM_Sine> generateRandomComponentsSine(int);
 Mixture_Sine inferComponentsSine(std::vector<Vector> &, string &);
 Mixture_Sine inferComponents(Mixture_Sine &, int, ostream &);

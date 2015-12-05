@@ -288,6 +288,63 @@ void Test::bvm_sine_all_estimation()
   writeToFile("bvm_sine.dat",random_sample);
 }
 
+void Test::bvm_sine_component_splitting()
+{
+  struct Parameters parameters;
+  parameters.mixture_file = "./simulation/sample_mixtures/mix_example_test";
+  parameters.read_profiles = UNSET;
+  parameters.heat_map = SET;
+  parameters.res = 1;
+  parameters.sample_size = 1000;
+
+  Mixture_Sine original;
+  original.load(parameters.mixture_file);
+  bool save = 1;
+  std::vector<Vector> data = original.generate(parameters.sample_size,save);
+
+  double msglen = original.compress(data);
+  original.generateHeatmapData(parameters.res);
+  std::vector<std::vector<int> > bins = updateBins(data,parameters.res);
+  outputBins(bins,parameters.res);
+
+  Vector weights = original.getWeights();
+  std::vector<BVM_Sine> components = original.getComponents();
+  int K = components.size();
+  Vector emptyvec(parameters.sample_size,0);
+  std::vector<Vector> responsibility(K,emptyvec);
+  for (int i=0; i<parameters.sample_size; i++) {
+    Vector log_densities(K,0);
+    for (int j=0; j<K; j++) {
+      log_densities[j] = components[j].log_density(data[i]);
+    }
+    int max_index = maximumIndex(log_densities);
+    double max_log_density = log_densities[max_index];
+    for (int j=0; j<K; j++) {
+      log_densities[j] -= max_log_density; 
+    }
+    double px = 0;
+    Vector probabilities(K,0);
+    for (int j=0; j<K; j++) {
+      probabilities[j] = weights[j] * exp(log_densities[j]);
+      px += probabilities[j];
+    }
+    for (int j=0; j<K; j++) {
+      responsibility[j][i] = probabilities[j] / px;
+      assert(!boost::math::isnan(responsibility[j][i]));
+      assert(responsibility[j][i] >= 0);
+    }
+  }
+
+  for (int i=0; i<K; i++) {
+    std::vector<Vector> init_means = getInitialMeans(components[i],data,responsibility[i]);
+    for (int j=0; j<2; j++) {
+      cout << "c" << i+1 << j+1 << " = [" << init_means[j][0] * 180/PI << ", "
+           << init_means[j][1] * 180/PI << "];\t";
+    } // j
+    cout << endl;
+  } // i
+}
+
 void Test::testing_sample_empirical_distribution()
 {
   int N = 10000;
