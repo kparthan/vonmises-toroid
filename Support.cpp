@@ -613,6 +613,15 @@ double computeDotProduct(Vector &v1, Vector &v2)
   return dot_product;
 }
 
+// angle between two points on the torus
+double distance_between(Vector &angle_pair1, Vector &angle_pair2)
+{
+  Vector cartesian1(3,0),cartesian2(3,0);
+  toroid2cartesian(angle_pair1,cartesian1);
+  toroid2cartesian(angle_pair2,cartesian2);
+  return computeDotProduct(cartesian1,cartesian2);
+}
+
 Vector crossProduct(Vector &v1, Vector &v2) 
 {
   Vector ans(3,0);

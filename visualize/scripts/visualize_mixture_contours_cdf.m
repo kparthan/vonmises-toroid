@@ -42,14 +42,14 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
   set(xlabh,'interpreter','tex');
   set(ylabh,'interpreter','tex');
 
- % set(gca,'Xlim',[0 90]);
- % set(gca,'Ylim',[0 90]);
- % set(gca,'xtick',[0:30:90],'fontsize',10);
- % set(gca,'ytick',[0:30:90],'fontsize',10);
-  set(gca,'Xlim',[0 360]);
-  set(gca,'Ylim',[0 360]);
-  set(gca,'xtick',[0:60:360],'fontsize',10);
-  set(gca,'ytick',[0:60:360],'fontsize',10);
+  set(gca,'Xlim',[0 90]);
+  set(gca,'Ylim',[0 90]);
+  set(gca,'xtick',[0:30:90],'fontsize',10);
+  set(gca,'ytick',[0:30:90],'fontsize',10);
+ % set(gca,'Xlim',[0 360]);
+ % set(gca,'Ylim',[0 360]);
+ % set(gca,'xtick',[0:60:360],'fontsize',10);
+ % set(gca,'ytick',[0:60:360],'fontsize',10);
   phi = 0:1:359.9;  % meshgrid columns (X-axis)
   psi = 0:1:359.9;  % meshgrid rows (Y-axis)
 
@@ -143,9 +143,9 @@ function [] = visualize_mixture_contours_cdf(K,pdf)
   p1 = [45, 60]; 
   p2 = [30, 45]; 
   p3 = [50, 45];
-c11 = [58.501, 60.136]; c12 = [31.499, 59.864]; 
-c21 = [73.150, 41.870]; c22 = [346.850, 48.130];  
-c31 = [56.822, 67.105]; c32 = [43.178, 22.895];
+c11 = [47.977, 62.977]; c12 = [42.023, 57.023]; 
+c21 = [33.839, 41.161]; c22 = [26.161, 48.839]; 
+c31 = [57.759, 52.759]; c32 = [42.241, 37.241];
   plot_children(p1,c11,c12);
   plot_children(p2,c21,c22);
   plot_children(p3,c31,c32);

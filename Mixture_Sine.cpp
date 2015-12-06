@@ -123,6 +123,7 @@ Mixture_Sine Mixture_Sine::operator=(const Mixture_Sine &source)
     aic = source.aic;
     bic = source.bic;
     icl = source.icl;
+    mix_init_means = source.mix_init_means;
   }
   return *this;
 }
@@ -298,41 +299,20 @@ void Mixture_Sine::initialize_children_1()
   } // for(i)
 }
 
+void Mixture_Sine::setInitialMeans(std::vector<Vector> &init_means)
+{
+  assert(init_means.size() == K);
+  mix_init_means = init_means;
+}
+
 void Mixture_Sine::initialize_children_2()
 {
   assert(K == 2);
-  Vector mean;
-  Matrix cov;
-  computeMeanAndCovariance(data,data_weights,mean,cov);
 
-  /* eigen decomposition of cov */
-  int D = 2;
-  Vector eigen_values(D,0);
-  Matrix eigen_vectors = IdentityMatrix(D,D);
-  eigenDecomposition(cov,eigen_values,eigen_vectors);
-  //cout << "eigen_values: "; print(cout,eigen_values,3); cout << endl;
-  int max_eig = maximumIndex(eigen_values);
-  Vector projection_axis(D,0);
-  for (int i=0; i<D; i++) {
-    projection_axis[i] = eigen_vectors(i,max_eig);
-  }
-  std::vector<Vector> init_means(K);
-  init_means[0] = Vector(D,0);
-  init_means[1] = Vector(D,0);
-  double add;
-  for (int i=0; i<D; i++) {
-    add = sqrt(eigen_values[max_eig]) * projection_axis[i];
-    init_means[0][i] = mean[i] + add; 
-    init_means[1][i] = mean[i] - add;
-    if (init_means[0][i] > 2*PI)  init_means[0][i] -= 2*PI;
-    if (init_means[1][i] < 0)  init_means[1][i] += 2*PI;
-  }
-  //cout << "projection_axis: "; print(cout,projection_axis,3); cout << endl;
-  cout << "parent mean: [" << mean[0] * 180/PI << ", " << mean[1] * 180/PI << "]\n";
   for (int i=0; i<2; i++) {
-    cout << "init_means[" << i << "]: ("
-         << init_means[i][0] * 180/PI << ", "
-         << init_means[i][1] * 180/PI << ")\n";
+    cout << "mix_init_means[" << i << "]: ("
+         << mix_init_means[i][0] * 180/PI << ", "
+         << mix_init_means[i][1] * 180/PI << ")\n";
   }
 
   /* initialize memberships (hard) */
@@ -342,7 +322,7 @@ void Mixture_Sine::initialize_children_2()
   int nearest;
   for (int i=0; i<N; i++) {
     for (int j=0; j<K; j++) {
-      distances[j] = data_weights[i] * computeDotProduct(init_means[j],data[i]);
+      distances[j] = data_weights[i] * distance_between(mix_init_means[j],data[i]);
     } // for j()
     nearest = minimumIndex(distances);
     responsibility[nearest][i] = 1;
@@ -372,7 +352,7 @@ void Mixture_Sine::initialize_children_2()
     BVM_Sine bvm_sine_tmp;
     struct EstimatesSine initial_est = bvm_sine_tmp.computeInitialEstimates(suff_stats);
     BVM_Sine bvm_sine(
-      init_means[i][0],init_means[i][1],initial_est.kappa1,initial_est.kappa2,initial_est.lambda
+      mix_init_means[i][0],mix_init_means[i][1],initial_est.kappa1,initial_est.kappa2,initial_est.lambda
     );
     components.push_back(bvm_sine);
   } // for(i)
@@ -1145,9 +1125,10 @@ Mixture_Sine Mixture_Sine::split(int c, ostream &log)
   SPLITTING = 1;
   log << "\tSPLIT component " << c + 1 << " ... " << endl;
 
-  //Vector init_means = getInitialMeans(components[c],data,responsibility[c]);
+  std::vector<Vector> init_means = getInitialMeans(components[c],data,responsibility[c]);
   int num_children = 2; 
   Mixture_Sine m(num_children,data,responsibility[c]);
+  m.setInitialMeans(init_means);
   m.estimateParameters();
   log << "\t\tChildren:\n";
   m.printParameters(log,2); // print the child mixture

@@ -291,7 +291,8 @@ void Test::bvm_sine_all_estimation()
 void Test::bvm_sine_component_splitting()
 {
   struct Parameters parameters;
-  parameters.mixture_file = "./simulation/sample_mixtures/mix_example_test";
+  //parameters.mixture_file = "./simulation/sample_mixtures/mix_example_test";
+  parameters.mixture_file = "./simulation/sample_mixtures/mix_example";
   parameters.read_profiles = UNSET;
   parameters.heat_map = SET;
   parameters.res = 1;

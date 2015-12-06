@@ -109,6 +109,7 @@ void cartesian2spherical(Vector &, Vector &);
 void spherical2cartesian(Vector &, Vector &);
 void toroid2cartesian(Vector &, Vector &);
 double computeDotProduct(Vector &, Vector &);
+double distance_between(Vector &, Vector &);
 Vector crossProduct(Vector &, Vector &); 
 double computeSum(Vector &);
 double computeLogSurfaceAreaSphere(int);

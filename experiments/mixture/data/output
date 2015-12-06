@@ -1,0 +1,175 @@
+./main --mixture --profile random_sample_mix.dat --infer_components --log infer.log --pdf sine
+Checking command-line input ...
+Ik: 1
+Iw: 0
+It: 43.4439
+Il: 19681.1
+Total msglen: 19720.9
+Splitting component 1 ...
+mix_init_means[0]: (56.4591, 52.326)
+mix_init_means[1]: (35.0726, 47.196)
+Ik: 2
+Iw: 6.00263
+It: 91.268
+Il: 19456.3
+Total msglen: 19543.6
+Ik: 2
+Iw: 6.00611
+It: 91.5659
+Il: 19450.7
+Total msglen: 19538.2
+Splitting component 1 ...
+mix_init_means[0]: (67.0345, 52.4205)
+mix_init_means[1]: (50.7815, 37.7662)
+Ik: 2
+Iw: 5.98356
+It: 91.7516
+Il: 23224.9
+Total msglen: 23312.6
+Ik: 3
+Iw: 11.666
+It: 131.802
+Il: 19430.3
+Total msglen: 19557.1
+Splitting component 2 ...
+mix_init_means[0]: (43.3122, 58.2742)
+mix_init_means[1]: (30.1668, 47.8566)
+Ik: 2
+Iw: 6.09777
+It: 94.8354
+Il: 22141
+Total msglen: 22231.9
+Ik: 3
+Iw: 11.3635
+It: 138.129
+Il: 19247.1
+Total msglen: 19379.9
+Deleting component 1 ...
+Ik: 1
+Iw: 0
+It: 43.4439
+Il: 19681.1
+Total msglen: 19720.9
+Deleting component 2 ...
+Ik: 1
+Iw: 0
+It: 43.4439
+Il: 19681.1
+Total msglen: 19720.9
+Merging components 1 and 2 ...
+Ik: 1
+Iw: 0
+It: 43.4447
+Il: 19681.1
+Total msglen: 19720.9
+Ik: 1
+Iw: 0
+It: 43.4439
+Il: 19681.1
+Total msglen: 19720.9
+Merging components 2 and 1 ...
+Ik: 1
+Iw: 0
+It: 43.4447
+Il: 19681.1
+Total msglen: 19720.9
+Ik: 1
+Iw: 0
+It: 43.4439
+Il: 19681.1
+Total msglen: 19720.9
+Splitting component 1 ...
+mix_init_means[0]: (67.5417, 53.1431)
+mix_init_means[1]: (52.5029, 38.3788)
+stopping 
+Ik: 2
+Iw: 8.07154
+It: 81.3656
+Il: 24901.8
+Total msglen: 24981.2
+stopping 
+Ik: 4
+Iw: 18.5236
+It: 169.024
+Il: 19252.2
+Total msglen: 19416.3
+Splitting component 2 ...
+mix_init_means[0]: (48.7331, 62.2274)
+mix_init_means[1]: (41.0268, 58.0922)
+Ik: 2
+Iw: 6.19084
+It: 94.6983
+Il: 25995.7
+Total msglen: 26086.5
+Ik: 4
+Iw: 16.8786
+It: 178.257
+Il: 19243.5
+Total msglen: 19415.3
+Splitting component 3 ...
+mix_init_means[0]: (25.6757, 49.7908)
+mix_init_means[1]: (33.1909, 41.396)
+stopping 
+Ik: 2
+Iw: 8.09133
+It: 86.9661
+Il: 32075.9
+Total msglen: 32160.9
+stopping 
+Ik: 4
+Iw: 18.68
+It: 174.119
+Il: 19247.6
+Total msglen: 19417
+Deleting component 1 ...
+Ik: 2
+Iw: 6.01222
+It: 88.2863
+Il: 19557.3
+Total msglen: 19641.6
+Deleting component 2 ...
+Ik: 2
+Iw: 6.00103
+It: 91.2919
+Il: 19456.6
+Total msglen: 19543.9
+Deleting component 3 ...
+Ik: 2
+Iw: 6.0033
+It: 91.2596
+Il: 19456.4
+Total msglen: 19543.6
+Merging components 1 and 2 ...
+Ik: 1
+Iw: 0
+It: 43.967
+Il: 20130.6
+Total msglen: 20170.9
+Ik: 2
+Iw: 6.15164
+It: 89.0669
+Il: 19541.6
+Total msglen: 19626.8
+Merging components 2 and 1 ...
+Ik: 1
+Iw: 0
+It: 43.967
+Il: 20130.6
+Total msglen: 20170.9
+Ik: 2
+Iw: 6.15164
+It: 89.0669
+Il: 19541.6
+Total msglen: 19626.8
+Merging components 3 and 2 ...
+Ik: 1
+Iw: 0
+It: 47.2071
+Il: 21573.4
+Total msglen: 21617
+Ik: 2
+Iw: 6.00924
+It: 91.0303
+Il: 19457.2
+Total msglen: 19544.2
+

@@ -17,6 +17,8 @@ class Mixture_Sine
 
     //! List of components
     std::vector<BVM_Sine> components;
+
+    std::vector<Vector> mix_init_means;
     
     //! Sample (x_i) -- Cartesian coordinates
     //! (on a 3D torus)
@@ -85,6 +87,8 @@ class Mixture_Sine
 
     //! Gets the sample size
     Vector getSampleSize();
+
+    void setInitialMeans(std::vector<Vector> &);
 
     //! Initialize parameters
     void initialize();

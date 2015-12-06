@@ -36,26 +36,23 @@ function [] = heat_map_3D(file_name)
 
   % plot children means %
 
-  p1 = [45, 60]; 
-  p2 = [30, 45]; 
-  p3 = [50, 45];
-  plot_point_on_torus(p1,'k');
-  plot_point_on_torus(p2,'k');
-  plot_point_on_torus(p3,'k');
-
-c11 = [58.501, 60.136]; c12 = [31.499, 59.864]; 
-c21 = [73.150, 41.870]; c22 = [346.850, 48.130];  
-c31 = [56.822, 67.105]; c32 = [43.178, 22.895];
-
-  plot_point_on_torus(c11,'r'); plot_point_on_torus(c12,'r');
-  plot_point_on_torus(c21,'r'); plot_point_on_torus(c22,'r');
-  plot_point_on_torus(c31,'r'); plot_point_on_torus(c32,'r');
+%  p1 = [45, 60]; 
+%  p2 = [30, 45]; 
+%  p3 = [50, 45];
+%  plot_point_on_torus(p1,'k');
+%  plot_point_on_torus(p2,'k');
+%  plot_point_on_torus(p3,'k');
+%  c11 = [47.977, 62.977]; c12 = [42.023, 57.023]; 
+%  c21 = [33.839, 41.161]; c22 = [26.161, 48.839]; 
+%  c31 = [57.759, 52.759]; c32 = [42.241, 37.241];
+%  plot_point_on_torus(c11,'r'); plot_point_on_torus(c12,'r');
+%  plot_point_on_torus(c21,'r'); plot_point_on_torus(c22,'r');
+%  plot_point_on_torus(c31,'r'); plot_point_on_torus(c32,'r');
 
   % plot children means %
 
   %set(gca, 'visible', 'off');
   %view ([-139 40]);
-  %view ([61 -90]);
 
   axis off;
   %xlabel('X','fontsize',20);

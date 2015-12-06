@@ -161,7 +161,7 @@ void Experiments::traditional_search()
 {
   string exp_folder = "./experiments/mixture/";
 
-  string data_file = "mix_example.dat";
+  string data_file = "random_sample_mix.dat";
   std::vector<Vector> data = load_data_table(data_file);
 
   string all_inferred_mix = exp_folder + "mml_log";
